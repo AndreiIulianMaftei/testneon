@@ -41,20 +41,20 @@ inline void applyDivToRhs(
             rhsV[ownerV[f]] -= fluxCorrV[f];
             rhsV[neighbourV[f]] += fluxCorrV[f];
         },
-        "postAssembly::DdtPhiCorr"
+        "postAssembly::DdtFluxCorr"
     );
 }
 
 } // namespace detail
 
 template<typename ValueType>
-class DdtPhiCorr final : public NeoN::dsl::PostAssemblyBase<ValueType>
+class DdtFluxCorr final : public NeoN::dsl::PostAssemblyBase<ValueType>
 {
 public:
 
     static_assert(
         std::is_same_v<ValueType, NeoN::scalar>,
-        "DdtPhiCorr postAssembly is only valid for scalar equations"
+        "DdtFluxCorr postAssembly is only valid for scalar equations"
     );
 
     using VolVectorField = fvcc::VolumeField<Vec3>;
@@ -68,13 +68,13 @@ public:
      * @param flux    Face flux field
      * @param dt     Time step size
      */
-    DdtPhiCorr(
+    DdtFluxCorr(
         const DdtScheme& scheme, const VolVectorField& u, const SurfScalarField& flux, scalar dt
     )
         : scheme_(scheme), U_(u), flux_(flux), dt_(dt)
     {}
 
-    void operator()(const NeoN::la::SparsityPattern&, LinearSystem& ls) override
+    void operator()(const NeoN::la::SparsityPattern&, LinearSystem& ls) const override
     {
         auto fluxCorr = scheme_.ddtFluxCorr(U_, flux_, dt_);
         detail::applyDivToRhs(fluxCorr, ls);
