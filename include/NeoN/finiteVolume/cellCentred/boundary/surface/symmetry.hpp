@@ -32,7 +32,7 @@ inline void applySymmetry(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const localIdx owner = faceCellsV[i];
             const scalar v = internalValuesV[owner];
 
@@ -61,7 +61,7 @@ inline void applySymmetry(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const localIdx owner = faceCellsV[i];
             const Vec3 n = nHatV[i];
 

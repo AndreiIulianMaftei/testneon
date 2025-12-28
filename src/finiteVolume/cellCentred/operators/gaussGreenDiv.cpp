@@ -71,7 +71,7 @@ void computeDiv(
         parallelFor(
             exec,
             {0, nInternalFaces},
-            KOKKOS_LAMBDA(const localIdx i) {
+            NEON_LAMBDA(const localIdx i) {
                 ValueType flux = faceFlux[i] * phiF[i];
                 Kokkos::atomic_add(&res[owner[i]], flux);
                 Kokkos::atomic_sub(&res[neighbour[i]], flux);
@@ -82,7 +82,7 @@ void computeDiv(
         parallelFor(
             exec,
             {nInternalFaces, nInternalFaces + nBoundaryFaces},
-            KOKKOS_LAMBDA(const localIdx i) {
+            NEON_LAMBDA(const localIdx i) {
                 auto own = faceCells[i - nInternalFaces];
                 ValueType valueOwn = faceFlux[i] * phiF[i];
                 Kokkos::atomic_add(&res[own], valueOwn);
@@ -93,9 +93,7 @@ void computeDiv(
         parallelFor(
             exec,
             {0, nCells},
-            KOKKOS_LAMBDA(const localIdx celli) {
-                res[celli] *= operatorScaling[celli] / v[celli];
-            },
+            NEON_LAMBDA(const localIdx celli) { res[celli] *= operatorScaling[celli] / v[celli]; },
             "normalizeFluxes"
         );
     }
@@ -184,7 +182,7 @@ void computeDivImp(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto flux = faceFluxV[facei];
             auto weight = weightsV[facei];
             auto value = zero<ValueType>();
@@ -235,7 +233,7 @@ void computeDivImp(
     parallelFor(
         exec,
         {nInternalFaces, faceFluxV.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto bcfacei = facei - nInternalFaces;
             auto flux = bweights[bcfacei] * faceFluxV[facei];
 

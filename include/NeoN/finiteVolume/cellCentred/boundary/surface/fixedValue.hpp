@@ -33,7 +33,7 @@ void setFixedValue(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             refValue[i] = fixedValue;
             value[i] = fixedValue;
             internalValues[nInternalFaces + i] = fixedValue;

@@ -43,7 +43,7 @@ void setGradientValue(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             refGradient[i] = fixedGradient;
             // operator / is not defined for all ValueTypes
             value[i] = iVector[faceCells[i]] + fixedGradient * (1 / deltaCoeffs[i]);

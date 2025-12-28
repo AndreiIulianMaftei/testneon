@@ -30,7 +30,7 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
     parallelFor(
         source.exec(),
         source.range(),
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             sourceView[celli] += dtInver * (field[celli] - oldVector[celli]) * vol[celli];
         },
         "ddtOpertator::explicitOperation"
@@ -53,7 +53,7 @@ void DdtOperator<ValueType>::bdf1Kernel(
     parallelFor(
         ls.exec(),
         {0, oldVector.size()},
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
             const auto commonCoef = operatorScaling[celli] * vol[celli];
             matrix.values[idx] += commonCoef * a0a1 * one<ValueType>();

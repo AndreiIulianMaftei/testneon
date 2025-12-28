@@ -47,7 +47,7 @@ void updateSparsityPatternSerial(const UnstructuredMesh& mesh, SparsityPattern& 
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             // hit on performance on serial
             auto own = faceOwnHV[facei];
             auto nei = faceNeiHV[facei];
@@ -70,7 +70,7 @@ void updateSparsityPatternSerial(const UnstructuredMesh& mesh, SparsityPattern& 
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto nei = faceNeiHV[facei];
             auto own = faceOwnHV[facei];
 
@@ -90,7 +90,7 @@ void updateSparsityPatternSerial(const UnstructuredMesh& mesh, SparsityPattern& 
 
     map(
         nFacesPerCellH,
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             auto nFaces = nFacesPerCellHV[celli];
             diagOffsetHV[celli] = static_cast<uint8_t>(nFaces);
             colIdxHV[rowOffsHV[celli] + nFaces] = celli;
@@ -102,7 +102,7 @@ void updateSparsityPatternSerial(const UnstructuredMesh& mesh, SparsityPattern& 
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto nei = faceNeiHV[facei];
             auto own = faceOwnHV[facei];
 
@@ -146,7 +146,7 @@ void updateSparsityPatternParallel(const UnstructuredMesh& mesh, SparsityPattern
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             // hit on performance on serial
             auto owner = faceOwner[facei];
             auto neighbour = faceNeiV[facei];
@@ -167,7 +167,7 @@ void updateSparsityPatternParallel(const UnstructuredMesh& mesh, SparsityPattern
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto neighbour = faceNeiV[facei];
             auto owner = faceOwner[facei];
 
@@ -186,7 +186,7 @@ void updateSparsityPatternParallel(const UnstructuredMesh& mesh, SparsityPattern
 
     map(
         nFacesPerCell,
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             auto nFaces = nFacesPerCellView[celli];
             diagOffsetView[celli] = static_cast<uint8_t>(nFaces);
             colIdxV[rowOffs[celli] + nFaces] = celli;
@@ -198,7 +198,7 @@ void updateSparsityPatternParallel(const UnstructuredMesh& mesh, SparsityPattern
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto neighbour = faceNeiV[facei];
             auto owner = faceOwner[facei];
 

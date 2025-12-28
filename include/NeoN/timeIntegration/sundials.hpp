@@ -93,7 +93,7 @@ void fieldToSunNVectorImpl(const NeoN::Vector<ValueType>& field, N_Vector& vecto
     NeoN::parallelFor(
         field.exec(),
         field.range(),
-        KOKKOS_LAMBDA(const localIdx i) { view(i) = fieldView[i]; },
+        NEON_LAMBDA(const localIdx i) { view(i) = fieldView[i]; },
         "fieldToSunNVector"
     );
 };
@@ -147,7 +147,7 @@ void sunNVectorToVectorImpl(const N_Vector& vector, NeoN::Vector<ValueType>& fie
     NeoN::parallelFor(
         field.exec(),
         field.range(),
-        KOKKOS_LAMBDA(const localIdx i) { fieldData[i] = view(i); },
+        NEON_LAMBDA(const localIdx i) { fieldData[i] = view(i); },
         "sunNVectorToVectorImpl"
     );
 };

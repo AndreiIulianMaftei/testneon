@@ -25,7 +25,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             Kokkos::atomic_inc(&nFacesPerCellView[static_cast<size_t>(faceOwner[i])]);
             Kokkos::atomic_inc(&nFacesPerCellView[static_cast<size_t>(faceNeighbour[i])]);
         },
@@ -35,7 +35,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
     parallelFor(
         exec,
         {0, boundaryFaceCells.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             Kokkos::atomic_inc(&nFacesPerCellView[boundaryFaceCells[i]]);
         },
         "countFacesPerCellBoundary"
@@ -49,7 +49,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             localIdx owner = faceOwner[facei];
             localIdx neighbour = faceNeighbour[facei];
 
@@ -67,7 +67,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
     parallelFor(
         exec,
         {nInternalFaces, nInternalFaces + boundaryFaceCells.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             localIdx owner = boundaryFaceCells[facei - nInternalFaces];
             localIdx segIdxOwn = Kokkos::atomic_fetch_add(&nFacesPerCellView[owner], 1);
             localIdx startSegOwn = segment[owner];

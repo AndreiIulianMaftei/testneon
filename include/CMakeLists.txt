@@ -11,6 +11,12 @@ add_library(NeoN::NeoN_public_api ALIAS NeoN_public_api) # dummy target
 target_include_directories(
   NeoN_public_api INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:.>)
+if(NeoN_WITH_KOKKOS)
+  target_compile_definitions(NeoN_public_api INTERFACE NF_WITH_KOKKOS=1)
+  target_link_libraries(NeoN_public_api INTERFACE Kokkos::kokkos)
+else()
+  target_compile_definitions(NeoN_public_api INTERFACE NF_WITH_KOKKOS=0)
+endif()
 
 if(NeoN_WITH_GINKGO)
   target_link_libraries(NeoN_public_api INTERFACE nlohmann_json::nlohmann_json Ginkgo::ginkgo)
@@ -34,7 +40,7 @@ else()
   target_compile_definitions(NeoN_public_api INTERFACE NF_WITH_SPDLOG=0)
 endif()
 
-target_link_libraries(NeoN_public_api INTERFACE cpptrace::cpptrace Kokkos::kokkos)
+target_link_libraries(NeoN_public_api INTERFACE cpptrace::cpptrace)
 
 if(NeoN_WITH_PETSC)
   add_definitions(${PETSc_DEFINITIONS})

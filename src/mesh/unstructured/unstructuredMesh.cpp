@@ -128,7 +128,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
     parallelFor(
         exec,
         {0, nCells - 1},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             meshPointsView[i][0] = leftBoundaryX + static_cast<scalar>(i + 1) * meshSpacing;
         },
         "computeMeshPoints"
@@ -141,7 +141,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
     parallelFor(
         exec,
         {0, nCells},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             cellCentersView[i][0] = 0.5 * meshSpacing + meshSpacing * static_cast<scalar>(i);
         },
         "computeCellCenters"
@@ -169,7 +169,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
     parallelFor(
         exec,
         {0, nCells - 1},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             faceOwnerView[i] = i;
             faceNeighborView[i] = i + 1;
         },

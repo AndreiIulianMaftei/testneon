@@ -165,7 +165,7 @@ createEmptyLinearSystem(const UnstructuredMesh& mesh, const SparsityPattern& spa
     parallelFor(
         exec,
         {0, nBoundaryFaces},
-        KOKKOS_LAMBDA(const localIdx bfacei) {
+        NEON_LAMBDA(const localIdx bfacei) {
             localIdx celli = faceCells[bfacei];
 
             mValue[bfacei] = zero<ValueType>();

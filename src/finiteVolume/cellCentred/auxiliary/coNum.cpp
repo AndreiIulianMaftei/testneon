@@ -38,7 +38,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             scalar flux = Kokkos::sqrt(surfFaceFlux[i] * surfFaceFlux[i]);
             Kokkos::atomic_add(&volPhi[surfOwner[i]], flux);
             Kokkos::atomic_add(&volPhi[surfNeighbour[i]], flux);
@@ -49,7 +49,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     parallelFor(
         exec,
         {nInternalFaces, faceFlux.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             auto own = surfFaceCells[i - nInternalFaces];
             scalar flux = Kokkos::sqrt(surfFaceFlux[i] * surfFaceFlux[i]);
             Kokkos::atomic_add(&volPhi[own], flux);
@@ -64,7 +64,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     parallelReduce(
         exec,
         {0, mesh.nCells()},
-        KOKKOS_LAMBDA(const localIdx celli, NeoN::scalar& lmax) {
+        NEON_LAMBDA(const localIdx celli, NeoN::scalar& lmax) {
             NeoN::scalar val = (volPhi[celli] / surfV[celli]);
             if (val > lmax) lmax = val;
         },
@@ -76,7 +76,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     parallelReduce(
         exec,
         {0, mesh.nCells()},
-        KOKKOS_LAMBDA(const localIdx celli, scalar& lsum) { lsum += volPhi[celli]; },
+        NEON_LAMBDA(const localIdx celli, scalar& lsum) { lsum += volPhi[celli]; },
         sumPhi
     );
 
@@ -85,7 +85,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     parallelReduce(
         exec,
         {0, mesh.nCells()},
-        KOKKOS_LAMBDA(const localIdx celli, scalar& lsum) { lsum += surfV[celli]; },
+        NEON_LAMBDA(const localIdx celli, scalar& lsum) { lsum += surfV[celli]; },
         sumVol
     );
 

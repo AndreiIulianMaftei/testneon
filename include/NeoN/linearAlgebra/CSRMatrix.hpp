@@ -233,13 +233,13 @@ private:
 //     Vector<ValueTypeOut> valuesTmp(exec, in.values.data(), in.values.size());
 
 //     parallelFor(
-//         colIdxsTmp, KOKKOS_LAMBDA(const localIdx i) { return IndexTypeOut {in.colIdxs[i]}; }
+//         colIdxsTmp, NEON_LAMBDA(const localIdx i) { return IndexTypeOut {in.colIdxs[i]}; }
 //     );
 //     parallelFor(
-//         rowOffsTmp, KOKKOS_LAMBDA(const localIdx i) { return IndexTypeOut {in.rowOffs[i]}; }
+//         rowOffsTmp, NEON_LAMBDA(const localIdx i) { return IndexTypeOut {in.rowOffs[i]}; }
 //     );
 //     parallelFor(
-//         valuesTmp, KOKKOS_LAMBDA(const localIdx i) { return ValueTypeOut {in.values[i]}; }
+//         valuesTmp, NEON_LAMBDA(const localIdx i) { return ValueTypeOut {in.values[i]}; }
 //     );
 
 //     return la::CSRMatrix<ValueTypeOut, IndexTypeOut> {valuesTmp, colIdxsTmp, rowOffsTmp};
