@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -10,7 +10,8 @@
 #include "NeoN/core/database/collection.hpp"
 #include "NeoN/core/database/document.hpp"
 #include "NeoN/core/database/fieldCollection.hpp"
-
+#include "NeoN/finiteVolume/cellCentred/fields/volumeField.hpp"
+#include "NeoN/finiteVolume/cellCentred/fields/surfaceField.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -95,8 +96,11 @@ public:
                 .iterationIndex = fieldDoc.iterationIndex(),
                 .subCycleIndex = fieldDoc.subCycleIndex()
             });
-        OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", -1);
-        setCurrentVectorAndLevel(oldTimeDocument);
+        // OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", -1);
+        OldTimeDocument oldTimeDocument(
+            fieldDoc.field<VectorType>().key, oldVector.key, fieldDoc.field<VectorType>().key, 0
+        );
+        // setCurrentVectorAndLevel(oldTimeDocument);
         insert(oldTimeDocument);
         return oldVector;
     }
@@ -168,5 +172,23 @@ const VectorType& oldTime(const VectorType& field)
     const OldTimeCollection& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
     return oldTimeCollection.get<VectorType>(field.key);
 }
+
+template<typename VectorType>
+inline int oldTimeLevel(const VectorType& field)
+{
+    const auto& fieldCollection = VectorCollection::instance(field);
+    const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
+
+    std::string nextId = oldTimeCollection.findNextTime(field.key);
+    if (nextId.empty())
+    {
+        return 0;
+    }
+
+    return oldTimeCollection.oldTimeDoc(nextId).level();
+}
+
+template<typename VectorType>
+void rotate(VectorType& field);
 
 } // namespace NeoN

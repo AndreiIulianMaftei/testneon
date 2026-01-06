@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -13,7 +13,7 @@
 #include "NeoN/core/input.hpp"
 #include "NeoN/dsl/coeff.hpp"
 #include "NeoN/dsl/operator.hpp"
-#include "NeoN/timeIntegration/ddt/DdtScheme.hpp"
+#include "NeoN/finiteVolume/cellCentred/operators/ddtOperator.hpp"
 
 namespace NeoN::dsl
 {
@@ -95,7 +95,13 @@ public:
     /* @brief Get the executor */
     const Executor& exec() const { return model_->exec(); }
 
-    const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return model_->ddtScheme(); }
+    //   virtual std::optional<finiteVolume::cellCentred::DdtScheme>
+    //   ddtScheme() const
+    //   {
+    //       return std::nullopt;
+    //   }
+    //    const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return model_->ddtScheme(); }
+    NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const { return model_->ddtScheme(); }
 
 private:
 
@@ -129,7 +135,13 @@ private:
         /* @brief Get the executor */
         virtual const Executor& exec() const = 0;
 
-        virtual const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return nullptr; }
+        //        virtual const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return
+        //        nullptr; }
+
+        virtual NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const
+        {
+            return NeoN::finiteVolume::cellCentred::DdtScheme::None;
+        }
 
         // The Prototype Design Pattern
         virtual std::unique_ptr<TemporalOperatorConcept> clone() const = 0;
@@ -179,18 +191,29 @@ private:
         /* @brief get the associated coefficient for this term */
         virtual Coeff getCoefficient() const override { return concreteOp_.getCoefficient(); }
 
-        const NeoN::timeIntegration::DdtScheme* ddtScheme() const override
+        NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const override
         {
             if constexpr (requires { concreteOp_.scheme(); })
             {
-                return &concreteOp_.scheme();
+                return concreteOp_.scheme();
             }
             else
             {
-                return nullptr;
+                return NeoN::finiteVolume::cellCentred::DdtScheme::None;
             }
         }
-
+        /*        const NeoN::timeIntegration::DdtScheme* ddtScheme() const override
+                {
+                    if constexpr (requires { concreteOp_.scheme(); })
+                    {
+                        return &concreteOp_.scheme();
+                    }
+                    else
+                    {
+                        return nullptr;
+                    }
+                }
+        */
         // The Prototype Design Pattern
         std::unique_ptr<TemporalOperatorConcept> clone() const override
         {

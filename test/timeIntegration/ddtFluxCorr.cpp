@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -68,7 +68,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
         fvcc::DdtOperator<Vec3> ddtOp(NeoN::dsl::Operator::Type::Implicit, u);
         ddtOp.read(fvSchemes);
 
-        const auto& scheme = ddtOp.scheme();
+        auto scheme = ddtOp.scheme();
 
         const Scalar dt = 0.2;
         const Scalar invDt = 1.0 / dt;
@@ -108,7 +108,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
 
             flux.internalVector() = flux0.internalVector();
 
-            auto fluxCorr = scheme.ddtFluxCorr(u, flux, dt);
+            auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrH = fluxCorr.internalVector().copyToHost();
 
             for (size_t i = 0; i < mesh.nFaces(); ++i)
@@ -123,7 +123,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             flux.internalVector() = Scalar {0.0};
 
             auto expected = expectedFrom(flux0);
-            auto fluxCorr = scheme.ddtFluxCorr(u, flux, dt);
+            auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrH = fluxCorr.internalVector().copyToHost();
 
             for (size_t i = 0; i < mesh.nFaces(); ++i)

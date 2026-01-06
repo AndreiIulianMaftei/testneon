@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -37,7 +37,8 @@ la::SolverStats iterativeSolveImpl(
     scalar dt,
     const Dictionary& fvSchemes,
     const Dictionary& fvSolution,
-    std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
+    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
+    std::vector<PostAssemblyBase<typename VectorType::ElementType>> ps
 )
 {
     exp.read(fvSchemes);
@@ -66,7 +67,8 @@ la::SolverStats iterativeSolveImpl(
     scalar t,
     scalar dt,
     const Dictionary& fvSolution,
-    std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
+    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
+    std::vector<PostAssemblyBase<typename VectorType::ElementType>> ps
 )
 {
     auto [sparsity, ls] = exp.assemble(solution.mesh(), t, dt, ps);
@@ -106,7 +108,8 @@ la::SolverStats solve(
     scalar dt,
     const Dictionary& fvSchemes,
     const Dictionary& fvSolution,
-    std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> p = {}
+    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> p = {}
+    std::vector<PostAssemblyBase<typename VectorType::ElementType>> p = {}
 )
 {
     if (exp.temporalOperators().size() == 0 && exp.spatialOperators().size() == 0)
@@ -126,6 +129,8 @@ la::SolverStats solve(
     }
     else
     {
+        // return detail::iterativeSolveImpl(exp, solution, t, dt, fvSolution, std::move(p));
+        NF_INFO("Running iterativeSolveImpl");
         return detail::iterativeSolveImpl(exp, solution, t, dt, fvSolution, p);
     }
 }

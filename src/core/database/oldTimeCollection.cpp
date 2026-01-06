@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -63,7 +63,7 @@ const OldTimeDocument& OldTimeCollection::oldTimeDoc(const std::string& id) cons
 {
     return docs_.at(id);
 }
-
+/*
 void OldTimeCollection::setCurrentVectorAndLevel(OldTimeDocument& oldTimeDoc)
 {
     // find the document which has the previousTime identical to the nextTime
@@ -80,7 +80,7 @@ void OldTimeCollection::setCurrentVectorAndLevel(OldTimeDocument& oldTimeDoc)
     oldTimeDoc.currentTime() = nextDoc.currentTime();
     oldTimeDoc.level() = nextDoc.level() + 1;
 }
-
+*/
 bool OldTimeCollection::contains(const std::string& id) const
 {
     return docs_.contains(id);
@@ -144,5 +144,46 @@ const OldTimeCollection& OldTimeCollection::instance(const VectorCollection& fie
     return instance(fieldCollection.db(), name);
 }
 
+template<typename VectorType>
+void rotate(VectorType& field)
+{
+    VectorCollection& fieldCollection = VectorCollection::instance(field);
+    OldTimeCollection& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
+
+    // Get or create phi^n (oldTime)
+    VectorType& oldVector = oldTime(field);
+    // oldTimeCollection.getOrInsert<VectorType>(field.key);
+
+    // find head doc (the one with nextTime == field.key)
+    const std::string headId = oldTimeCollection.findNextTime(field.key);
+    OldTimeDocument& oldTimeDoc =
+        // oldTimeCollection.oldTimeDoc(oldVector.key);
+        oldTimeCollection.oldTimeDoc(headId);
+
+    // If we already have at least one level, rotate old -> oldOld
+    if (oldTimeDoc.level() >= 1)
+    {
+        VectorType& oldOldVector =
+            // oldTimeCollection.getOrInsert<VectorType>(oldVector.key);
+            oldTime(oldVector);
+
+        oldOldVector.internalVector() = oldVector.internalVector();
+    }
+
+    // Rotate current -> old
+    oldVector.internalVector() = field.internalVector();
+
+    // Increase history depth, capped at 2
+    oldTimeDoc.level() = std::min(oldTimeDoc.level() + 1, 2);
+}
+
+template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<
+    NeoN::scalar>>(NeoN::finiteVolume::cellCentred::VolumeField<NeoN::scalar>&);
+
+template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<
+    NeoN::Vec3>>(NeoN::finiteVolume::cellCentred::VolumeField<NeoN::Vec3>&);
+
+template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::SurfaceField<
+    NeoN::scalar>>(NeoN::finiteVolume::cellCentred::SurfaceField<NeoN::scalar>&);
 
 } // namespace NeoN::finiteVolume::cellCentred

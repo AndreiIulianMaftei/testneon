@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -6,8 +6,6 @@
 #include "NeoN/core/database/oldTimeCollection.hpp"
 #include "NeoN/finiteVolume/cellCentred/operators/ddtOperator.hpp"
 #include "NeoN/core/dictionary.hpp"
-#include "NeoN/timeIntegration/ddt/BDF1.hpp"
-#include "NeoN/timeIntegration/ddt/BDF2.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -22,7 +20,7 @@ DdtOperator<ValueType>::DdtOperator(dsl::Operator::Type termType, VolumeField<Va
       sparsityPattern_(la::SparsityPattern::readOrCreate(field.mesh())) {};
 
 template<typename ValueType>
-void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar, scalar dt) const
+void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) const
 {
     const scalar dtInver = 1.0 / dt;
     const auto vol = this->getVector().mesh().cellVolumes().view();
@@ -40,8 +38,8 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::implicitOperation(
-    la::LinearSystem<ValueType, localIdx>& ls, scalar, scalar dt
+void DdtOperator<ValueType>::BDF1kernel(
+    la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
 ) const
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();
@@ -50,51 +48,75 @@ void DdtOperator<ValueType>::implicitOperation(
         views(getSparsityPattern().diagOffset(), oldTime(this->field_).internalVector());
     auto [matrix, rhs] = ls.view();
 
-    const bool useMultistep = (scheme_->nSteps() > 1) && (!firstTimeStep_);
-    const bool useStartup = (scheme_->nSteps() > 1) && (firstTimeStep_);
+    const scalar a0_a1 = 1.0 / dt;
 
-    // Select coefficients for the single-step kernel:
-    // - if startup (BDF2 first step), use a0Startup/a1Startup
-    // - else use the scheme's normal a0/a1
-    const scalar a0 = useStartup ? scheme_->a0Startup(dt) : scheme_->a0(dt);
-    const scalar a1 = useStartup ? scheme_->a1Startup(dt) : scheme_->a1(dt);
-
-    if (!useMultistep)
-    {
-        parallelFor(
-            ls.exec(),
-            {0, oldVector.size()},
-            KOKKOS_LAMBDA(const localIdx celli) {
-                const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
-                const auto commonCoef = operatorScaling[celli] * vol[celli];
-                matrix.values[idx] += commonCoef * a0 * one<ValueType>();
-                rhs[celli] += commonCoef * a1 * oldVector[celli];
-            },
-            "ddtOperator::implicitOperation<nSteps=1>"
-        );
-    }
-    else
-    {
-        const auto oldOldVector = oldTime(oldTime(this->field_)).internalVector().view();
-        const scalar a2 = scheme_->a2(dt);
-        parallelFor(
-            ls.exec(),
-            {0, oldVector.size()},
-            KOKKOS_LAMBDA(const localIdx celli) {
-                const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
-                const auto commonCoef = operatorScaling[celli] * vol[celli];
-                matrix.values[idx] += commonCoef * a0 * one<ValueType>();
-                rhs[celli] +=
-                    commonCoef * a1 * oldVector[celli] + commonCoef * a2 * oldOldVector[celli];
-            },
-            "ddtOperator::implicitOperation<nSteps=2>"
-        );
-    }
-    firstTimeStep_ = false;
+    parallelFor(
+        ls.exec(),
+        {0, oldVector.size()},
+        KOKKOS_LAMBDA(const localIdx celli) {
+            const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
+            const auto commonCoef = operatorScaling[celli] * vol[celli];
+            matrix.values[idx] += commonCoef * a0_a1 * one<ValueType>();
+            rhs[celli] += commonCoef * a0_a1 * oldVector[celli];
+        },
+        "ddtOperator::implicitOperation<BDF1>"
+    );
 }
 
 template<typename ValueType>
-timeIntegration::BDF1 DdtOperator<ValueType>::DEFAULT_BDF1_SCHEME {};
+void DdtOperator<ValueType>::BDF2kernel(
+    la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
+) const
+{
+    const auto vol = this->getVector().mesh().cellVolumes().view();
+    const auto operatorScaling = this->getCoefficient();
+    auto& old = oldTime(this->field_);
+    auto& oldOld = oldTime(old);
+    const auto [diagOffs, oldVector, oldOldVector] =
+        views(getSparsityPattern().diagOffset(), old.internalVector(), oldOld.internalVector());
+    auto [matrix, rhs] = ls.view();
+
+    const scalar a0 = 1.5 / dt;
+    const scalar a1 = 2.0 / dt;
+    const scalar a2 = -0.5 / dt;
+
+    parallelFor(
+        ls.exec(),
+        {0, oldVector.size()},
+        KOKKOS_LAMBDA(const localIdx celli) {
+            const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
+            const auto commonCoef = operatorScaling[celli] * vol[celli];
+            matrix.values[idx] += commonCoef * a0 * one<ValueType>();
+            rhs[celli] +=
+                commonCoef * a1 * oldVector[celli] + commonCoef * a2 * oldOldVector[celli];
+        },
+        "ddtOperator::implicitOperation<BDF2>"
+    );
+}
+
+template<typename ValueType>
+void DdtOperator<ValueType>::implicitOperation(
+    la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
+) const
+{
+    const int level = oldTimeLevel(this->field_);
+
+    if (scheme_ == DdtScheme::BDF1)
+    {
+        BDF1kernel(ls, t, dt);
+        NF_INFO("BDF1 Kernel");
+    }
+    else if (level < 2)
+    {
+        BDF1kernel(ls, t, dt); // startup step
+        NF_INFO("BDF2 startup2 kerel");
+    }
+    else
+    {
+        NF_INFO("BDF2 Kernel");
+        BDF2kernel(ls, t, dt);
+    }
+}
 
 template<typename ValueType>
 void DdtOperator<ValueType>::read(const Input& input)
@@ -125,13 +147,13 @@ void DdtOperator<ValueType>::read(const Input& input)
     // TODO (later: steadyState, CrankNicolson, etc.)
     if (schemeName == "BDF1")
     {
-        scheme_ = &DEFAULT_BDF1_SCHEME;
+        scheme_ = DdtScheme::BDF1;
         return;
     }
-    static timeIntegration::BDF2 bdf2Scheme;
+    // static timeIntegration::BDF2 bdf2Scheme;
     if (schemeName == "BDF2")
     {
-        scheme_ = &bdf2Scheme;
+        scheme_ = DdtScheme::BDF2;
         return;
     }
 
@@ -141,7 +163,6 @@ void DdtOperator<ValueType>::read(const Input& input)
         this->field_.name
     ));
 }
-
 
 // instantiate the template class
 template class DdtOperator<scalar>;
