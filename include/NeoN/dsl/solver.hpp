@@ -37,7 +37,6 @@ la::SolverStats iterativeSolveImpl(
     scalar dt,
     const Dictionary& fvSchemes,
     const Dictionary& fvSolution,
-    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
     std::vector<PostAssemblyBase<typename VectorType::ElementType>> ps
 )
 {
@@ -67,7 +66,6 @@ la::SolverStats iterativeSolveImpl(
     scalar t,
     scalar dt,
     const Dictionary& fvSolution,
-    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> ps
     std::vector<PostAssemblyBase<typename VectorType::ElementType>> ps
 )
 {
@@ -108,7 +106,6 @@ la::SolverStats solve(
     scalar dt,
     const Dictionary& fvSchemes,
     const Dictionary& fvSolution,
-    // std::span<const PostAssemblyBase<typename VectorType::ElementType>* const> p = {}
     std::vector<PostAssemblyBase<typename VectorType::ElementType>> p = {}
 )
 {
@@ -129,8 +126,6 @@ la::SolverStats solve(
     }
     else
     {
-        // return detail::iterativeSolveImpl(exp, solution, t, dt, fvSolution, std::move(p));
-        NF_INFO("Running iterativeSolveImpl");
         return detail::iterativeSolveImpl(exp, solution, t, dt, fvSolution, p);
     }
 }

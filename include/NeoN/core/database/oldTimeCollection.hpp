@@ -96,11 +96,8 @@ public:
                 .iterationIndex = fieldDoc.iterationIndex(),
                 .subCycleIndex = fieldDoc.subCycleIndex()
             });
-        // OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", -1);
-        OldTimeDocument oldTimeDocument(
-            fieldDoc.field<VectorType>().key, oldVector.key, fieldDoc.field<VectorType>().key, 0
-        );
-        // setCurrentVectorAndLevel(oldTimeDocument);
+        OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", 0);
+        setCurrentVectorAndLevel(oldTimeDocument);
         insert(oldTimeDocument);
         return oldVector;
     }
@@ -179,6 +176,28 @@ inline int oldTimeLevel(const VectorType& field)
     const auto& fieldCollection = VectorCollection::instance(field);
     const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
 
+    int level = 0;
+    std::string currentId = field.key;
+
+    while (true)
+    {
+        std::string nextId = oldTimeCollection.findNextTime(currentId);
+        if (nextId.empty())
+        {
+            return level;
+        }
+
+        ++level;
+        currentId = oldTimeCollection.oldTimeDoc(nextId).previousTime();
+    }
+}
+/*
+template<typename VectorType>
+inline int oldTimeLevel(const VectorType& field)
+{
+    const auto& fieldCollection = VectorCollection::instance(field);
+    const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
+
     std::string nextId = oldTimeCollection.findNextTime(field.key);
     if (nextId.empty())
     {
@@ -187,7 +206,7 @@ inline int oldTimeLevel(const VectorType& field)
 
     return oldTimeCollection.oldTimeDoc(nextId).level();
 }
-
+*/
 template<typename VectorType>
 void rotate(VectorType& field);
 

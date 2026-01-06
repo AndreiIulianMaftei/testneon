@@ -63,7 +63,7 @@ const OldTimeDocument& OldTimeCollection::oldTimeDoc(const std::string& id) cons
 {
     return docs_.at(id);
 }
-/*
+
 void OldTimeCollection::setCurrentVectorAndLevel(OldTimeDocument& oldTimeDoc)
 {
     // find the document which has the previousTime identical to the nextTime
@@ -80,7 +80,7 @@ void OldTimeCollection::setCurrentVectorAndLevel(OldTimeDocument& oldTimeDoc)
     oldTimeDoc.currentTime() = nextDoc.currentTime();
     oldTimeDoc.level() = nextDoc.level() + 1;
 }
-*/
+
 bool OldTimeCollection::contains(const std::string& id) const
 {
     return docs_.contains(id);
@@ -152,20 +152,15 @@ void rotate(VectorType& field)
 
     // Get or create phi^n (oldTime)
     VectorType& oldVector = oldTime(field);
-    // oldTimeCollection.getOrInsert<VectorType>(field.key);
 
     // find head doc (the one with nextTime == field.key)
     const std::string headId = oldTimeCollection.findNextTime(field.key);
-    OldTimeDocument& oldTimeDoc =
-        // oldTimeCollection.oldTimeDoc(oldVector.key);
-        oldTimeCollection.oldTimeDoc(headId);
+    OldTimeDocument& oldTimeDoc = oldTimeCollection.oldTimeDoc(headId);
 
     // If we already have at least one level, rotate old -> oldOld
-    if (oldTimeDoc.level() >= 1)
+    if (oldTimeDoc.level() >= 2)
     {
-        VectorType& oldOldVector =
-            // oldTimeCollection.getOrInsert<VectorType>(oldVector.key);
-            oldTime(oldVector);
+        VectorType& oldOldVector = oldTime(oldVector);
 
         oldOldVector.internalVector() = oldVector.internalVector();
     }
@@ -173,8 +168,10 @@ void rotate(VectorType& field)
     // Rotate current -> old
     oldVector.internalVector() = field.internalVector();
 
+    //   oldTimeDoc.currentTime() = field.key;
+
     // Increase history depth, capped at 2
-    oldTimeDoc.level() = std::min(oldTimeDoc.level() + 1, 2);
+    //    oldTimeDoc.level() = std::min(oldTimeDoc.level() + 1, 2);
 }
 
 template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<

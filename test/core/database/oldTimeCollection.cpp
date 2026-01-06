@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -156,6 +156,8 @@ TEST_CASE("oldTimeCollection")
         {
             auto& tOld = fvcc::oldTime(t);
 
+            fvcc::rotate(t);
+
             REQUIRE(tOld.name == "T_0");
             auto tOldHost = tOld.internalVector().copyToHost();
             REQUIRE(tOldHost.view()[0] == 1.0);
@@ -171,8 +173,11 @@ TEST_CASE("oldTimeCollection")
             REQUIRE(tOldDoc.level() == 1);
 
             auto& sametOld = fvcc::oldTime(t);
+
             // check if the same field is returned
             REQUIRE(&tOld == &sametOld);
+
+            fvcc::rotate(t);
 
             auto& tOld2 = fvcc::oldTime(tOld);
             REQUIRE(tOld2.name == "T_0_0");

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -68,9 +68,10 @@ TEMPLATE_TEST_CASE("DdtOperator", "[template]", NeoN::scalar, NeoN::Vec3)
     );
     fill(phi.internalVector(), 10 * one<TestType>());
     fill(phi.boundaryData().value(), zero<TestType>());
-    fill(oldTime(phi).internalVector(), -1.0 * one<TestType>());
-    fill(oldTime(oldTime(phi)).internalVector(), -2.0 * one<TestType>());
     phi.correctBoundaryConditions();
+    fill(oldTime(phi).internalVector(), -1.0 * one<TestType>());
+    // fill(oldTime(oldTime(phi)).internalVector(), -2.0 * one<TestType>());
+    // phi.correctBoundaryConditions();
 
     SECTION("explicit DdtOperator " + execName)
     {
@@ -147,6 +148,7 @@ TEMPLATE_TEST_CASE("DdtOperator", "[template]", NeoN::scalar, NeoN::Vec3)
             auto ls = NeoN::la::createEmptyLinearSystem<TestType, NeoN::localIdx>(mesh, sp);
 
             // ---------- Step 2: true BDF2 ----------
+            fill(oldTime(oldTime(phi)).internalVector(), -2.0 * one<TestType>());
             ddtOp.implicitOperation(ls, 1.5, dt);
 
             const auto [lsHost, vol] = copyToHosts(ls, mesh.cellVolumes());

@@ -23,8 +23,6 @@ template<typename VectorType>
 struct PostAssemblyBase
 {
     virtual ~PostAssemblyBase() = default;
-    // virtual void
-    // operator()(const la::SparsityPattern&, la::LinearSystem<VectorType, localIdx>&) const = 0;
     virtual void operator()(const la::SparsityPattern&, la::LinearSystem<VectorType, localIdx>&) {};
 };
 
@@ -122,7 +120,6 @@ public:
         const UnstructuredMesh& mesh,
         scalar t,
         scalar dt,
-        // std::span<const PostAssemblyBase<ValueType>* const> ps = {}
         std::span<const PostAssemblyBase<ValueType>> ps = {}
     ) const
     {
@@ -141,7 +138,6 @@ public:
         scalar dt,
         const la::SparsityPattern& sp,
         la::LinearSystem<ValueType, localIdx>& ls,
-        // std::span<const PostAssemblyBase<ValueType>* const> ps = {}
         std::span<const PostAssemblyBase<ValueType>> ps = {}
     ) const
     {
@@ -149,10 +145,8 @@ public:
         assembleTemporalOperator(ls, t, dt); // add temporal operators
 
         // perform post assembly transformations
-        // for (auto* p : ps)
         for (auto p : ps)
         {
-            //(*p)(sp, ls);
             p(sp, ls);
         }
     };

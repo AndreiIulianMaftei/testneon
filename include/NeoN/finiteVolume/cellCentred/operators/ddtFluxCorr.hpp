@@ -105,7 +105,7 @@ inline void ddtFluxCorrBDF2Kernel(
             const scalar limiter1 = ddtFluxCorrLimiter(mag(flux0V[i]), mag(corr1));
             const scalar limiter2 = ddtFluxCorrLimiter(mag(flux00V[i]), mag(corr2));
 
-            outV[i] += limiter1 * a1 * corr1 + limiter2 * a2 * corr2;
+            outV[i] = limiter1 * a1 * corr1 + limiter2 * a2 * corr2;
         },
         "ddtFluxCorr::BDF2"
     );
