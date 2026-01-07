@@ -95,12 +95,7 @@ public:
     /* @brief Get the executor */
     const Executor& exec() const { return model_->exec(); }
 
-    //   virtual std::optional<finiteVolume::cellCentred::DdtScheme>
-    //   ddtScheme() const
-    //   {
-    //       return std::nullopt;
-    //   }
-    //    const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return model_->ddtScheme(); }
+    /* @brief Get the ddtScheme */
     NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const { return model_->ddtScheme(); }
 
 private:
@@ -135,9 +130,7 @@ private:
         /* @brief Get the executor */
         virtual const Executor& exec() const = 0;
 
-        //        virtual const NeoN::timeIntegration::DdtScheme* ddtScheme() const { return
-        //        nullptr; }
-
+        /* @brief Get the ddtScheme */
         virtual NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const
         {
             return NeoN::finiteVolume::cellCentred::DdtScheme::None;
@@ -191,6 +184,7 @@ private:
         /* @brief get the associated coefficient for this term */
         virtual Coeff getCoefficient() const override { return concreteOp_.getCoefficient(); }
 
+        /* @brief return the ddtScheme read by the ddtOperator */
         NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const override
         {
             if constexpr (requires { concreteOp_.scheme(); })
@@ -202,18 +196,6 @@ private:
                 return NeoN::finiteVolume::cellCentred::DdtScheme::None;
             }
         }
-        /*        const NeoN::timeIntegration::DdtScheme* ddtScheme() const override
-                {
-                    if constexpr (requires { concreteOp_.scheme(); })
-                    {
-                        return &concreteOp_.scheme();
-                    }
-                    else
-                    {
-                        return nullptr;
-                    }
-                }
-        */
         // The Prototype Design Pattern
         std::unique_ptr<TemporalOperatorConcept> clone() const override
         {

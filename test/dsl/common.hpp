@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -157,7 +157,7 @@ public:
         )
     {}
 
-    // void read(const NeoN::Input&) {}
+    void read(const NeoN::Input&) {}
 
     void explicitOperation(NeoN::Vector<ValueType>& source) const
     {
@@ -218,7 +218,7 @@ public:
         )
     {}
 
-    // void read(const NeoN::Input&) {}
+    void read(const NeoN::Input&) {}
 
     void explicitOperation(NeoN::Vector<ValueType>& source, NeoN::scalar, NeoN::scalar)
     {

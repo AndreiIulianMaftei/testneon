@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -15,7 +15,6 @@
 #include "NeoN/fields/field.hpp"
 #include "NeoN/timeIntegration/timeIntegration.hpp"
 #include "NeoN/timeIntegration/sundials.hpp"
-#include "NeoN/linearAlgebra/solver.hpp"
 
 namespace NeoN::timeIntegration
 {

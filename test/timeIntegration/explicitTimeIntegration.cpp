@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -28,7 +28,6 @@ TEST_CASE("TimeIntegration: forwardEuler")
     NeoN::Dictionary fvSchemes;
     NeoN::Dictionary timeIntegrationDict;
     timeIntegrationDict.insert("type", std::string("forwardEuler"));
-    // ddtSchemes.insert("vf", std::string("BDF1"));
     fvSchemes.insert("timeIntegration", timeIntegrationDict);
     NeoN::Dictionary fvSolution;
 

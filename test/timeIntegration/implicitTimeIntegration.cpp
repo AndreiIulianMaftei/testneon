@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -44,7 +44,7 @@ TEST_CASE("TimeIntegration: backwardEuler")
     SECTION("Create expression and perform implicitOperation on " + execName)
     {
         auto dummy = Dummy(vf);
-        auto ddtOperator = NeoN::dsl::ddt(vf);
+        auto ddtOperator = NeoN::dsl::imp::ddt(vf);
 
         // ddt(U) = f
         auto eqn = ddtOperator + dummy;

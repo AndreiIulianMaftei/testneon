@@ -70,12 +70,10 @@ TEMPLATE_TEST_CASE("DdtOperator", "[template]", NeoN::scalar, NeoN::Vec3)
     fill(phi.boundaryData().value(), zero<TestType>());
     phi.correctBoundaryConditions();
     fill(oldTime(phi).internalVector(), -1.0 * one<TestType>());
-    // fill(oldTime(oldTime(phi)).internalVector(), -2.0 * one<TestType>());
-    // phi.correctBoundaryConditions();
 
     SECTION("explicit DdtOperator " + execName)
     {
-        auto ddtOp = dsl::ddt(phi);
+        auto ddtOp = dsl::exp::ddt(phi);
         auto source = Vector<TestType>(exec, phi.size(), zero<TestType>());
         ddtOp.explicitOperation(source, 1.0, 0.5);
 
@@ -98,7 +96,7 @@ TEMPLATE_TEST_CASE("DdtOperator", "[template]", NeoN::scalar, NeoN::Vec3)
 
         auto ls = NeoN::la::createEmptyLinearSystem<TestType, NeoN::localIdx>(mesh, sp);
 
-        auto ddtOp = dsl::ddt(phi);
+        auto ddtOp = dsl::imp::ddt(phi);
         ddtOp.read(fvSchemes);
         ddtOp.implicitOperation(ls, 1.0, 0.5);
 

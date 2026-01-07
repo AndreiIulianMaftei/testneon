@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -60,7 +60,6 @@ TEST_CASE("TimeIntegration - Runge Kutta")
     NeoN::Database db;
     NeoN::Dictionary fvSchemes;
     NeoN::Dictionary timeIntegrationDict;
-    // ddtSchemes.insert("default", std::string("Euler"));
     timeIntegrationDict.insert("type", std::string("Runge-Kutta"));
     timeIntegrationDict.insert("Runge-Kutta-Method", std::string("Forward-Euler"));
     fvSchemes.insert("timeIntegration", timeIntegrationDict);
@@ -93,7 +92,7 @@ TEST_CASE("TimeIntegration - Runge Kutta")
             vfOld.internalVector() = initialValue;
 
             // Set expression
-            TemporalOperator ddtOp = NeoN::dsl::ddt(vfOld);
+            TemporalOperator ddtOp = NeoN::dsl::exp::ddt(vfOld);
 
             // Build ODE:
             //   dU/dt + U^2 = 0

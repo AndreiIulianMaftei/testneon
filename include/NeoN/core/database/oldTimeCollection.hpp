@@ -170,14 +170,16 @@ const VectorType& oldTime(const VectorType& field)
     return oldTimeCollection.get<VectorType>(field.key);
 }
 
+/**
+ * @brief Helper function to retrieve the history depth of a field in oldTimeCollection.
+ *
+ * @param field The field to retrieve the old time field from.
+ * @return History depth of the old time field.
+ */
 template<typename VectorType>
 inline int oldTimeLevel(const VectorType& field)
 {
     const auto& fieldCollection = VectorCollection::instance(field);
-    // if (!fieldCollection.db().contains(fieldCollection.name() + "_oldTime"))
-    //{
-    //     return 0;
-    // }
     const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
 
     int level = 0;

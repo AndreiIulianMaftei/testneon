@@ -104,16 +104,13 @@ void DdtOperator<ValueType>::implicitOperation(
     if (scheme_ == DdtScheme::BDF1)
     {
         BDF1kernel(ls, t, dt);
-        NF_INFO("BDF1 Kernel");
     }
     else if (level < 2)
     {
         BDF1kernel(ls, t, dt); // startup step
-        NF_INFO("BDF2 startup2 kerel");
     }
     else
     {
-        NF_INFO("BDF2 Kernel");
         BDF2kernel(ls, t, dt);
     }
 }

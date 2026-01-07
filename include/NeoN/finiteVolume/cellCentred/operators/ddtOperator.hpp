@@ -11,7 +11,6 @@
 #include "NeoN/linearAlgebra/linearSystem.hpp"
 #include "NeoN/linearAlgebra/sparsityPattern.hpp"
 #include "NeoN/finiteVolume/cellCentred/fields/volumeField.hpp"
-#include "NeoN/finiteVolume/cellCentred/fields/surfaceField.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -45,7 +44,7 @@ public:
 
     DdtScheme scheme() const noexcept { return scheme_; }
 
-    void read(const Input&); //{};
+    void read(const Input&);
 
     const la::SparsityPattern& getSparsityPattern() const { return sparsityPattern_; }
 
@@ -57,8 +56,6 @@ private:
     const la::SparsityPattern& sparsityPattern_;
 
     DdtScheme scheme_ {DdtScheme::BDF1};
-
-    // mutable bool startUp_ {true};
 };
 
 
