@@ -211,13 +211,13 @@ inline int oldTimeLevel(const VectorType& field)
  *     field          = φ^{0}
  *     no oldTime buffers exist
  *
- * First rotate() call (entering t1):
+ * First rotateOldTimes() call (entering t1):
  *     - level == 0
  *     - φ^{n} buffer is allocated via oldTime(field)
  *     - data rotated: φ^{n} ← φ^{0}
  *     → history depth = 1  (BDF1 startup)
  *
- *   Second rotate() call (entering t2):
+ *   Second rotateOldTimes() call (entering t2):
  *     - level == 1
  *     - φ^{n-1} buffer is allocated via oldTime(oldTime(field))
  *     - data rotated: φ^{n-1} ← φ^{n} = φ^{0}, φ^{n} ← φ^{1}
@@ -233,6 +233,6 @@ inline int oldTimeLevel(const VectorType& field)
  * @param field The field to retrieve the old time field from.
  */
 template<typename VectorType>
-void rotate(VectorType& field);
+void rotateOldTimes(VectorType& field);
 
 } // namespace NeoN

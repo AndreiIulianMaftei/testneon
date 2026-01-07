@@ -212,7 +212,7 @@ TEST_CASE("oldTimeCollection")
         // ---------------------------------------------------------------------
         // First rotate: create phi^{n-1}
         // ---------------------------------------------------------------------
-        fvcc::rotate(phi);
+        fvcc::rotateOldTimes(phi);
         auto& phiOld = fvcc::oldTime(phi);
         auto phiOldHost = phiOld.internalVector().copyToHost();
 
@@ -228,7 +228,7 @@ TEST_CASE("oldTimeCollection")
         //   phi^{n}   -> phi^{n-1}
         //   phi^{n-1} -> phi^{n-2}
         // ---------------------------------------------------------------------
-        fvcc::rotate(phi);
+        fvcc::rotateOldTimes(phi);
 
         auto& phiOld1 = fvcc::oldTime(phi);     // phi^{n-1}
         auto& phiOld2 = fvcc::oldTime(phiOld1); // phi^{n-2}

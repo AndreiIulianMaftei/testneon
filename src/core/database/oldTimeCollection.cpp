@@ -145,7 +145,7 @@ const OldTimeCollection& OldTimeCollection::instance(const VectorCollection& fie
 }
 
 template<typename VectorType>
-void rotate(VectorType& field)
+void rotateOldTimes(VectorType& field)
 {
     VectorCollection& fieldCollection = VectorCollection::instance(field);
     OldTimeCollection& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
@@ -171,13 +171,16 @@ void rotate(VectorType& field)
     oldVector.boundaryData() = field.boundaryData();
 }
 
-template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<
+template void
+NeoN::finiteVolume::cellCentred::rotateOldTimes<NeoN::finiteVolume::cellCentred::VolumeField<
     NeoN::scalar>>(NeoN::finiteVolume::cellCentred::VolumeField<NeoN::scalar>&);
 
-template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<
+template void
+NeoN::finiteVolume::cellCentred::rotateOldTimes<NeoN::finiteVolume::cellCentred::VolumeField<
     NeoN::Vec3>>(NeoN::finiteVolume::cellCentred::VolumeField<NeoN::Vec3>&);
 
-template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::SurfaceField<
+template void
+NeoN::finiteVolume::cellCentred::rotateOldTimes<NeoN::finiteVolume::cellCentred::SurfaceField<
     NeoN::scalar>>(NeoN::finiteVolume::cellCentred::SurfaceField<NeoN::scalar>&);
 
 } // namespace NeoN::finiteVolume::cellCentred

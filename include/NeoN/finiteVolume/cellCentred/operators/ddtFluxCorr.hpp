@@ -111,31 +111,31 @@ inline void ddtFluxCorrBDF2Kernel(
 } // namespace detail
 
 inline SurfScalarField
-ddtFluxCorr(const VolVectorField& U, const SurfScalarField& phi, scalar dt, DdtScheme scheme)
+ddtFluxCorr(const VolVectorField& u, const SurfScalarField& phi, scalar dt, DdtScheme scheme)
 {
-    const auto& mesh = U.mesh();
+    const auto& mesh = u.mesh();
     const auto& exec = phi.exec();
 
     // --- interpolation
     SurfaceInterpolation<Vec3> interp(exec, mesh, TokenList({std::string("linear")}));
 
     // --- boundary conditions consistent with U
-    auto surfaceBCs = createFluxCorrBCsFromU(mesh, U);
+    auto surfaceBCs = createFluxCorrBCsFromU(mesh, u);
 
     SurfScalarField fluxCorr(exec, "ddtFluxCorr", mesh, surfaceBCs);
 
-    const int level = oldTimeLevel(U);
+    const int level = oldTimeLevel(u);
 
     // --- BDF1 / startup
-    const auto& U0 = oldTime(U);
+    const auto& u0 = oldTime(u);
     const auto& phi0 = oldTime(phi);
-    auto uf0 = interp.interpolate(U0);
+    auto uf0 = interp.interpolate(u0);
 
     if (scheme == DdtScheme::BDF2 && level >= 2) // --- BDF2 contribution
     {
-        const auto& U00 = oldTime(U0);
+        const auto& u00 = oldTime(u0);
         const auto& phi00 = oldTime(phi0);
-        auto uf00 = interp.interpolate(U00);
+        auto uf00 = interp.interpolate(u00);
 
         detail::ddtFluxCorrBDF2Kernel(exec, mesh, phi0, phi00, uf0, uf00, fluxCorr, dt);
     }
