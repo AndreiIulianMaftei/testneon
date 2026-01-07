@@ -3,3 +3,4 @@
 # SPDX-License-Identifier: Unlicense
 
 neon_benchmark(divOperator)
+neon_benchmark(gradOperator)

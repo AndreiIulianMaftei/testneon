@@ -23,8 +23,9 @@ TEST_CASE("DivOperator::div", "[bench]")
 
     auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
     fvcc::VolumeField<NeoN::scalar> phi(exec, "vf", mesh, volumeBCs);
-    fvcc::VolumeField<NeoN::scalar> divPhi(exec, "divPhi", mesh, volumeBCs);
     NeoN::fill(phi.internalVector(), 1.0);
+    fvcc::VolumeField<NeoN::scalar> divPhi(exec, "divPhi", mesh, volumeBCs);
+    NeoN::fill(divPhi.internalVector(), 0.0);
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
@@ -32,6 +33,9 @@ TEST_CASE("DivOperator::div", "[bench]")
         NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
         auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
 
-        BENCHMARK(std::string(execName)) { return (op.div(divPhi)); };
+        BENCHMARK(std::string(execName))
+        {
+            return (op.explicitOperation(divPhi.internalVector()));
+        };
     }
 }
