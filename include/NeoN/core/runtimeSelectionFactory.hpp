@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 // SPDX-FileCopyrightText: 2023 AMR Wind Authors
 //
 // SPDX-License-Identifier: MIT
