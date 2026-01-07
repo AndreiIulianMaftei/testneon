@@ -20,9 +20,6 @@ using SurfScalarField = SurfaceField<scalar>;
 namespace detail
 {
 
-// ------------------------------------------------------------------
-// OpenFOAM-compatible limiter
-// ------------------------------------------------------------------
 KOKKOS_INLINE_FUNCTION
 scalar ddtFluxCorrLimiter(const scalar fluxMag, const scalar corrMag)
 {
@@ -113,9 +110,6 @@ inline void ddtFluxCorrBDF2Kernel(
 
 } // namespace detail
 
-// ------------------------------------------------------------------
-// Public API (OpenFOAM-style)
-// ------------------------------------------------------------------
 inline SurfScalarField
 ddtFluxCorr(const VolVectorField& U, const SurfScalarField& phi, scalar dt, DdtScheme scheme)
 {

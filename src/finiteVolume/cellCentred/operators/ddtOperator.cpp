@@ -38,7 +38,7 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::BDF1kernel(
+void DdtOperator<ValueType>::bdf1Kernel(
     la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
 ) const
 {
@@ -48,7 +48,7 @@ void DdtOperator<ValueType>::BDF1kernel(
         views(getSparsityPattern().diagOffset(), oldTime(this->field_).internalVector());
     auto [matrix, rhs] = ls.view();
 
-    const scalar a0_a1 = 1.0 / dt;
+    const scalar a0a1 = 1.0 / dt;
 
     parallelFor(
         ls.exec(),
@@ -56,15 +56,15 @@ void DdtOperator<ValueType>::BDF1kernel(
         KOKKOS_LAMBDA(const localIdx celli) {
             const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
             const auto commonCoef = operatorScaling[celli] * vol[celli];
-            matrix.values[idx] += commonCoef * a0_a1 * one<ValueType>();
-            rhs[celli] += commonCoef * a0_a1 * oldVector[celli];
+            matrix.values[idx] += commonCoef * a0a1 * one<ValueType>();
+            rhs[celli] += commonCoef * a0a1 * oldVector[celli];
         },
         "ddtOperator::implicitOperation<BDF1>"
     );
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::BDF2kernel(
+void DdtOperator<ValueType>::bdf2Kernel(
     la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
 ) const
 {
@@ -103,15 +103,15 @@ void DdtOperator<ValueType>::implicitOperation(
 
     if (scheme_ == DdtScheme::BDF1)
     {
-        BDF1kernel(ls, t, dt);
+        bdf1Kernel(ls, t, dt);
     }
     else if (level < 2)
     {
-        BDF1kernel(ls, t, dt); // startup step
+        bdf1Kernel(ls, t, dt); // startup step
     }
     else
     {
-        BDF2kernel(ls, t, dt);
+        bdf2Kernel(ls, t, dt);
     }
 }
 

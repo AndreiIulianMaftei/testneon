@@ -121,7 +121,7 @@ TEMPLATE_TEST_CASE("DdtOperator", "[template]", NeoN::scalar, NeoN::Vec3)
         fvSchemes.insert("ddtSchemes", ddtSchemes);
 
 
-        auto ddtOp = dsl::ddt(phi);
+        auto ddtOp = dsl::imp::ddt(phi);
         ddtOp.read(fvSchemes);
 
         const scalar dt = 0.5;

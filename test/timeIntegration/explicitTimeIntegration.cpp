@@ -42,7 +42,7 @@ TEST_CASE("TimeIntegration: forwardEuler")
     SECTION("Create expression and perform explicitOperation on " + execName)
     {
         auto dummy = Dummy(vf);
-        auto ddtOperator = NeoN::dsl::ddt(vf);
+        auto ddtOperator = NeoN::dsl::exp::ddt(vf);
         // ddt(U) = f
         NeoN::dsl::Expression<NeoN::scalar> eqn = ddtOperator + dummy;
         double dt {2.0};
