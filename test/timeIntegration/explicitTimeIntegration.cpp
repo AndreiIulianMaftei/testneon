@@ -15,10 +15,7 @@ template class NeoN::timeIntegration::ForwardEuler<VolumeField>;
 
 TEST_CASE("TimeIntegration: forwardEuler")
 {
-    // auto [execName, exec] = GENERATE(allAvailableExecutor());
-
-    std::string execName = "SerialExecutor";
-    NeoN::Executor exec = NeoN::SerialExecutor {};
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
 
     NeoN::Database db;
     auto mesh = NeoN::createSingleCellMesh(exec);
@@ -52,7 +49,6 @@ TEST_CASE("TimeIntegration: forwardEuler")
         // (U^1-U^0)/dt = -f
         // U^1 = - f * dt + U^0, where dt = 2, f = 2, U^0=2.0 -> U^1=-2.0
         NeoN::dsl::solve(eqn, vf, time, dt, fvSchemes, fvSolution);
-        NF_INFO("after solve");
         REQUIRE(getVector(vf.internalVector()) == -2.0);
     }
 }

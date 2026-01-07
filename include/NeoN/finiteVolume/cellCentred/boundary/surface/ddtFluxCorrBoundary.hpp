@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 NeoN authors
+// SPDX-FileCopyrightText: 2025 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -7,11 +7,18 @@
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
 #include "NeoN/finiteVolume/cellCentred/boundary.hpp"
 #include "NeoN/finiteVolume/cellCentred/fields/volumeField.hpp"
-// #include "NeoN/finiteVolume/cellCentred/fields/surfaceField.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
-
+/**
+ * @brief Boundary condition to apply to ddtFluxCorr surfaceScalarField.
+ * It sets the flux correction to zero for all fixedValue velocity boundaries
+ * by calling .correctBoundaryConditions().
+ *
+ * @param mesh The mesh the boundary is registered on.
+ * @param u The velocity field to check the boundary conditions on.
+ * @return bcs The surface boundary vector with updated BC types.
+ */
 inline std::vector<SurfaceBoundary<scalar>>
 createFluxCorrBCsFromU(const UnstructuredMesh& mesh, const VolumeField<Vec3>& u)
 {

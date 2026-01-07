@@ -197,6 +197,41 @@ inline int oldTimeLevel(const VectorType& field)
         currentId = oldTimeCollection.oldTimeDoc(nextId).previousTime();
     }
 }
+
+/**
+ * @brief Rotate time levels for a field.
+ * Meaning of `level` (computed via oldTimeLevel(field)):
+ *     level == 0 : no history exists yet
+ *     level == 1 : φ^{n}   exists (one oldTime buffer)
+ *     level >= 2 : φ^{n} and φ^{n-1} exist (old and oldOld)
+ *
+ * Startup sequence when rotate() is called at the BEGINNING of each time step:
+ *
+ * Initial state (t = t0, before first rotate):
+ *     field          = φ^{0}
+ *     no oldTime buffers exist
+ *
+ * First rotate() call (entering t1):
+ *     - level == 0
+ *     - φ^{n} buffer is allocated via oldTime(field)
+ *     - data rotated: φ^{n} ← φ^{0}
+ *     → history depth = 1  (BDF1 startup)
+ *
+ *   Second rotate() call (entering t2):
+ *     - level == 1
+ *     - φ^{n-1} buffer is allocated via oldTime(oldTime(field))
+ *     - data rotated: φ^{n-1} ← φ^{n} = φ^{0}, φ^{n} ← φ^{1}
+ *     → history depth = 2  (BDF2 becomes active)
+ *
+ *   Subsequent rotate() calls:
+ *     - level >= 2
+ *     - buffers reused (no further allocation)
+ *     - data rotated each step: φ^{n-1} ← φ^{n}, φ^{n} ← φ^{current}
+ *
+ * Only two historical states are kept (φ^{n}, φ^{n-1}).
+ *
+ * @param field The field to retrieve the old time field from.
+ */
 template<typename VectorType>
 void rotate(VectorType& field);
 
