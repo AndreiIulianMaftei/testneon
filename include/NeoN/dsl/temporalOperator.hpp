@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -13,6 +13,7 @@
 #include "NeoN/core/input.hpp"
 #include "NeoN/dsl/coeff.hpp"
 #include "NeoN/dsl/operator.hpp"
+#include "NeoN/finiteVolume/cellCentred/operators/ddtOperator.hpp"
 
 namespace NeoN::dsl
 {
@@ -94,6 +95,8 @@ public:
     /* @brief Get the executor */
     const Executor& exec() const { return model_->exec(); }
 
+    /* @brief Get the ddtScheme */
+    NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const { return model_->ddtScheme(); }
 
 private:
 
@@ -126,6 +129,12 @@ private:
 
         /* @brief Get the executor */
         virtual const Executor& exec() const = 0;
+
+        /* @brief Get the ddtScheme */
+        virtual NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const
+        {
+            return NeoN::finiteVolume::cellCentred::DdtScheme::None;
+        }
 
         // The Prototype Design Pattern
         virtual std::unique_ptr<TemporalOperatorConcept> clone() const = 0;
@@ -175,6 +184,18 @@ private:
         /* @brief get the associated coefficient for this term */
         virtual Coeff getCoefficient() const override { return concreteOp_.getCoefficient(); }
 
+        /* @brief return the ddtScheme read by the ddtOperator */
+        NeoN::finiteVolume::cellCentred::DdtScheme ddtScheme() const override
+        {
+            if constexpr (requires { concreteOp_.scheme(); })
+            {
+                return concreteOp_.scheme();
+            }
+            else
+            {
+                return NeoN::finiteVolume::cellCentred::DdtScheme::None;
+            }
+        }
         // The Prototype Design Pattern
         std::unique_ptr<TemporalOperatorConcept> clone() const override
         {

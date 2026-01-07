@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -15,6 +15,13 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
+enum class DdtScheme
+{
+    None,
+    BDF1,
+    BDF2
+};
+
 template<typename ValueType>
 class DdtOperator : public dsl::OperatorMixin<VolumeField<ValueType>>
 {
@@ -27,11 +34,17 @@ public:
 
     ~DdtOperator();
 
-    void explicitOperation(Vector<ValueType>& source, scalar, scalar dt) const;
+    void explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) const;
 
-    void implicitOperation(la::LinearSystem<ValueType, localIdx>& ls, scalar, scalar dt) const;
+    void implicitOperation(la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt) const;
 
-    void read(const Input&) {}
+    void bdf1Kernel(la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt) const;
+
+    void bdf2Kernel(la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt) const;
+
+    DdtScheme scheme() const noexcept { return scheme_; }
+
+    void read(const Input&);
 
     const la::SparsityPattern& getSparsityPattern() const { return sparsityPattern_; }
 
@@ -41,6 +54,8 @@ private:
 
     // NOTE ddtOperator does not have a FactoryClass
     const la::SparsityPattern& sparsityPattern_;
+
+    DdtScheme scheme_ {DdtScheme::BDF1};
 };
 
 

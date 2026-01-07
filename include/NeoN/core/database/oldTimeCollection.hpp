@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -10,7 +10,8 @@
 #include "NeoN/core/database/collection.hpp"
 #include "NeoN/core/database/document.hpp"
 #include "NeoN/core/database/fieldCollection.hpp"
-
+#include "NeoN/finiteVolume/cellCentred/fields/volumeField.hpp"
+#include "NeoN/finiteVolume/cellCentred/fields/surfaceField.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -95,7 +96,7 @@ public:
                 .iterationIndex = fieldDoc.iterationIndex(),
                 .subCycleIndex = fieldDoc.subCycleIndex()
             });
-        OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", -1);
+        OldTimeDocument oldTimeDocument(fieldDoc.field<VectorType>().key, oldVector.key, "", 0);
         setCurrentVectorAndLevel(oldTimeDocument);
         insert(oldTimeDocument);
         return oldVector;
@@ -168,5 +169,70 @@ const VectorType& oldTime(const VectorType& field)
     const OldTimeCollection& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
     return oldTimeCollection.get<VectorType>(field.key);
 }
+
+/**
+ * @brief Helper function to retrieve the history depth of a field in oldTimeCollection.
+ *
+ * @param field The field to retrieve the old time field from.
+ * @return History depth of the old time field.
+ */
+template<typename VectorType>
+inline int oldTimeLevel(const VectorType& field)
+{
+    const auto& fieldCollection = VectorCollection::instance(field);
+    const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
+
+    int level = 0;
+    std::string currentId = field.key;
+
+    while (true)
+    {
+        std::string nextId = oldTimeCollection.findNextTime(currentId);
+        if (nextId.empty())
+        {
+            return level;
+        }
+
+        ++level;
+        currentId = oldTimeCollection.oldTimeDoc(nextId).previousTime();
+    }
+}
+
+/**
+ * @brief Rotate time levels for a field.
+ * Meaning of `level` (computed via oldTimeLevel(field)):
+ *     level == 0 : no history exists yet
+ *     level == 1 : φ^{n}   exists (one oldTime buffer)
+ *     level >= 2 : φ^{n} and φ^{n-1} exist (old and oldOld)
+ *
+ * Startup sequence when rotate() is called at the BEGINNING of each time step:
+ *
+ * Initial state (t = t0, before first rotate):
+ *     field          = φ^{0}
+ *     no oldTime buffers exist
+ *
+ * First rotateOldTimes() call (entering t1):
+ *     - level == 0
+ *     - φ^{n} buffer is allocated via oldTime(field)
+ *     - data rotated: φ^{n} ← φ^{0}
+ *     → history depth = 1  (BDF1 startup)
+ *
+ *   Second rotateOldTimes() call (entering t2):
+ *     - level == 1
+ *     - φ^{n-1} buffer is allocated via oldTime(oldTime(field))
+ *     - data rotated: φ^{n-1} ← φ^{n} = φ^{0}, φ^{n} ← φ^{1}
+ *     → history depth = 2  (BDF2 becomes active)
+ *
+ *   Subsequent rotate() calls:
+ *     - level >= 2
+ *     - buffers reused (no further allocation)
+ *     - data rotated each step: φ^{n-1} ← φ^{n}, φ^{n} ← φ^{current}
+ *
+ * Only two historical states are kept (φ^{n}, φ^{n-1}).
+ *
+ * @param field The field to retrieve the old time field from.
+ */
+template<typename VectorType>
+void rotateOldTimes(VectorType& field);
 
 } // namespace NeoN

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -114,8 +114,9 @@ la::SolverStats solve(
         NF_ERROR_EXIT("No temporal or implicit terms to solve.");
     }
     exp.read(fvSchemes);
-    auto integrator =
-        timeIntegration::TimeIntegration<VectorType>(fvSchemes.subDict("ddtSchemes"), fvSolution);
+    auto integrator = timeIntegration::TimeIntegration<VectorType>(
+        fvSchemes.subDict("timeIntegration"), fvSolution
+    );
 
     if (exp.temporalOperators().size() > 0 && integrator.explicitIntegration())
     {

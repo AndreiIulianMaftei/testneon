@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -13,7 +13,7 @@
 // only needed for msvc
 template class NeoN::timeIntegration::ForwardEuler<VolumeField>;
 
-TEST_CASE("TimeIntegration")
+TEST_CASE("TimeIntegration: forwardEuler")
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
 
@@ -23,21 +23,23 @@ TEST_CASE("TimeIntegration")
         fvcc::VectorCollection::instance(db, "fieldCollection");
 
     NeoN::Dictionary fvSchemes;
-    NeoN::Dictionary ddtSchemes;
-    ddtSchemes.insert("type", std::string("forwardEuler"));
-    fvSchemes.insert("ddtSchemes", ddtSchemes);
+    NeoN::Dictionary timeIntegrationDict;
+    timeIntegrationDict.insert("type", std::string("forwardEuler"));
+    fvSchemes.insert("timeIntegration", timeIntegrationDict);
     NeoN::Dictionary fvSolution;
 
     fvcc::VolumeField<NeoN::scalar>& vf =
         fieldCollection.registerVector<fvcc::VolumeField<NeoN::scalar>>(
             CreateVector {.name = "vf", .mesh = mesh, .value = 2.0, .timeIndex = 1}
         );
+    auto& vfOld = fvcc::oldTime(vf);
+    vfOld.internalVector() = vf.internalVector();
+    vfOld.correctBoundaryConditions();
 
     SECTION("Create expression and perform explicitOperation on " + execName)
     {
         auto dummy = Dummy(vf);
-        NeoN::dsl::TemporalOperator<NeoN::scalar> ddtOperator = NeoN::dsl::imp::ddt(vf);
-
+        auto ddtOperator = NeoN::dsl::exp::ddt(vf);
         // ddt(U) = f
         NeoN::dsl::Expression<NeoN::scalar> eqn = ddtOperator + dummy;
         double dt {2.0};
