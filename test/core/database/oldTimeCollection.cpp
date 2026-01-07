@@ -156,8 +156,6 @@ TEST_CASE("oldTimeCollection")
         {
             auto& tOld = fvcc::oldTime(t);
 
-            fvcc::rotate(t);
-
             REQUIRE(tOld.name == "T_0");
             auto tOldHost = tOld.internalVector().copyToHost();
             REQUIRE(tOldHost.view()[0] == 1.0);
@@ -177,8 +175,6 @@ TEST_CASE("oldTimeCollection")
             // check if the same field is returned
             REQUIRE(&tOld == &sametOld);
 
-            fvcc::rotate(t);
-
             auto& tOld2 = fvcc::oldTime(tOld);
             REQUIRE(tOld2.name == "T_0_0");
             auto tOld2Host = tOld2.internalVector().copyToHost();
@@ -196,5 +192,54 @@ TEST_CASE("oldTimeCollection")
             // check if the same field is returned
             REQUIRE(&tOld2 == &sametOld2);
         }
+    }
+    SECTION("startup progression with rotate (fresh field)")
+    {
+        fvcc::VectorCollection& fieldCollection =
+            fvcc::VectorCollection::instance(db, "testVectorCollection_startup");
+
+        fvcc::VolumeField<NeoN::scalar>& phi =
+            fieldCollection.registerVector<fvcc::VolumeField<NeoN::scalar>>(
+                CreateVector {.name = "phi", .mesh = mesh, .timeIndex = 0}
+            );
+
+        // ---------------------------------------------------------------------
+        // Initial state: only current field exists
+        // ---------------------------------------------------------------------
+        auto phiHost = phi.internalVector().copyToHost();
+        REQUIRE(phiHost.view()[0] == 1.0);
+
+        // ---------------------------------------------------------------------
+        // First rotate: create phi^{n-1}
+        // ---------------------------------------------------------------------
+        fvcc::rotate(phi);
+        auto& phiOld = fvcc::oldTime(phi);
+        auto phiOldHost = phiOld.internalVector().copyToHost();
+
+        REQUIRE(phiOldHost.view()[0] == 1.0);
+
+        // ---------------------------------------------------------------------
+        // Emulate solver update: advance solution to next time
+        // ---------------------------------------------------------------------
+        NeoN::fill(phi.internalVector(), 2.0);
+
+        // ---------------------------------------------------------------------
+        // Second rotate: shift history
+        //   phi^{n}   -> phi^{n-1}
+        //   phi^{n-1} -> phi^{n-2}
+        // ---------------------------------------------------------------------
+        fvcc::rotate(phi);
+
+        auto& phiOld1 = fvcc::oldTime(phi);     // phi^{n-1}
+        auto& phiOld2 = fvcc::oldTime(phiOld1); // phi^{n-2}
+
+        auto phiOld1Host = phiOld1.internalVector().copyToHost();
+        auto phiOld2Host = phiOld2.internalVector().copyToHost();
+
+        // phi^{n-1} must be value after first update
+        REQUIRE(phiOld1Host.view()[0] == 2.0);
+
+        // phi^{n-2} must still be initial value
+        REQUIRE(phiOld2Host.view()[0] == 1.0);
     }
 }

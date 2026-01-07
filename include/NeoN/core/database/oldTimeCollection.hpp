@@ -174,6 +174,10 @@ template<typename VectorType>
 inline int oldTimeLevel(const VectorType& field)
 {
     const auto& fieldCollection = VectorCollection::instance(field);
+    // if (!fieldCollection.db().contains(fieldCollection.name() + "_oldTime"))
+    //{
+    //     return 0;
+    // }
     const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
 
     int level = 0;
@@ -191,22 +195,6 @@ inline int oldTimeLevel(const VectorType& field)
         currentId = oldTimeCollection.oldTimeDoc(nextId).previousTime();
     }
 }
-/*
-template<typename VectorType>
-inline int oldTimeLevel(const VectorType& field)
-{
-    const auto& fieldCollection = VectorCollection::instance(field);
-    const auto& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
-
-    std::string nextId = oldTimeCollection.findNextTime(field.key);
-    if (nextId.empty())
-    {
-        return 0;
-    }
-
-    return oldTimeCollection.oldTimeDoc(nextId).level();
-}
-*/
 template<typename VectorType>
 void rotate(VectorType& field);
 

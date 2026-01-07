@@ -147,31 +147,61 @@ const OldTimeCollection& OldTimeCollection::instance(const VectorCollection& fie
 template<typename VectorType>
 void rotate(VectorType& field)
 {
+    /**
+     * Rotate time levels for a field (OpenFOAM-style).
+     *
+     * Meaning of `level` (computed via oldTimeLevel(field)):
+     *   level == 0 : no history exists yet
+     *   level == 1 : φ^{n}   exists (one oldTime buffer)
+     *   level >= 2 : φ^{n} and φ^{n-1} exist (old and oldOld)
+     *
+     * Startup sequence when rotate() is called at the BEGINNING of each time step:
+     *
+     *   Initial state (t = t0, before first rotate):
+     *     field          = φ^{0}
+     *     no oldTime buffers exist
+     *
+     *   First rotate() call (entering t1):
+     *     - level == 0
+     *     - φ^{n} buffer is allocated via oldTime(field)
+     *     - data rotated: φ^{n} ← φ^{0}
+     *     → history depth = 1  (BDF1 startup)
+     *
+     *   Second rotate() call (entering t2):
+     *     - level == 1
+     *     - φ^{n-1} buffer is allocated via oldTime(oldTime(field))
+     *     - data rotated: φ^{n-1} ← φ^{n} = φ^{0}, φ^{n} ← φ^{1}
+     *     → history depth = 2  (BDF2 becomes active)
+     *
+     *   Subsequent rotate() calls:
+     *     - level >= 2
+     *     - buffers reused (no further allocation)
+     *     - data rotated each step: φ^{n-1} ← φ^{n}, φ^{n} ← φ^{current}
+     *
+     * Only two historical states are kept (φ^{n}, φ^{n-1}).
+     */
     VectorCollection& fieldCollection = VectorCollection::instance(field);
     OldTimeCollection& oldTimeCollection = OldTimeCollection::instance(fieldCollection);
+
+    const int level = oldTimeLevel(field);
 
     // Get or create phi^n (oldTime)
     VectorType& oldVector = oldTime(field);
 
-    // find head doc (the one with nextTime == field.key)
-    const std::string headId = oldTimeCollection.findNextTime(field.key);
-    OldTimeDocument& oldTimeDoc = oldTimeCollection.oldTimeDoc(headId);
-
-    // If we already have at least one level, rotate old -> oldOld
-    if (oldTimeDoc.level() >= 2)
+    if (level == 1)
     {
         VectorType& oldOldVector = oldTime(oldVector);
-
+    }
+    if (level >= 2)
+    {
+        VectorType& oldOldVector = oldTime(oldVector);
         oldOldVector.internalVector() = oldVector.internalVector();
+        oldOldVector.boundaryData() = oldVector.boundaryData();
     }
 
     // Rotate current -> old
     oldVector.internalVector() = field.internalVector();
-
-    //   oldTimeDoc.currentTime() = field.key;
-
-    // Increase history depth, capped at 2
-    //    oldTimeDoc.level() = std::min(oldTimeDoc.level() + 1, 2);
+    oldVector.boundaryData() = field.boundaryData();
 }
 
 template void NeoN::finiteVolume::cellCentred::rotate<NeoN::finiteVolume::cellCentred::VolumeField<
