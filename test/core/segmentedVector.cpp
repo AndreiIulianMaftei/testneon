@@ -57,7 +57,7 @@ TEST_CASE("segmentedVector")
             parallelFor(
                 exec,
                 {0, segVector.numSegments()},
-                KOKKOS_LAMBDA(const NeoN::localIdx segI) {
+                NEON_LAMBDA(const NeoN::localIdx segI) {
                     // check if it works with bounds
                     auto [bStart, bEnd] = segView.bounds(segI);
                     auto bVals = valueView.subview(bStart, bEnd - bStart);
@@ -126,7 +126,7 @@ TEST_CASE("segmentedVector")
             parallelFor(
                 exec,
                 {0, segVector.numSegments()},
-                KOKKOS_LAMBDA(const NeoN::localIdx segI) {
+                NEON_LAMBDA(const NeoN::localIdx segI) {
                     // fill values
                     auto vals = segView.view(segI);
                     for (auto& val : vals)

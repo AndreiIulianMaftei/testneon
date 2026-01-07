@@ -11,8 +11,9 @@
 #include "NeoN/core/primitives/label.hpp"
 #include "NeoN/core/executor/executor.hpp"
 
-#ifdef NF_WITH_KOKKOS
+#ifdef NN_WITH_KOKKOS
 #define NEON_LAMBDA KOKKOS_LAMBDA
+#define NEON_INLINE_FUNCTION KOKKOS_INLINE_FUNCTION
 namespace NeoN
 {
 // just pull Kokkos::atomic_* functions into NeoN namespace
@@ -20,7 +21,7 @@ using Kokkos::atomic_add;
 using Kokkos::atomic_sub;
 }
 #else
-#define NEON_LAMBDA = [&]
+#define NEON_LAMBDA [&]
 namespace NeoN
 {
 // using atomic_add = [](auto& a, auto b){a+b;};

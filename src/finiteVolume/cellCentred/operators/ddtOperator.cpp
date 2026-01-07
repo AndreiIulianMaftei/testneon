@@ -83,7 +83,7 @@ void DdtOperator<ValueType>::bdf2Kernel(
     parallelFor(
         ls.exec(),
         {0, oldVector.size()},
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             const auto idx = matrix.rowOffs[celli] + diagOffs[celli];
             const auto commonCoef = operatorScaling[celli] * vol[celli];
             matrix.values[idx] += commonCoef * a0 * one<ValueType>();

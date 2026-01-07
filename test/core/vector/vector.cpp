@@ -250,7 +250,7 @@ TEST_CASE("Vector Operations")
         REQUIRE(equal(a, 20.0));
 
         auto sB = b.view();
-        a.apply(KOKKOS_LAMBDA(const NeoN::localIdx i) { return 2 * sB[i]; });
+        a.apply(NEON_LAMBDA(const NeoN::localIdx i) { return 2 * sB[i]; });
         REQUIRE(equal(a, 20.0));
     }
 }
@@ -271,7 +271,7 @@ TEST_CASE("getViews")
     REQUIRE(hostC.view()[0] == 3.0);
 
     NeoN::parallelFor(
-        a, KOKKOS_LAMBDA(const NeoN::localIdx i) { return viewB[i] + viewC[i]; }
+        a, NEON_LAMBDA(const NeoN::localIdx i) { return viewB[i] + viewC[i]; }
     );
 
     auto hostD = a.copyToHost();
