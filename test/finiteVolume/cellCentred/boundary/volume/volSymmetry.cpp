@@ -96,13 +96,17 @@ TEST_CASE("symmetry_volume")
                 const auto vExpected = intV - nV * (intV & nV); // half-symmetry
 
                 for (auto d = 0u; d < 3; ++d)
+                {
                     REQUIRE(boundaryValueV[d] == Approx(vExpected[d]));
+                }
             }
 
             for (auto& gradValueV : refGradH.view(boundary->range()))
             {
                 for (auto d = 0u; d < 3; ++d)
+                {
                     REQUIRE(gradValueV[d] == Approx(0.0));
+                }
             }
         }
     }

@@ -24,11 +24,15 @@ public:
 
     using VectorValueType = ValueType;
 
+    // Sp: source += scaling * coefficients * field  (implicit or explicit)
     SourceTerm(
         dsl::Operator::Type termType,
         const VolumeField<scalar>& coefficients,
         const VolumeField<ValueType>& field
     );
+
+    // Su: source += scaling * coefficients  (explicit only)
+    SourceTerm(dsl::Operator::Type termType, VolumeField<ValueType>& coefficients);
 
     ~SourceTerm();
 
@@ -42,8 +46,9 @@ public:
 
 private:
 
-    const VolumeField<scalar>& coefficients_;
+    // Non-null for Sp mode. Null for Su mode (field_ from mixin IS the coefficient).
+    const VolumeField<scalar>* spCoeff_;
 };
 
 
-} // namespace NeoN
+} // namespace NeoN::finiteVolume::cellCentred

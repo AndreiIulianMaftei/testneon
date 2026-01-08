@@ -88,7 +88,9 @@ TEST_CASE("symmetry_surface")
                 const auto vExpected = intV - nV * (intV & nV); // half-symmetry
 
                 for (auto d = 0u; d < 3; ++d)
+                {
                     REQUIRE(boundaryValueV[d] == Approx(vExpected[d]));
+                }
             }
 
             for (auto& boundaryValueV : valuesH.view(boundary->range()))
@@ -101,7 +103,9 @@ TEST_CASE("symmetry_surface")
                 const auto vExpected = intV - nV * (intV & nV);
 
                 for (auto d = 0u; d < 3; ++d)
+                {
                     REQUIRE(boundaryValueV[d] == Approx(vExpected[d]));
+                }
             }
         }
     }

@@ -164,6 +164,7 @@ operator*(const SurfaceField<scalar>& lhs, const SurfaceField<scalar>& rhs)
     result.boundaryData().value() *= rhs.boundaryData().value();
     return result;
 }
+
 inline SurfaceField<scalar>
 operator+(const SurfaceField<scalar>& lhs, const SurfaceField<scalar>& rhs)
 {

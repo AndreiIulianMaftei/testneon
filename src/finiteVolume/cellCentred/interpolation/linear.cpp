@@ -6,6 +6,8 @@
 
 #include "NeoN/finiteVolume/cellCentred/interpolation/linear.hpp"
 #include "NeoN/core/parallelAlgorithms.hpp"
+#include "NeoN/core/primitives/tensor.hpp"
+#include "NeoN/core/primitives/symmTensor.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -53,6 +55,8 @@ void computeLinearInterpolation(
 
 NF_DECLARE_COMPUTE_IMP_LIN_INT(scalar);
 NF_DECLARE_COMPUTE_IMP_LIN_INT(Vec3);
+NF_DECLARE_COMPUTE_IMP_LIN_INT(Tensor);
+NF_DECLARE_COMPUTE_IMP_LIN_INT(SymmTensor);
 
 // template class Linear<scalar>;
 // template class Linear<Vec3>;
