@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -90,14 +90,14 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
         parallelFor(
             exec,
             {0, lsView.matrix.values.size()},
-            KOKKOS_LAMBDA(const localIdx i) { lsView.matrix.values[i] = -lsView.matrix.values[i]; }
+            NEON_LAMBDA(const localIdx i) { lsView.matrix.values[i] = -lsView.matrix.values[i]; }
         );
 
         // Modify values.
         parallelFor(
             exec,
             {0, lsView.rhs.size()},
-            KOKKOS_LAMBDA(const localIdx i) { lsView.rhs[i] = -lsView.rhs[i]; }
+            NEON_LAMBDA(const localIdx i) { lsView.rhs[i] = -lsView.rhs[i]; }
         );
 
         // Check modification.

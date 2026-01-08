@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -23,7 +23,7 @@ TEST_CASE("parallelFor")
     auto fieldNFView = NeoN::View(fieldStdView);
 
     NeoN::parallelFor(
-        exec, {0, 5}, KOKKOS_LAMBDA(const NeoN::localIdx i) { fieldNFView[i] *= 2.0; }
+        exec, {0, 5}, NEON_LAMBDA(const NeoN::localIdx i) { fieldNFView[i] *= 2.0; }
     );
     REQUIRE(fieldNFView.failureIndex == 0);
 
@@ -33,7 +33,7 @@ TEST_CASE("parallelFor")
 #ifndef _MSC_VER
     fieldNFView.abortOnFail = false;
     NeoN::parallelFor(
-        exec, {5, 6}, KOKKOS_LAMBDA(const localIdx i) { fieldNFView[i] *= 2.0; }
+        exec, {5, 6}, NEON_LAMBDA(const localIdx i) { fieldNFView[i] *= 2.0; }
     );
     REQUIRE(fieldNFView.failureIndex == 5);
 #endif

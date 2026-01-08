@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+# SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -11,6 +11,27 @@ add_library(NeoN::NeoN_public_api ALIAS NeoN_public_api) # dummy target
 target_include_directories(
   NeoN_public_api INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:.>)
+if(NeoN_WITH_KOKKOS)
+  target_compile_definitions(NeoN_public_api INTERFACE NN_WITH_KOKKOS=1)
+  target_link_libraries(NeoN_public_api INTERFACE Kokkos::kokkos)
+  if(Kokkos_ENABLE_CUDA)
+    target_compile_definitions(NeoN_public_api INTERFACE NEON_ENABLE_CUDA=1)
+  endif()
+  if(Kokkos_ENABLE_HIP)
+    target_compile_definitions(NeoN_public_api INTERFACE NEON_ENABLE_HIP=1)
+  endif()
+  if(Kokkos_ENABLE_CYCLE)
+    target_compile_definitions(NeoN_public_api INTERFACE NEON_ENABLE_CYCLE=1)
+  endif()
+  if(Kokkos_ENABLE_OPENMP)
+    target_compile_definitions(NeoN_public_api INTERFACE NEON_ENABLE_OPENMP=1)
+  endif()
+  if(Kokkos_ENABLE_THREADS)
+    target_compile_definitions(NeoN_public_api INTERFACE NEON_ENABLE_THREADS=1)
+  endif()
+else()
+  target_compile_definitions(NeoN_public_api INTERFACE NN_WITH_KOKKOS=0)
+endif()
 
 if(NeoN_WITH_GINKGO)
   target_link_libraries(NeoN_public_api INTERFACE nlohmann_json::nlohmann_json Ginkgo::ginkgo)
@@ -34,7 +55,7 @@ else()
   target_compile_definitions(NeoN_public_api INTERFACE NF_WITH_SPDLOG=0)
 endif()
 
-target_link_libraries(NeoN_public_api INTERFACE cpptrace::cpptrace Kokkos::kokkos)
+target_link_libraries(NeoN_public_api INTERFACE cpptrace::cpptrace)
 
 if(NeoN_WITH_PETSC)
   add_definitions(${PETSc_DEFINITIONS})

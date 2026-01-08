@@ -51,7 +51,7 @@ la::SolverStats iterativeSolveImpl(
     parallelFor(
         solution.exec(),
         {0, rhs.size()},
-        KOKKOS_LAMBDA(const localIdx i) { rhs[i] -= expSource[i] * vol[i]; }
+        NEON_LAMBDA(const localIdx i) { rhs[i] -= expSource[i] * vol[i]; }
     );
 
     auto solver = la::Solver(solution.exec(), fvSolution);
@@ -79,7 +79,7 @@ la::SolverStats iterativeSolveImpl(
     parallelFor(
         solution.exec(),
         {0, rhs.size()},
-        KOKKOS_LAMBDA(const localIdx i) { rhs[i] -= expSource[i] * vol[i]; }
+        NEON_LAMBDA(const localIdx i) { rhs[i] -= expSource[i] * vol[i]; }
     );
 
     auto solver = la::Solver(solution.exec(), fvSolution);

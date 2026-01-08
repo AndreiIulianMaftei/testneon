@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -48,7 +48,7 @@ void computeGrad(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             Vec3 flux = faceAreaS[i] * surfPhif[i];
             Kokkos::atomic_add(&surfGradPhi[surfOwner[i]], flux);
             Kokkos::atomic_sub(&surfGradPhi[surfNeighbour[i]], flux);
@@ -59,7 +59,7 @@ void computeGrad(
     parallelFor(
         exec,
         {nInternalFaces, surfPhif.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             auto own = surfFaceCells[i - nInternalFaces];
             Vec3 valueOwn = faceAreaS[i] * surfPhif[i];
             Kokkos::atomic_add(&surfGradPhi[own], valueOwn);
@@ -70,7 +70,7 @@ void computeGrad(
     parallelFor(
         exec,
         {0, mesh.nCells()},
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             surfGradPhi[celli] *= operatorScaling[celli] / surfV[celli];
         },
         "computeGradCells"

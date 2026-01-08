@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -26,7 +26,7 @@ Vector<localIdx> unpackColIdx(
     NeoN::parallelFor(
         exec,
         {0, unpackedRowOffs.size() - 1},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const auto j {rowV[i]};        // new row start
             const auto l {oldRowV[i / 3]}; // original row start
             const auto length {rowV[i + 1] - rowV[i]};
@@ -55,7 +55,7 @@ Vector<scalar> unpackVecValues(const Vector<Vec3>& in)
     NeoN::parallelFor(
         exec,
         {0, in.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             localIdx j = 3 * i;
             outV[j + 0] = inV[i][0];
             outV[j + 1] = inV[i][1];
@@ -81,7 +81,7 @@ Vector<scalar> unpackMtxValues(
     NeoN::parallelFor(
         exec,
         {0, rowOffs.size() - 1},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const auto length {rowV[i + 1] - rowV[i]};
             for (auto k = 0; k < length; k++)
             {
@@ -111,7 +111,7 @@ Vector<localIdx> unpackRowOffs(const Vector<localIdx>& in)
     NeoN::parallelFor(
         exec,
         {0, in.size() - 1},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             localIdx j = 3 * i;
             const auto val = inV[i + 1] - inV[i];
             lengthV[j + 0] = val;
@@ -129,7 +129,7 @@ Vector<localIdx> unpackRowOffs(const Vector<localIdx>& in)
     NeoN::parallelScan(
         exec,
         {1, length.size() + 1},
-        KOKKOS_LAMBDA(const NeoN::localIdx i, NeoN::localIdx& update, const bool final) {
+        NEON_LAMBDA(const NeoN::localIdx i, NeoN::localIdx& update, const bool final) {
             update += lengthV[i - 1];
             if (final)
             {
@@ -150,7 +150,7 @@ void packVecValues(const Vector<scalar>& in, Vector<Vec3>& out)
     NeoN::parallelFor(
         exec,
         {0, out.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             localIdx j = 3 * i;
             outV[i][0] = inV[j + 0];
             outV[i][1] = inV[j + 1];
@@ -173,7 +173,7 @@ void computeResidual(
     NeoN::parallelFor(
         resV.exec(),
         {0, resV.size()},
-        KOKKOS_LAMBDA(const localIdx rowi) {
+        NEON_LAMBDA(const localIdx rowi) {
             auto rowStart = rowOffs[rowi];
             auto rowEnd = rowOffs[rowi + 1];
             scalar sum = 0.0;

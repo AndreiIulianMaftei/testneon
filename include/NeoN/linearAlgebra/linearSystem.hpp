@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -165,7 +165,7 @@ createEmptyLinearSystem(const UnstructuredMesh& mesh, const SparsityPattern& spa
     parallelFor(
         exec,
         {0, nBoundaryFaces},
-        KOKKOS_LAMBDA(const localIdx bfacei) {
+        NEON_LAMBDA(const localIdx bfacei) {
             localIdx celli = faceCells[bfacei];
 
             mValue[bfacei] = zero<ValueType>();

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -35,7 +35,7 @@ void computeFaceNormalGrad(
     NeoN::parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             phif[facei] = nonOrthDeltaCoeffs[facei] * (phi[neighbour[facei]] - phi[owner[facei]]);
         },
         "computeFaceNormalGradInternal"
@@ -44,7 +44,7 @@ void computeFaceNormalGrad(
     NeoN::parallelFor(
         exec,
         {nInternalFaces, phif.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto faceBCI = facei - nInternalFaces;
             auto own = surfFaceCells[faceBCI];
 

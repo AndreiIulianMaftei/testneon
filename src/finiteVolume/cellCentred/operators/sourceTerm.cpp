@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -29,7 +29,7 @@ void SourceTerm<ValueType>::explicitOperation(Vector<ValueType>& source) const
     NeoN::parallelFor(
         source.exec(),
         source.range(),
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             sourceView[celli] += operatorScaling[celli] * coeff[celli] * fieldView[celli];
         },
         "sourceTerm::explicitOperation"
@@ -48,7 +48,7 @@ void SourceTerm<ValueType>::implicitOperation(la::LinearSystem<ValueType, localI
     NeoN::parallelFor(
         ls.exec(),
         {0, coeff.size()},
-        KOKKOS_LAMBDA(const localIdx celli) {
+        NEON_LAMBDA(const localIdx celli) {
             localIdx idx = matrix.rowOffs[celli] + diagOffs[celli];
             matrix.values[idx] +=
                 operatorScaling[celli] * coeff[celli] * vol[celli] * one<ValueType>();

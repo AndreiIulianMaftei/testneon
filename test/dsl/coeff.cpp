@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -61,7 +61,7 @@ TEST_CASE("Coeff")
             Coeff coeff = fieldB; // is a view with uniform value 1.0
             {
                 NeoN::parallelFor(
-                    fieldA, KOKKOS_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
+                    fieldA, NEON_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
                 );
             };
             auto hostVectorA = fieldA.copyToHost();
@@ -76,7 +76,7 @@ TEST_CASE("Coeff")
             Coeff coeff = Coeff(2.0);
             {
                 NeoN::parallelFor(
-                    fieldA, KOKKOS_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
+                    fieldA, NEON_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
                 );
             };
             auto hostVectorA = fieldA.copyToHost();
@@ -91,7 +91,7 @@ TEST_CASE("Coeff")
             Coeff coeff {-5.0, fieldB};
             {
                 NeoN::parallelFor(
-                    fieldA, KOKKOS_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
+                    fieldA, NEON_LAMBDA(const NeoN::localIdx i) { return coeff[i] + 2.0; }
                 );
             };
             auto hostVectorA = fieldA.copyToHost();

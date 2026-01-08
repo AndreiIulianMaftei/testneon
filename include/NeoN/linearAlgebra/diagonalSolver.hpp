@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 NeoN authors
+// SPDX-FileCopyrightText: 2025 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -39,7 +39,7 @@ public:
         parallelFor(
             x.exec(),
             {0, bV.size()},
-            KOKKOS_LAMBDA(const localIdx i) {
+            NEON_LAMBDA(const localIdx i) {
                 const auto rowBegin = mtxV.rowOffs[i];
                 const auto rowEnd = mtxV.rowOffs[i + 1];
 
@@ -84,7 +84,7 @@ public:
         parallelFor(
             x.exec(),
             {0, bV.size()},
-            KOKKOS_LAMBDA(const localIdx i) {
+            NEON_LAMBDA(const localIdx i) {
                 const auto rowBegin = mtxV.rowOffs[i];
                 const auto rowEnd = mtxV.rowOffs[i + 1];
 

@@ -50,7 +50,7 @@ inline void ddtFluxCorrBDF1Kernel(
     parallelFor(
         exec,
         {size_t(0), n},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const auto d = (SfV[i] & uf0V[i]);
             const auto corr = flux0V[i] - d;
 
@@ -92,7 +92,7 @@ inline void ddtFluxCorrBDF2Kernel(
     parallelFor(
         exec,
         {size_t(0), n},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const auto d1 = (SfV[i] & uf0V[i]);
             const auto corr1 = flux0V[i] - d1;
 

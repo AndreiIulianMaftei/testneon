@@ -167,7 +167,7 @@ public:
         NeoN::parallelFor(
             source.exec(),
             source.range(),
-            KOKKOS_LAMBDA(const localIdx i) { sourceView[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { sourceView[i] += coeff[i] * fieldView[i]; }
         );
     }
 
@@ -182,14 +182,14 @@ public:
         NeoN::parallelFor(
             this->exec(),
             {0, values.size()},
-            KOKKOS_LAMBDA(const localIdx i) { values[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { values[i] += coeff[i] * fieldView[i]; }
         );
 
         // update rhs
         NeoN::parallelFor(
             this->exec(),
             ls.rhs().range(),
-            KOKKOS_LAMBDA(const localIdx i) { rhs[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { rhs[i] += coeff[i] * fieldView[i]; }
         );
     }
 
@@ -228,7 +228,7 @@ public:
         NeoN::parallelFor(
             source.exec(),
             source.range(),
-            KOKKOS_LAMBDA(const localIdx i) { sourceView[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { sourceView[i] += coeff[i] * fieldView[i]; }
         );
     }
 
@@ -244,14 +244,14 @@ public:
         NeoN::parallelFor(
             this->exec(),
             {0, values.size()},
-            KOKKOS_LAMBDA(const localIdx i) { values[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { values[i] += coeff[i] * fieldView[i]; }
         );
 
         // update rhs
         NeoN::parallelFor(
             this->exec(),
             ls.rhs().range(),
-            KOKKOS_LAMBDA(const localIdx i) { rhs[i] += coeff[i] * fieldView[i]; }
+            NEON_LAMBDA(const localIdx i) { rhs[i] += coeff[i] * fieldView[i]; }
         );
     }
 

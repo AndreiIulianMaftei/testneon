@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -31,7 +31,7 @@ void computeLinearInterpolation(
     NeoN::parallelFor(
         exec,
         {0, dstS.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             if (facei < nInternalFaces)
             {
                 auto own = ownerS[facei];

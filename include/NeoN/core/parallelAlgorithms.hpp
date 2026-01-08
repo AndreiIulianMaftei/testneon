@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -10,6 +10,24 @@
 #include "NeoN/core/logging.hpp"
 #include "NeoN/core/primitives/label.hpp"
 #include "NeoN/core/executor/executor.hpp"
+
+#ifdef NN_WITH_KOKKOS
+#define NEON_LAMBDA KOKKOS_LAMBDA
+#define NEON_INLINE_FUNCTION KOKKOS_INLINE_FUNCTION
+namespace NeoN
+{
+// just pull Kokkos::atomic_* functions into NeoN namespace
+using Kokkos::atomic_add;
+using Kokkos::atomic_sub;
+}
+#else
+#define NEON_LAMBDA [&]
+namespace NeoN
+{
+// using atomic_add = [](auto& a, auto b){a+b;};
+// using atomic_sub = [](auto& a, auto b){a-b;};
+}
+#endif
 
 namespace NeoN
 {
@@ -60,7 +78,7 @@ void parallelFor(
         Kokkos::parallel_for(
             name,
             Kokkos::RangePolicy<runOn>(start, end),
-            KOKKOS_LAMBDA(const localIdx i) { kernel(i); }
+            NEON_LAMBDA(const localIdx i) { kernel(i); }
         );
     }
 }
@@ -113,7 +131,7 @@ void parallelFor(
         Kokkos::parallel_for(
             name,
             Kokkos::RangePolicy<runOn>(0, view.size()),
-            KOKKOS_LAMBDA(const localIdx i) { view[i] = kernel(i); }
+            NEON_LAMBDA(const localIdx i) { view[i] = kernel(i); }
         );
     }
 }

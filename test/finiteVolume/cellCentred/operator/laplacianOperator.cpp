@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -57,7 +57,7 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
         auto phi = fvcc::VolumeField<TestType>(exec, "phi", mesh, bcs);
         parallelFor(
             phi.internalVector(),
-            KOKKOS_LAMBDA(const localIdx i) { return scalar(i + 1) * one<TestType>(); }
+            NEON_LAMBDA(const localIdx i) { return scalar(i + 1) * one<TestType>(); }
         );
         phi.correctBoundaryConditions();
 

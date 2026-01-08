@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -38,7 +38,7 @@ IndexType segmentsFromIntervals(const Vector<IndexType>& intervals, Vector<Index
     NeoN::parallelScan(
         intervals.exec(),
         {0, offsView.size()},
-        KOKKOS_LAMBDA(const localIdx i, IndexType& update, const bool final) {
+        NEON_LAMBDA(const localIdx i, IndexType& update, const bool final) {
             update += inView[i];
             if (final)
             {

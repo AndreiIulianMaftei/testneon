@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -34,7 +34,7 @@ void computeLaplacianExp(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             ValueType flux = faceArea[i] * fnGrad[i];
             Kokkos::atomic_add(&result[owner[i]], flux);
             Kokkos::atomic_sub(&result[neighbour[i]], flux);
@@ -45,7 +45,7 @@ void computeLaplacianExp(
     parallelFor(
         exec,
         {nInternalFaces, fnGrad.size()},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             auto own = surfFaceCells[i - nInternalFaces];
             ValueType valueOwn = faceArea[i] * fnGrad[i];
             Kokkos::atomic_add(&result[own], valueOwn);
@@ -56,9 +56,7 @@ void computeLaplacianExp(
     parallelFor(
         exec,
         {0, mesh.nCells()},
-        KOKKOS_LAMBDA(const localIdx celli) {
-            result[celli] *= operatorScaling[celli] / vol[celli];
-        },
+        NEON_LAMBDA(const localIdx celli) { result[celli] *= operatorScaling[celli] / vol[celli]; },
         "computeLaplacianExplicitCells"
     );
 }
@@ -110,7 +108,7 @@ void computeLaplacianImpl(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto flux = deltaCoeffs[facei] * sGamma[facei] * magFaceArea[facei];
 
             auto own = owner[facei];
@@ -156,7 +154,7 @@ void computeLaplacianImpl(
     parallelFor(
         exec,
         {nInternalFaces, sGamma.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto bcfacei = facei - nInternalFaces;
             auto flux = sGamma[facei] * magFaceArea[facei];
 

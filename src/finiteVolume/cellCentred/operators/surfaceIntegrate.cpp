@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -26,7 +26,7 @@ void surfaceIntegrate(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             Kokkos::atomic_add(&res[static_cast<size_t>(owner[i])], flux[i]);
             Kokkos::atomic_sub(&res[static_cast<size_t>(neighbour[i])], flux[i]);
         },
@@ -36,7 +36,7 @@ void surfaceIntegrate(
     parallelFor(
         exec,
         {nInternalFaces, nInternalFaces + nBoundaryFaces},
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             auto own = faceCells[i - nInternalFaces];
             Kokkos::atomic_add(&res[own], flux[i]);
         },
@@ -46,7 +46,7 @@ void surfaceIntegrate(
     parallelFor(
         exec,
         {0, nCells},
-        KOKKOS_LAMBDA(const localIdx celli) { res[celli] *= operatorScaling[celli] / v[celli]; },
+        NEON_LAMBDA(const localIdx celli) { res[celli] *= operatorScaling[celli] / v[celli]; },
         "surfaceIntegrateInternalCells"
     );
 }

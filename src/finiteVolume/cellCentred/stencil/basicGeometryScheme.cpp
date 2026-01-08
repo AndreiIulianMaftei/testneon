@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -28,7 +28,7 @@ void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scala
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             scalar sfdOwn = std::abs(sf[facei] & (cf[facei] - c[owner[facei]]));
             scalar sfdNei = std::abs(sf[facei] & (c[neighbour[facei]] - cf[facei]));
 
@@ -47,7 +47,7 @@ void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scala
     parallelFor(
         exec,
         {nInternalFaces, weightS.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             const auto bcfacei = facei - nInternalFaces;
             weightS[facei] = 1.0;
             weightB[bcfacei] = 1.0;
@@ -71,7 +71,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
     parallelFor(
         exec,
         {0, mesh_.nInternalFaces()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             Vec3 cellToCellDist = cellCentre[neighbour[facei]] - cellCentre[owner[facei]];
             deltaCoeff[facei] = 1.0 / mag(cellToCellDist);
         },
@@ -83,7 +83,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
     parallelFor(
         exec,
         {nInternalFaces, deltaCoeff.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto own = surfFaceCells[facei - nInternalFaces];
             Vec3 cellToCellDist = cf[facei] - cellCentre[own];
 
@@ -113,7 +113,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
     parallelFor(
         exec,
         {0, nInternalFaces},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             Vec3 cellToCellDist = cellCentre[neighbour[facei]] - cellCentre[owner[facei]];
             Vec3 faceNormal = 1 / faceArea[facei] * faceAreaVec3[facei];
 
@@ -128,7 +128,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
     parallelFor(
         exec,
         {nInternalFaces, nonOrthDeltaCoeff.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             auto own = surfFaceCells[facei - nInternalFaces];
             Vec3 cellToCellDist = cf[facei] - cellCentre[own];
             Vec3 faceNormal = 1 / faceArea[facei] * faceAreaVec3[facei];

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -33,7 +33,7 @@ void computeUpwindInterpolation(
     parallelFor(
         exec,
         {0, dstS.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             if (facei < nInternalFaces)
             {
                 if (fluxS[facei] >= 0)
@@ -77,7 +77,7 @@ void computeUpwindInterpolationWeights(
     parallelFor(
         exec,
         {0, weights.size()},
-        KOKKOS_LAMBDA(const localIdx facei) {
+        NEON_LAMBDA(const localIdx facei) {
             if (facei < nInternalFaces)
             {
                 weightS[facei] = fluxS[facei] >= 0 ? 1 : 0;

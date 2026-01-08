@@ -103,7 +103,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             NeoN::parallelFor(
                 exec,
                 {size_t(0), mesh.nFaces()},
-                KOKKOS_LAMBDA(const NeoN::localIdx i) { flux0V[i] = (sfV[i] & uf0V[i]); }
+                NEON_LAMBDA(const NeoN::localIdx i) { flux0V[i] = (sfV[i] & uf0V[i]); }
             );
 
             flux.internalVector() = flux0.internalVector();

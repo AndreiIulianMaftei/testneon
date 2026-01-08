@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -58,7 +58,7 @@ void toVector(Coeff& coeff, Vector<scalar>& rhs)
         parallelFor(
             rhs.exec(),
             rhs.range(),
-            KOKKOS_LAMBDA(const localIdx i) { rhsView[i] *= coeff[i]; },
+            NEON_LAMBDA(const localIdx i) { rhsView[i] *= coeff[i]; },
             "coeffToVector"
         );
     }

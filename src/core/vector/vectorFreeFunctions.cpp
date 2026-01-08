@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -25,7 +25,7 @@ void scalarMul(Vector<ValueType>& vect, const scalar value)
     {
         auto viewA = vect.view();
         parallelFor(
-            vect, KOKKOS_LAMBDA(const localIdx i)->ValueType { return viewA[i] * value; }
+            vect, NEON_LAMBDA(const localIdx i)->ValueType { return viewA[i] * value; }
         );
     }
     else
@@ -33,7 +33,7 @@ void scalarMul(Vector<ValueType>& vect, const scalar value)
         auto viewA = vect.view();
         parallelFor(
             vect,
-            KOKKOS_LAMBDA(const localIdx i)->ValueType {
+            NEON_LAMBDA(const localIdx i)->ValueType {
                 return viewA[i] * static_cast<ValueType>(value);
             }
         );
@@ -51,7 +51,7 @@ void fieldBinaryOp(
 {
     auto view = vect.view();
     parallelFor(
-        vect, KOKKOS_LAMBDA(const localIdx i) { return op(view[i], value); }
+        vect, NEON_LAMBDA(const localIdx i) { return op(view[i], value); }
     );
 }
 
@@ -64,7 +64,7 @@ void fieldBinaryOp(
     auto viewA = vect1.view();
     auto viewB = vect2.view();
     parallelFor(
-        vect1, KOKKOS_LAMBDA(const localIdx i) { return op(viewA[i], viewB[i]); }
+        vect1, NEON_LAMBDA(const localIdx i) { return op(viewA[i], viewB[i]); }
     );
 }
 
@@ -74,7 +74,7 @@ template<typename ValueType>
 void add(Vector<ValueType>& vect, const std::type_identity_t<ValueType>& value)
 {
     detail::fieldBinaryOp(
-        vect, value, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va + vb; }
+        vect, value, NEON_LAMBDA(ValueType va, ValueType vb) { return va + vb; }
     );
 }
 
@@ -82,7 +82,7 @@ template<typename ValueType>
 void add(Vector<ValueType>& vect1, const Vector<std::type_identity_t<ValueType>>& vect2)
 {
     detail::fieldBinaryOp(
-        vect1, vect2, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va + vb; }
+        vect1, vect2, NEON_LAMBDA(ValueType va, ValueType vb) { return va + vb; }
     );
 }
 
@@ -90,7 +90,7 @@ template<typename ValueType>
 void sub(Vector<ValueType>& vect, const std::type_identity_t<ValueType>& value)
 {
     detail::fieldBinaryOp(
-        vect, value, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va - vb; }
+        vect, value, NEON_LAMBDA(ValueType va, ValueType vb) { return va - vb; }
     );
 }
 
@@ -98,7 +98,7 @@ template<typename ValueType>
 void sub(Vector<ValueType>& vect1, const Vector<std::type_identity_t<ValueType>>& vect2)
 {
     detail::fieldBinaryOp(
-        vect1, vect2, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va - vb; }
+        vect1, vect2, NEON_LAMBDA(ValueType va, ValueType vb) { return va - vb; }
     );
 }
 
@@ -107,7 +107,7 @@ void mul(Vector<ValueType>& vect, const std::type_identity_t<ValueType>& value)
     requires requires(ValueType a, ValueType b) { a* b; }
 {
     detail::fieldBinaryOp(
-        vect, value, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va * vb; }
+        vect, value, NEON_LAMBDA(ValueType va, ValueType vb) { return va * vb; }
     );
 }
 
@@ -116,7 +116,7 @@ void mul(Vector<ValueType>& vect1, const Vector<std::type_identity_t<ValueType>>
     requires requires(ValueType a, ValueType b) { a* b; }
 {
     detail::fieldBinaryOp(
-        vect1, vect2, KOKKOS_LAMBDA(ValueType va, ValueType vb) { return va * vb; }
+        vect1, vect2, NEON_LAMBDA(ValueType va, ValueType vb) { return va * vb; }
     );
 }
 

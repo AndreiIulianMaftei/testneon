@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2025 NeoN authors
+// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -46,7 +46,7 @@ inline void setSymmetryValue<NeoN::scalar>(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const localIdx owner = faceCellsV[i];
             const auto v = internalV[owner];
 
@@ -82,7 +82,7 @@ inline void setSymmetryValue<NeoN::Vec3>(
     NeoN::parallelFor(
         domainVector.exec(),
         range,
-        KOKKOS_LAMBDA(const localIdx i) {
+        NEON_LAMBDA(const localIdx i) {
             const localIdx owner = faceCellsV[i];
             const auto v = internalV[owner];
             const auto n = nHatV[i];
