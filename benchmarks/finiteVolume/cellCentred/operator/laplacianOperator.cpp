@@ -35,7 +35,9 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
     {
-        NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
+        NeoN::Input input = NeoN::TokenList(
+            {std::string("Gauss"), std::string("linear"), std::string("uncorrected")}
+        );
         auto op =
             fvcc::LaplacianOperator<NeoN::scalar>(Operator::Type::Explicit, gamma, phi, input);
 
