@@ -24,18 +24,39 @@ TEST_CASE("DivOperator::div", "[bench]")
     auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
     fvcc::VolumeField<NeoN::scalar> phi(exec, "vf", mesh, volumeBCs);
     NeoN::fill(phi.internalVector(), 1.0);
-    fvcc::VolumeField<NeoN::scalar> divPhi(exec, "divPhi", mesh, volumeBCs);
-    NeoN::fill(divPhi.internalVector(), 0.0);
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
     {
         NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
-        auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
 
-        BENCHMARK(std::string(execName))
+        SECTION("Explicit")
         {
-            return (op.explicitOperation(divPhi.internalVector()));
-        };
+            // Create a scalar field to hold the div value - output field
+            fvcc::VolumeField<NeoN::scalar> divPhi(exec, "vf", mesh, volumeBCs);
+
+            auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
+
+            BENCHMARK(std::string(execName) + "_explicit")
+            {
+                NeoN::fill(divPhi.internalVector(), 0.0);
+                op.explicitOperation(divPhi.internalVector());
+            };
+        }
+
+        SECTION("Implicit")
+        {
+            // Build sparsity pattern and allocate linear system once - output goes to ls
+            const auto& sp = la::SparsityPattern::readOrCreate(mesh);
+            auto ls = la::createEmptyLinearSystem<NeoN::scalar, NeoN::localIdx>(mesh, sp);
+
+            auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
+
+            BENCHMARK(std::string(execName) + "_implicit")
+            {
+                ls.reset();
+                op.implicitOperation(ls);
+            };
+        }
     }
 }

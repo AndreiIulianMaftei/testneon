@@ -26,7 +26,6 @@ TEST_CASE("GradOperator::grad", "[bench]")
     // Create a vector field to hold the gradient value
     auto gradVecBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::Vec3>>(mesh);
     fvcc::VolumeField<NeoN::Vec3> gradPhi(exec, "gradPhi", mesh, gradVecBCs);
-    NeoN::fill(gradPhi.internalVector(), NeoN::zero<NeoN::Vec3>());
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
@@ -34,9 +33,13 @@ TEST_CASE("GradOperator::grad", "[bench]")
         NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
         auto op = fvcc::GradOperator<NeoN::Vec3>(Operator::Type::Explicit, phi, input);
 
-        BENCHMARK(std::string(execName))
+        BENCHMARK(std::string(execName) + "_explicit")
         {
-            return (op.explicitOperation(gradPhi.internalVector()));
+            NeoN::fill(gradPhi.internalVector(), NeoN::zero<NeoN::Vec3>());
+            op.explicitOperation(gradPhi.internalVector());
         };
+        // Only explicit is implemented
+        // Implicit not available:
+        // GaussGreenGrad::grad(phi, coeff, LinearSystem<Vec3>&) calls NF_ERROR_EXIT.
     }
 }
