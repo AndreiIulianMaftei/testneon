@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+#include "NeoN/core/logging.hpp"
 #include "NeoN/finiteVolume/cellCentred/stencil/geometryScheme.hpp"
 #include "NeoN/finiteVolume/cellCentred/stencil/basicGeometryScheme.hpp"
 #include "NeoN/finiteVolume/cellCentred/boundary.hpp"
@@ -104,17 +105,31 @@ std::string GeometryScheme::name() const { return std::string("GeometryScheme");
 
 void GeometryScheme::update()
 {
-    std::visit(
-        [&](const auto& exec)
-        {
-            kernel_->updateWeights(exec, weights_);
-            kernel_->updateDeltaCoeffs(exec, deltaCoeffs_);
-            kernel_->updateNonOrthDeltaCoeffs(exec, nonOrthDeltaCoeffs_);
-            // kernel_->updateNonOrthCorrectionVec3s(exec, nonOrthCorrectionVec3s_);
-        },
-        exec_
-    );
+    if (mesh_.faceCentres().size() > 0)
+    {
+        std::visit(
+            [&](const auto& exec)
+            {
+                kernel_->updateWeights(exec, weights_);
+                kernel_->updateDeltaCoeffs(exec, deltaCoeffs_);
+                kernel_->updateNonOrthDeltaCoeffs(exec, nonOrthDeltaCoeffs_);
+                // kernel_->updateNonOrthCorrectionVec3s(exec, nonOrthCorrectionVec3s_);
+            },
+            exec_
+        );
+        reset();
+    }
 }
+
+void GeometryScheme::reset() const
+{
+    // TODO this needs a better approach
+    // ideally faceCentres are some kind of hostViewVector
+    Logging::warn("resetting face and cell centres");
+    const_cast<UnstructuredMesh&>(mesh_).faceCentres().resize(0);
+    const_cast<UnstructuredMesh&>(mesh_).cellCentres().resize(0);
+}
+
 
 const SurfaceField<scalar>& GeometryScheme::weights() const { return weights_; }
 

@@ -77,6 +77,8 @@ public:
 
     void update();
 
+    void reset() const;
+
     std::string name() const;
 
     // add selection mechanism via dictionary later
