@@ -34,12 +34,12 @@ TEST_CASE("DivOperator::div", "[bench]")
         {
             // Create a scalar field to hold the div value - output field
             fvcc::VolumeField<NeoN::scalar> divPhi(exec, "vf", mesh, volumeBCs);
+            NeoN::fill(divPhi.internalVector(), 0.0);
 
             auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
 
             BENCHMARK(std::string(execName) + "_explicit")
             {
-                NeoN::fill(divPhi.internalVector(), 0.0);
                 op.explicitOperation(divPhi.internalVector());
             };
         }
@@ -52,11 +52,7 @@ TEST_CASE("DivOperator::div", "[bench]")
 
             auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
 
-            BENCHMARK(std::string(execName) + "_implicit")
-            {
-                ls.reset();
-                op.implicitOperation(ls);
-            };
+            BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
         }
     }
 }

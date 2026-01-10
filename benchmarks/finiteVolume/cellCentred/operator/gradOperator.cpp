@@ -26,6 +26,7 @@ TEST_CASE("GradOperator::grad", "[bench]")
     // Create a vector field to hold the gradient value
     auto gradVecBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::Vec3>>(mesh);
     fvcc::VolumeField<NeoN::Vec3> gradPhi(exec, "gradPhi", mesh, gradVecBCs);
+    NeoN::fill(gradPhi.internalVector(), NeoN::zero<NeoN::Vec3>());
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
@@ -35,7 +36,6 @@ TEST_CASE("GradOperator::grad", "[bench]")
 
         BENCHMARK(std::string(execName) + "_explicit")
         {
-            NeoN::fill(gradPhi.internalVector(), NeoN::zero<NeoN::Vec3>());
             op.explicitOperation(gradPhi.internalVector());
         };
         // Only explicit is implemented

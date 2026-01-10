@@ -39,13 +39,13 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
         {
             // Create a scalar field to hold the laplacian value - output field
             fvcc::VolumeField<NeoN::scalar> lapPhi(exec, "lapPhi", mesh, volumeBCs);
+            NeoN::fill(lapPhi.internalVector(), 0.0);
 
             auto op =
                 fvcc::LaplacianOperator<NeoN::scalar>(Operator::Type::Explicit, gamma, phi, input);
 
             BENCHMARK(std::string(execName) + "_explicit")
             {
-                NeoN::fill(lapPhi.internalVector(), 0.0);
                 op.explicitOperation(lapPhi.internalVector());
             };
         }
@@ -59,11 +59,7 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
             auto op =
                 fvcc::LaplacianOperator<NeoN::scalar>(Operator::Type::Implicit, gamma, phi, input);
 
-            BENCHMARK(std::string(execName) + "_implicit")
-            {
-                ls.reset();
-                op.implicitOperation(ls);
-            };
+            BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
         }
     }
 }
