@@ -25,11 +25,11 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
     fill(coeff.boundaryData().value(), 0.0);
     coeff.correctBoundaryConditions();
 
-    // Create a scalar field to hold the output field
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
-    fvcc::VolumeField<NeoN::scalar> phi(exec, "sf", mesh, volumeBCs);
-    fill(phi.internalVector(), 1.0);
-    fill(phi.boundaryData().value(), 0.0);
+    // Create a vector field to hold the variable
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::Vec3>>(mesh);
+    fvcc::VolumeField<NeoN::Vec3> phi(exec, "sf", mesh, volumeBCs);
+    fill(phi.internalVector(), NeoN::one<NeoN::Vec3>());
+    fill(phi.boundaryData().value(), NeoN::zero<NeoN::Vec3>());
     phi.correctBoundaryConditions();
 
     // capture the value of size as section name
@@ -37,21 +37,20 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
     {
         SECTION("Explicit")
         {
-            auto op = fvcc::SourceTerm<NeoN::scalar>(Operator::Type::Explicit, coeff, phi);
+            auto op = fvcc::SourceTerm<NeoN::Vec3>(Operator::Type::Explicit, coeff, phi);
 
-            BENCHMARK(std::string(execName) + "_explicit")
-            {
-                op.explicitOperation(phi.internalVector());
-            };
+            NeoN::Vector<NeoN::Vec3> source(exec, phi.size(), NeoN::zero<NeoN::Vec3>());
+
+            BENCHMARK(std::string(execName) + "_explicit") { op.explicitOperation(source); };
         }
 
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
             const auto& sp = la::SparsityPattern::readOrCreate(mesh);
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar, NeoN::localIdx>(mesh, sp);
+            auto ls = la::createEmptyLinearSystem<NeoN::Vec3, NeoN::localIdx>(mesh, sp);
 
-            auto op = fvcc::SourceTerm<NeoN::scalar>(Operator::Type::Implicit, coeff, phi);
+            auto op = fvcc::SourceTerm<NeoN::Vec3>(Operator::Type::Implicit, coeff, phi);
 
             BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
         }
