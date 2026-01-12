@@ -5,3 +5,4 @@
 neon_benchmark(divOperator)
 neon_benchmark(gradOperator)
 neon_benchmark(laplacianOperator)
+neon_benchmark(sourceTerm)
