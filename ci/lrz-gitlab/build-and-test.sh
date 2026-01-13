@@ -28,7 +28,7 @@ if [ "$GPU_TYPE" == "nvidia" ]; then
 
     echo "=== Configuring, building, and testing NeoN on NVIDIA ==="
     cmake --preset develop \
-        -DCMAKE_CUDA_ARCHITECTURES=90 \
+        -DCMAKE_CUDA_ARCHITECTURES=89 \
         -DNeoN_WITH_THREADS=OFF \
         -DNeoN_BUILD_BENCHMARKS=ON
     cmake --build --preset develop
