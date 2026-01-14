@@ -67,9 +67,6 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
     const NeoN::scalar t = 1.0;
     const NeoN::scalar dt = 0.5;
 
-    // fvSchemes dictionaries for BDF1/BDF2
-
-
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
     {
@@ -116,6 +113,12 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
 
             auto op = fvcc::DdtOperator(Operator::Type::Implicit, phi);
             op.read(fvSchemes);
+
+            // Ensure oldTimeLevel >=2 to confirm true BDF2
+            NF_ASSERT(
+                oldTimeLevel(phi) >= 2,
+                std::format("Expected oldTimeLevel(phi) >= 2 but got {}", oldTimeLevel(phi))
+            );
 
             BENCHMARK(std::string(execName) + "_implicit_BDF2")
             {
