@@ -35,7 +35,13 @@ public:
 };
 
 /* @class GeometryScheme
- * @brief Implements a method to compute deltaCoeffs
+ * @brief Implements access to compute deltaCoeffs, weights, and nonOrthDeltaCoeffs
+ *
+ * Where:
+ *  - deltaCoeff: inverse owner to neighbour cell centre distance
+ *  - weight: the distance of the cell centre to face normalized by the distance to the neighbour
+ * cell
+ *  - nonOrthDeltaCoeff: faceNormal * cellToCellDist
  */
 class GeometryScheme
 {
@@ -70,6 +76,8 @@ public:
     const SurfaceField<Vec3>& nonOrthCorrectionVec3s() const;
 
     void update();
+
+    void reset() const;
 
     std::string name() const;
 

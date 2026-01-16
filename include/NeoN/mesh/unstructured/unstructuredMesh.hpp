@@ -34,6 +34,44 @@ public:
     /**
      * @brief Constructor for the UnstructuredMesh class.
      *
+     * @param exec
+     * @param points The field of mesh points.
+     * @param cellVolumes The field of cell volumes in the mesh.
+     * @param cellCentres The field of cell centres in the mesh.
+     * @param faceAreas The field of area face normals.
+     * @param faceCentres The field of face centres.
+     * @param magFaceAreas The field of magnitudes of face areas.
+     * @param faceOwner The field of face owner cells.
+     * @param faceNeighbour The field of face neighbour cells.
+     * @param nCells The number of cells in the mesh.
+     * @param nInternalFaces The number of internal faces in the mesh.
+     * @param nBoundaryFaces The number of boundary faces in the mesh.
+     * @param nBoundaries The number of boundaries in the mesh.
+     * @param nFaces The number of faces in the mesh.
+     * @param boundaryMesh The boundary mesh.
+     */
+    UnstructuredMesh(
+        Executor exec,
+        vectorVector points,
+        scalarVector cellVolumes,
+        vectorVector cellCentres,
+        vectorVector faceAreas,
+        vectorVector faceCentres,
+        scalarVector magFaceAreas,
+        labelVector faceOwner,
+        labelVector faceNeighbour,
+        localIdx nCells,
+        localIdx nInternalFaces,
+        localIdx nBoundaryFaces,
+        localIdx nBoundaries,
+        localIdx nFaces,
+        BoundaryMesh boundaryMesh
+    );
+
+    /**
+     * @brief Constructor for the UnstructuredMesh class.
+     * @note executor is determined from faceOwner
+     *
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
      * @param cellCentres The field of cell centres in the mesh.
@@ -72,6 +110,7 @@ public:
      * @return The field of mesh points.
      */
     const vectorVector& points() const;
+    vectorVector& points();
 
     /**
      * @brief Get the field of cell volumes in the mesh.
@@ -79,6 +118,7 @@ public:
      * @return The field of cell volumes in the mesh.
      */
     const scalarVector& cellVolumes() const;
+    scalarVector& cellVolumes();
 
     /**
      * @brief Get the field of cell centres in the mesh.
@@ -86,6 +126,7 @@ public:
      * @return The field of cell centres in the mesh.
      */
     const vectorVector& cellCentres() const;
+    vectorVector& cellCentres();
 
     /**
      * @brief Get the field of face centres.
@@ -93,6 +134,7 @@ public:
      * @return The field of face centres.
      */
     const vectorVector& faceCentres() const;
+    vectorVector& faceCentres();
 
     /**
      * @brief Get the field of area face normals.
@@ -100,6 +142,7 @@ public:
      * @return The field of area face normals.
      */
     const vectorVector& faceAreas() const;
+    vectorVector& faceAreas();
 
     /**
      * @brief Get the field of magnitudes of face areas.
@@ -107,6 +150,7 @@ public:
      * @return The field of magnitudes of face areas.
      */
     const scalarVector& magFaceAreas() const;
+    scalarVector& magFaceAreas();
 
     /**
      * @brief Get the field of face owner cells.
@@ -114,6 +158,7 @@ public:
      * @return The field of face owner cells.
      */
     const labelVector& faceOwner() const;
+    labelVector& faceOwner();
 
     /**
      * @brief Get the field of face neighbour cells.
@@ -121,6 +166,7 @@ public:
      * @return The field of face neighbour cells.
      */
     const labelVector& faceNeighbour() const;
+    labelVector& faceNeighbour();
 
     /**
      * @brief Get the number of cells in the mesh.
