@@ -37,6 +37,10 @@ if [ "$GPU_TYPE" == "nvidia" ]; then
 elif [ "$GPU_TYPE" == "amd" ]; then
     # Set up environment
     export PATH=/opt/rocm/bin:$PATH
+    export CXX_COMPILER_PATH="$(which g++)"
+    export CXX_SOURCE="${CXX_COMPILER_PATH%/*/*}"
+    export CXX_LIBDIR="${CXX_SOURCE}/lib64"
+    export LD_LIBRARY_PATH=${CXX_LIBDIR}:${LD_LIBRARY_PATH}
 
     echo "=== AMD GPU and compiler driver info ==="
     rocminfo | grep "AMD"
@@ -44,7 +48,10 @@ elif [ "$GPU_TYPE" == "amd" ]; then
 
     echo "=== Configuring, building, and testing NeoN on AMD ==="
     cmake --preset develop \
-        -DCMAKE_CXX_COMPILER=hipcc \
+        -DCMAKE_C_COMPILER=clang \
+        -DCMAKE_CXX_COMPILER=clang++ \
+        -DCMAKE_CXX_FLAGS="--gcc-toolchain=${CXX_SOURCE}" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L${CXX_LIBDIR}" \
         -DCMAKE_HIP_ARCHITECTURES=gfx90a \
         -DKokkos_ARCH_AMD_GFX90A=ON \
         -DNeoN_WITH_THREADS=OFF \
