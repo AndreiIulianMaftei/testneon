@@ -20,7 +20,7 @@ DdtOperator<ValueType>::DdtOperator(dsl::Operator::Type termType, VolumeField<Va
       sparsityPattern_(la::SparsityPattern::readOrCreate(field.mesh())) {};
 
 template<typename ValueType>
-void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) const
+void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar, scalar dt) const
 {
     const scalar dtInver = 1.0 / dt;
     const auto vol = this->getVector().mesh().cellVolumes().view();
@@ -39,7 +39,7 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
 
 template<typename ValueType>
 void DdtOperator<ValueType>::bdf1Kernel(
-    la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
+    la::LinearSystem<ValueType, localIdx>& ls, scalar, scalar dt
 ) const
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();
@@ -65,7 +65,7 @@ void DdtOperator<ValueType>::bdf1Kernel(
 
 template<typename ValueType>
 void DdtOperator<ValueType>::bdf2Kernel(
-    la::LinearSystem<ValueType, localIdx>& ls, scalar t, scalar dt
+    la::LinearSystem<ValueType, localIdx>& ls, scalar, scalar dt
 ) const
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();

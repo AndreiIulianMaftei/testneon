@@ -40,8 +40,8 @@ class LogEvent
 
 public:
 
-    LogEvent(std::source_location location, Level level, std::string_view message)
-        : level(level), message(message), location(location)
+    LogEvent(std::source_location location_, Level level_, std::string_view message_)
+        : location(location_), level(level_), message(message_)
     {
         creationTS = std::chrono::steady_clock::now();
     };
@@ -76,7 +76,9 @@ public:
 
 void setNeonDefaultPattern();
 
-void logImpl(std::string sv, Level level, std::string logName = "NeoN");
+void logImpl(
+    std::string sv, [[maybe_unused]] Level level, [[maybe_unused]] std::string logName = "NeoN"
+);
 
 /*@brief convenience function to call spdlogs info with std::format */
 template<typename... Args>

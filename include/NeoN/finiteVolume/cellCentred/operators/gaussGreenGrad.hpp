@@ -53,10 +53,11 @@ public:
      * @param operatorScaling [in] - scales operator by a coefficient
      * @param gradPhi [in,out] - resulting gradient field
      */
-    virtual void grad(const VolumeField<scalar>&, const dsl::Coeff, VolumeField<Vec3>&) const
+    virtual void
+    grad(const VolumeField<scalar>& phi, const dsl::Coeff coeff, VolumeField<Vec3>& in) const
     {
-        NF_ERROR_EXIT("Not implemented");
-    };
+        grad(phi, coeff, in.internalVector());
+    }
 
     /* @brief compute explicit gradient operator and return result
      *
