@@ -232,6 +232,7 @@ SolverStats solve_impl(
     std::unique_ptr<gko::LinOp> solver
 )
 {
+    exec->synchronize();
     auto startEval = std::chrono::steady_clock::now();
 
     using vec = gko::matrix::Dense<scalar>;
@@ -262,6 +263,7 @@ SolverStats solve_impl(
     scalar finalResNorm = retrieve(gko::as<vec>(logger->get_residual_norm()));
 
     auto numIter = label(logger->get_num_iterations());
+    exec->synchronize();
     auto endEval = std::chrono::steady_clock::now();
     auto duration =
         static_cast<scalar>(
