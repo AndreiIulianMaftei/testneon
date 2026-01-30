@@ -5,13 +5,12 @@
 import neon
 
 
-def test_scalar_vector():
-    exec = neon.SerialExecutor()
+def test_scalar_vector(executor):
+    name, exec = executor
 
     v1 = neon.ScalarVector(exec, 10)
     assert v1.size() == len(v1) == 10
     assert not v1.empty()
-    assert neon.is_serial(v1.exec())
 
     v2 = neon.ScalarVector(exec, 5, 3.14)
     assert v2.size() == 5
@@ -26,8 +25,8 @@ def test_scalar_vector():
     assert v_empty.empty()
 
 
-def test_vector_vector():
-    exec = neon.SerialExecutor()
+def test_vector_vector(executor):
+    name, exec = executor
 
     vv1 = neon.VectorVector(exec, 10)
     assert vv1.size() == 10
@@ -39,8 +38,8 @@ def test_vector_vector():
     assert vv3.size() == 3
 
 
-def test_label_vector():
-    exec = neon.SerialExecutor()
+def test_label_vector(executor):
+    name, exec = executor
 
     lv1 = neon.LabelVector(exec, 10)
     assert lv1.size() == 10

@@ -51,11 +51,32 @@ nanobind_add_module(
 # Link against the NeoN library to access executor classes
 target_link_libraries(_neon PRIVATE NeoN::NeoN)
 
+# Generate Python type stubs (.pyi) after building the module
+add_custom_command(
+  TARGET _neon
+  POST_BUILD
+  COMMAND ${Python_EXECUTABLE} -m nanobind.stubgen -m _neon -O ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -i
+          ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -D
+  COMMENT "Generating type hints (_neon.pyi) for neon..."
+  VERBATIM)
+
+# Copy Python package files to build directory
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../neon/__init__.py
+               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/__init__.py COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../neon/py.typed
+               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/py.typed COPYONLY)
+
 # Installation
 if(DEFINED SKBUILD)
   # Install for scikit-build (into neon/ package)
   install(TARGETS _neon LIBRARY DESTINATION neon COMPONENT python)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../neon/__init__.py DESTINATION neon)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../neon/py.typed DESTINATION neon)
 else()
   # Standalone installation
   install(TARGETS _neon LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/python/neon)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../neon/__init__.py
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/python/neon)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../neon/py.typed
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/python/neon)
 endif()

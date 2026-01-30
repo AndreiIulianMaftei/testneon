@@ -5,8 +5,8 @@
 import neon
 
 
-def test_surface_interpolation_scalar():
-    exec = neon.SerialExecutor()
+def test_surface_interpolation_scalar(executor):
+    name, exec = executor
 
     mesh = neon.create_1d_uniform_mesh(exec, 4)
 
@@ -24,8 +24,8 @@ def test_surface_interpolation_scalar():
     assert surface.size() == mesh.n_internal_faces() + mesh.n_boundary_faces()
 
 
-def test_surface_interpolation_vector():
-    exec = neon.SerialExecutor()
+def test_surface_interpolation_vector(executor):
+    name, exec = executor
 
     mesh = neon.create_1d_uniform_mesh(exec, 4)
 
