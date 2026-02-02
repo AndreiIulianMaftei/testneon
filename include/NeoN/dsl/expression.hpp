@@ -39,6 +39,10 @@ public:
           spatialOperators_(exp.spatialOperators_)
     {}
 
+    Expression(const SpatialOperator<ValueType>& oper) { spatialOperators_.push_back(oper); }
+
+    Expression(const TemporalOperator<ValueType>& oper) { temporalOperators_.push_back(oper); }
+
     /* @brief dispatch read call to operator */
     void read(const Dictionary& input)
     {
