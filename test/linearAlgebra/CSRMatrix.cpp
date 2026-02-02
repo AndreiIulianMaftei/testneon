@@ -136,7 +136,7 @@ TEMPLATE_TEST_CASE("CSRMatrix", "[template]", NeoN::scalar)
 
     SECTION("Can extract upper " + execName)
     {
-        auto upper = denseMatrix.upper();
+        auto upper = NeoN::la::upper(denseMatrix);
         auto upperH = upper.copyToHost();
 
         REQUIRE(upperH.view()[0] == 2.0);
