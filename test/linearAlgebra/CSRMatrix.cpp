@@ -134,6 +134,16 @@ TEMPLATE_TEST_CASE("CSRMatrix", "[template]", NeoN::scalar)
         REQUIRE(diagH.view()[2] == 9.0);
     }
 
+    SECTION("Can extract upper " + execName)
+    {
+        auto upper = denseMatrix.upper();
+        auto upperH = upper.copyToHost();
+
+        REQUIRE(upperH.view()[0] == 2.0);
+        REQUIRE(upperH.view()[1] == 3.0);
+        REQUIRE(upperH.view()[2] == 6.0);
+    }
+
     SECTION("Update existing entry on " + execName)
     {
         // Sparse

@@ -172,6 +172,9 @@ public:
     /** @brief extract the diagonal of the matrix*/
     [[nodiscard]] Vector<ValueType> diag() const;
 
+    /** @brief extract the upper triangular of the matrix*/
+    [[nodiscard]] Vector<ValueType> upper() const;
+
     /**
      * @brief Copy the matrix to another executor.
      * @param dstExec The destination executor.
