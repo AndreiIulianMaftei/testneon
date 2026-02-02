@@ -115,6 +115,25 @@ TEMPLATE_TEST_CASE("CSRMatrix", "[template]", NeoN::scalar)
         REQUIRE(checkHost.view()[8] == 9.0);
     }
 
+    SECTION("Can extract diagonal " + execName)
+    {
+        auto diag = sparseMatrix.diag();
+        auto diagH = diag.copyToHost();
+
+        REQUIRE(diagH.view()[0] == 1.0);
+        REQUIRE(diagH.view()[1] == 5.0);
+    }
+
+    SECTION("Can extract diagonal " + execName)
+    {
+        auto diag = denseMatrix.diag();
+        auto diagH = diag.copyToHost();
+
+        REQUIRE(diagH.view()[0] == 1.0);
+        REQUIRE(diagH.view()[1] == 5.0);
+        REQUIRE(diagH.view()[2] == 9.0);
+    }
+
     SECTION("Update existing entry on " + execName)
     {
         // Sparse

@@ -169,6 +169,9 @@ public:
      */
     [[nodiscard]] const Vector<IndexType>& rowOffs() const { return rowOffs_; }
 
+    /** @brief extract the diagonal of the matrix*/
+    [[nodiscard]] Vector<ValueType> diag() const;
+
     /**
      * @brief Copy the matrix to another executor.
      * @param dstExec The destination executor.
