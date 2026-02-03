@@ -11,13 +11,6 @@ set -euo pipefail
 GPU_VENDOR=${GPU_VENDOR:?Error: Must set GPU vendor (nvidia|amd|intel)}
 PRESET="develop"
 
-# Check arguments
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <gpu_type>"
-    echo "  gpu_type: nvidia | amd"
-    exit 1
-fi
-
 echo "Selected GPU type: $GPU_VENDOR"
 
 echo "=== Tool versions ==="
