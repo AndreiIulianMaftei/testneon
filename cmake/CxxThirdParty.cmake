@@ -272,6 +272,7 @@ if(${NeoN_BUILD_PYTHON_BINDINGS})
   else()
     set(DEV_MODULE Development.Module)
   endif()
+  set(Python_FIND_VIRTUALENV "FIRST")
 
   if(DEFINED ENV{VIRTUAL_ENV})
     set(Python_ROOT_DIR "$ENV{VIRTUAL_ENV}")
