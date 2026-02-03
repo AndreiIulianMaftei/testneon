@@ -168,9 +168,9 @@ jobs:
       LRZ_HOST: gitlab-ce.lrz.de
       REPO_NAME: ${{ github.event.repository.name }}
       BRANCH: ${{ needs.build-and-test-neon.outputs.branch }}
-      SKIP_NVIDIA: ${{ needs.build-and-test.outputs.skip-nvidia }}
-      SKIP_AMD: ${{ needs.build-and-test.outputs.skip-amd }}
-      SKIP_INTEL: ${{ needs.build-and-test.outputs.skip-intel }}
+      SKIP_NVIDIA: ${{ needs.build-and-test-neon.outputs.skip-nvidia }}
+      SKIP_AMD: ${{ needs.build-and-test-neon.outputs.skip-amd }}
+      SKIP_INTEL: ${{ needs.build-and-test-neon.outputs.skip-intel }}
       NEON_PROJECT_TOKEN: ${{ secrets.LRZ_GITLAB_PROJECT_TOKEN }}
       NEON_TRIGGER_TOKEN: ${{ secrets.LRZ_GITLAB_TRIGGER_TOKEN }}
 
