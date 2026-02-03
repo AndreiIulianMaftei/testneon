@@ -153,6 +153,22 @@ jobs:
             "${{ steps.trigger-neofoam.outputs.pipeline_id }}" \
             "${NEOFOAM_PROJECT_TOKEN}"
 
+      - name: Delete remote branch on LRZ GitLab
+        if: always()
+        run: |
+          BRANCH="${{ steps.branch.outputs.branch }}"
+
+          # Never delete protected branches
+          case "$BRANCH" in
+            main|develop)
+              echo "Skipping deletion of protected branch: $BRANCH"
+              exit 0
+              ;;
+          esac
+
+          echo "Deleting remote branch '$BRANCH' from LRZ GitLab..."
+          git push lrz --delete "$BRANCH"
+
   benchmark:
     name: Benchmark NeoN on GPU
     runs-on: ubuntu-latest
@@ -205,3 +221,16 @@ jobs:
             "${{ env.REPO_NAME }}" \
             "${{ steps.trigger-neon.outputs.pipeline_id }}" \
             "${NEON_PROJECT_TOKEN}"
+
+      - name: Delete remote branch on LRZ GitLab
+        if: always()
+        run: |
+          case "$BRANCH" in
+            main|develop)
+              echo "Skipping deletion of protected branch: $BRANCH"
+              exit 0
+              ;;
+          esac
+
+          echo "Deleting remote branch '$BRANCH' from LRZ GitLab..."
+          git push lrz --delete "$BRANCH"
