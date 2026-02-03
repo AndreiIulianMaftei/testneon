@@ -15,7 +15,10 @@ env:
   OMPI_MCA_rmaps_base_oversubscribe: 1
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: >
+    ${{ github.workflow }}-
+    ${{ github.event_name }}-
+    ${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +26,7 @@ jobs:
     if: >
       github.event_name != 'pull_request' ||
       !contains(github.event.pull_request.labels.*.name, 'skip-build')
-    name: Build and test ${{ github.event.repository.name }} on MacOS
+    name: Build and test NeoN on MacOS
     strategy:
       fail-fast: false
       matrix:
