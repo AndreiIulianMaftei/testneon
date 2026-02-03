@@ -1,4 +1,4 @@
-name: NeoN + NeoFOAM LRZ GitLab CI
+name: LRZ GitLab CI
 
 on:
   push:
