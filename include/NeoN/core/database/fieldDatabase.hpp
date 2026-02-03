@@ -27,8 +27,8 @@ public:
 
     FieldDatabaseMixin() = default;
 
-    FieldDatabaseMixin(Database& db, std::string key_, std::string collectionName)
-        : key(std::move(key_)), fieldCollectionName(std::move(collectionName)), db_(&db)
+    FieldDatabaseMixin(Database& db, std::string keyIn, std::string collectionName)
+        : key(std::move(keyIn)), fieldCollectionName(std::move(collectionName)), db_(&db)
     {}
 
     bool hasDatabase() const { return db_.has_value(); }

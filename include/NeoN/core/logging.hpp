@@ -40,8 +40,8 @@ class LogEvent
 
 public:
 
-    LogEvent(std::source_location location_, Level level_, std::string_view message_)
-        : location(location_), level(level_), message(message_)
+    LogEvent(std::source_location locationIn, Level levelIn, std::string_view messageIn)
+        : location(locationIn), level(levelIn), message(messageIn)
     {
         creationTS = std::chrono::steady_clock::now();
     };

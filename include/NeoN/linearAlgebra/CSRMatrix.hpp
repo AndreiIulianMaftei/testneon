@@ -169,6 +169,9 @@ public:
      */
     [[nodiscard]] const Vector<IndexType>& rowOffs() const { return rowOffs_; }
 
+    /** @brief extract the diagonal of the matrix*/
+    [[nodiscard]] Vector<ValueType> diag() const;
+
     /**
      * @brief Copy the matrix to another executor.
      * @param dstExec The destination executor.
@@ -219,6 +222,12 @@ private:
     Vector<IndexType> colIdxs_; //!< The column indices of the CSR matrix.
     Vector<IndexType> rowOffs_; //!< The row offsets for the CSR matrix.
 };
+
+/** @brief extract the upper triangular of the matrix
+ * @note this function is meant for testing purposes, it will recompute upper offsets
+ */
+template<typename ValueType, typename IndexType>
+[[nodiscard]] Vector<ValueType> upper(const CSRMatrix<ValueType, IndexType>& mtx);
 
 // /* @brief given a csr matrix this function copies the matrix and converts to requested target
 // types
