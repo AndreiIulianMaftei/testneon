@@ -20,9 +20,11 @@ concurrency:
 
 jobs:
   build:
-    name: Build NeoN on ubuntu
+    name: Build and test ${{ github.event.repository.name }} on Ubuntu
     runs-on: ubuntu-latest
-    if: "!contains(toJson(github.event.pull_request.labels.*.name), 'Skip-build')"
+    if: >
+      github.event_name != 'pull_request' ||
+      !contains(github.event.pull_request.labels.*.name, 'skip-build')
     strategy:
       fail-fast: false
       matrix:

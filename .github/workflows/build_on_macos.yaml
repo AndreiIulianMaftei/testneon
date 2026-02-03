@@ -20,8 +20,10 @@ concurrency:
 
 jobs:
   build:
-    if: "!contains(toJson(github.event.pull_request.labels.*.name), 'Skip-build')"
-    name: Build NeoN on MacOs
+    if: >
+      github.event_name != 'pull_request' ||
+      !contains(github.event.pull_request.labels.*.name, 'skip-build')
+    name: Build and test ${{ github.event.repository.name }} on MacOS
     strategy:
       fail-fast: false
       matrix:

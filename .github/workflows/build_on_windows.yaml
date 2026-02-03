@@ -18,7 +18,9 @@ env:
 
 jobs:
   windows_msvc:
-    if: "!contains(toJson(github.event.pull_request.labels.*.name), 'Skip-build')"
+    if: >
+      github.event_name != 'pull_request' ||
+      !contains(github.event.pull_request.labels.*.name, 'skip-build')
     name: msvc
     runs-on: [windows-latest]
     steps:
