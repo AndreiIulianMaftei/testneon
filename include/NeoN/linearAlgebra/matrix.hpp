@@ -6,6 +6,7 @@
 
 #include "NeoN/core/vector/vector.hpp"
 #include "sparsityPattern.hpp"
+#include "matrixIterator.hpp"
 
 #include <type_traits>
 
@@ -84,8 +85,7 @@ public:
     /**
      * @brief Constructor for Matrix.
      * @param values The non-zero values of the matrix.
-     * @param colIdxs The column indices for each non-zero value.
-     * @param rowOffs The starting index in values/colIdxs for each row.
+     * @param sp The sparsity pattern of the matrix
      */
     Matrix(const Vector<ValueType>& values, std::shared_ptr<const SparsityType> sp)
         : values_(values), sparsityPattern_(sp)
@@ -256,6 +256,20 @@ void scaledInverseDiag(
     const CSRMatrix<Vec3, localIdx>& mtx, const Vector<scalar>& a, Vector<scalar>& out
 );
 
+/** @brief computes the inverted diagonal of a matrix and scales it by a, ie. a*D^-1
+ * @note this function is a specialized function for CSR<Vec3> matrices assuming all diagonal
+ * entries are identical
+ */
+[[nodiscard]] Vector<scalar>
+scaledInverseDiag(const CSRMatrix<Vec3, localIdx>&, const MatrixIterator<localIdx>& mi, const Vector<scalar>&);
+
+void scaledInverseDiag(
+    const CSRMatrix<Vec3, localIdx>& mtx,
+    const MatrixIterator<localIdx>& mi,
+    const Vector<scalar>& a,
+    Vector<scalar>& out
+);
+
 /* @brief given Matrix<Vec3> this function returns a component Matrix<scalar>*/
 template<unsigned int I>
 [[nodiscard]] auto get(const CSRMatrix<Vec3, localIdx>& in)
@@ -271,9 +285,24 @@ template<unsigned int I>
 void negLUx(
     const CSRMatrix<Vec3, localIdx>& mtx,
     const Vector<Vec3>& a,
+    const Vector<Vec3>& b,
     const Vector<scalar>& rAU,
     const Vector<scalar>& V,
     Vector<Vec3>& out
 );
+
+/** @brief computes out = -(L+U) x
+ *
+ * @notes explicitly sets out values to zero
+ */
+void scaledInvDiagnegLUx(
+    const CSRMatrix<Vec3, localIdx>& mtx,
+    const Vector<Vec3>& a,
+    const Vector<Vec3>& b,
+    const Vector<scalar>& V,
+    Vector<scalar>& rAU,
+    Vector<Vec3>& out
+);
+
 
 } // namespace NeoN

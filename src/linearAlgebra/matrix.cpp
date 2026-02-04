@@ -106,6 +106,7 @@ Vector<ValueType> upper(const CSRMatrix<ValueType, IndexType>& mtx)
 void negLUx(
     const CSRMatrix<Vec3, localIdx>& mtx,
     const Vector<Vec3>& a,
+    const Vector<Vec3>& b,
     const Vector<scalar>& rAU,
     const Vector<scalar>& vol,
     Vector<Vec3>& out
@@ -114,8 +115,8 @@ void negLUx(
     NF_ASSERT(mtx.nRows() == a.size(), "Dimension mismatch");
     NF_ASSERT(mtx.nRows() == out.size(), "Dimension mismatch");
 
-    const auto [rowOffsV, colIdxV, matrixV, rAUV, volV, aV] =
-        views(mtx.sparsity()->rowOffs(), mtx.sparsity()->colIdxs(), mtx.values(), rAU, vol, a);
+    const auto [rowOffsV, colIdxV, matrixV, rAUV, volV, aV, bV] =
+        views(mtx.sparsity()->rowOffs(), mtx.sparsity()->colIdxs(), mtx.values(), rAU, vol, a, b);
     auto outV = out.view();
 
     parallelFor(
@@ -132,11 +133,52 @@ void negLUx(
                 }
             }
 
-            outV[rowi] += aV[rowi];
+            outV[rowi] += bV[rowi];
             outV[rowi] *= rAUV[rowi] / volV[rowi];
         }
     );
 }
+
+void scaledInvDiagnegLUx(
+    const CSRMatrix<Vec3, localIdx>& mtx,
+    const Vector<Vec3>& a,
+    const Vector<Vec3>& b,
+    const Vector<scalar>& vol,
+    Vector<scalar>& rAU,
+    Vector<Vec3>& out
+)
+{
+    NF_ASSERT(mtx.nRows() == a.size(), "Dimension mismatch");
+    NF_ASSERT(mtx.nRows() == out.size(), "Dimension mismatch");
+
+    const auto [rowOffsV, colIdxV, matrixV, rAUV, volV, aV, bV] =
+        views(mtx.sparsity()->rowOffs(), mtx.sparsity()->colIdxs(), mtx.values(), rAU, vol, a, b);
+    auto outV = out.view();
+
+    parallelFor(
+        mtx.exec(),
+        {0, mtx.nRows()},
+        NEON_LAMBDA(const localIdx rowi) {
+            outV[rowi] = zero<Vec3>();
+            for (auto i = rowOffsV[rowi]; i < rowOffsV[rowi + 1]; i++)
+            {
+                auto colI = colIdxV[i];
+                if (rowi == colI)
+                {
+                    rAUV[rowi] = volV[rowi] / matrixV[i][0];
+                }
+                else
+                {
+                    outV[rowi] -= matrixV[i] * aV[colI];
+                }
+            }
+
+            outV[rowi] += bV[rowi];
+            outV[rowi] *= rAUV[rowi] / volV[rowi];
+        }
+    );
+}
+
 
 Vector<scalar> scaledInverseDiag(const CSRMatrix<Vec3, localIdx>& mtx, const Vector<scalar>& a)
 {
@@ -166,6 +208,40 @@ void scaledInverseDiag(
                     break;
                 }
             }
+        }
+    );
+}
+
+Vector<scalar> scaledInverseDiag(
+    const CSRMatrix<Vec3, localIdx>& mtx,
+    const MatrixIterator<localIdx>& mi,
+    const Vector<scalar>& a
+)
+{
+    auto diag = Vector<scalar>(mtx.exec(), mtx.nRows());
+    scaledInverseDiag(mtx, mi, a, diag);
+    return diag;
+}
+
+void scaledInverseDiag(
+    const CSRMatrix<Vec3, localIdx>& mtx,
+    const MatrixIterator<localIdx>& mi,
+    const Vector<scalar>& a,
+    Vector<scalar>& out
+)
+{
+    NF_ASSERT(mtx.nRows() == a.size(), "Dimension mismatch");
+
+    auto [outV, rowOffsV, colIdxV, matrixV, aV] =
+        views(out, mtx.sparsity()->rowOffs(), mtx.sparsity()->colIdxs(), mtx.values(), a);
+
+    const auto diaOffsV = mi.diagOffset().view();
+
+    parallelFor(
+        mtx.exec(),
+        {0, mtx.nRows()},
+        NEON_LAMBDA(const localIdx rowi) {
+            outV[rowi] = aV[rowi] / matrixV[rowOffsV[rowi] + diaOffsV[rowi]][0];
         }
     );
 }
