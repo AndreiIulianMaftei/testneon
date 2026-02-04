@@ -10,7 +10,10 @@ on:
   workflow_dispatch:      # Optional: allows manual trigger
 
 concurrency:
-  group: ${{ github.workflow }}-${{ (github.head_ref && github.ref) || github.run_id }}
+  group: >
+    ${{ github.workflow }}-
+    ${{ github.event_name }}-
+    ${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -18,7 +21,9 @@ env:
 
 jobs:
   windows_msvc:
-    if: "!contains(toJson(github.event.pull_request.labels.*.name), 'Skip-build')"
+    if: >
+      github.event_name != 'pull_request' ||
+      !contains(github.event.pull_request.labels.*.name, 'skip-build')
     name: msvc
     runs-on: [windows-latest]
     steps:

@@ -7,21 +7,17 @@
 
 set -euo pipefail
 
-# Check arguments
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <gpu_type>"
-    echo "  gpu_type: nvidia | amd"
-    exit 1
-fi
+# Check required environment variables
+GPU_VENDOR=${GPU_VENDOR:?Error: Must set GPU vendor (nvidia|amd|intel)}
+PRESET="develop"
 
-GPU_TYPE="$1"
-echo "Selected GPU type: $GPU_TYPE"
+echo "Selected GPU type: $GPU_VENDOR"
 
 echo "=== Tool versions ==="
 cmake --version
 g++ --version || clang++ --version
 
-if [ "$GPU_TYPE" == "nvidia" ]; then
+if [ "$GPU_VENDOR" == "nvidia" ]; then
     echo "=== NVIDIA GPU and compiler driver info ==="
     nvidia-smi --query-gpu=gpu_name,memory.total,driver_version --format=csv
     nvcc --version
@@ -34,7 +30,7 @@ if [ "$GPU_TYPE" == "nvidia" ]; then
     cmake --build --preset develop
     ctest --preset develop -E bench --output-on-failure
 
-elif [ "$GPU_TYPE" == "amd" ]; then
+elif [ "$GPU_VENDOR" == "amd" ]; then
     # Set up environment
     export CXX_COMPILER_PATH="$(which g++)"
     export CXX_SOURCE="${CXX_COMPILER_PATH%/*/*}"
@@ -59,7 +55,7 @@ elif [ "$GPU_TYPE" == "amd" ]; then
     cmake --build --preset develop
     ctest --preset develop -E bench --output-on-failure
 
-elif [ "$GPU_TYPE" == "intel" ]; then
+elif [ "$GPU_VENDOR" == "intel" ]; then
     if ! sycl-ls --ignore-device-selectors 2>/dev/null | grep -qi intel; then
         echo "No Intel GPU found or Level Zero runtime not available"
     fi
@@ -80,6 +76,6 @@ elif [ "$GPU_TYPE" == "intel" ]; then
     ctest --preset develop -E bench --output-on-failure
 
 else
-    echo "Unknown GPU type: $GPU_TYPE"
+    echo "Unknown GPU type: $GPU_VENDOR"
     exit 1
 fi
