@@ -55,7 +55,7 @@ public:
         {
             if (abortOnFail)
             {
-                Kokkos::abort("Index is out of range. Index: ");
+                Kokkos::abort("Index is out of range.");
             }
             else
             {

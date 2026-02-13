@@ -57,7 +57,7 @@ template<unsigned int I>
 [[nodiscard]] Vector<scalar> get(const Vector<Vec3>& in);
 
 /**
- * @brief Given a Vector of Vec3 this function extracts a single component
+ * @brief Given a Vector of Vec3 this function sets a single component
  * @returns The resulting scalar vector
  */
 template<unsigned int I>

@@ -68,7 +68,6 @@ public:
 
     virtual void laplacian(
         la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<>& mi,
         const SurfaceField<scalar>& gamma,
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling
@@ -139,14 +138,12 @@ public:
         source += tmpsource;
     }
 
-    void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<>& mi
+    void implicitOperation(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
     ) const
     {
         NF_ASSERT(laplacianOperatorStrategy_, "LaplacianOperatorStrategy not initialized");
         const auto operatorScaling = this->getCoefficient();
-        laplacianOperatorStrategy_->laplacian(ls, mi, gamma_, this->field_, operatorScaling);
+        laplacianOperatorStrategy_->laplacian(ls, gamma_, this->field_, operatorScaling);
     }
 
     [[deprecated("use explicit or implicit operation")]] void laplacian(VolumeField<scalar>& lapPhi)

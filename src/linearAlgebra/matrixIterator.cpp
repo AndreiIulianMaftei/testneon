@@ -57,7 +57,9 @@ MatrixIterator<IndexType, MeshType>::MatrixIterator(
       ownerOffsetV_(ownerOffset_.view()), neighbourOffsetV_(neighbourOffset_.view()),
       diagOffsetV_(diagOffset_.view()), sp_(sparsityPattern), bsp_(boundarySparsityPattern),
       rowOffsV_(sp_->rowOffs().view())
-{}
+{
+    validate();
+}
 
 template<typename IndexType, typename MeshType>
 MatrixIterator<IndexType, MeshType>::MatrixIterator(const MatrixIterator& mi)
@@ -65,8 +67,32 @@ MatrixIterator<IndexType, MeshType>::MatrixIterator(const MatrixIterator& mi)
       diagOffset_(mi.diagOffset_), ownerOffsetV_(ownerOffset_.view()),
       neighbourOffsetV_(neighbourOffset_.view()), diagOffsetV_(diagOffset_.view()), sp_(mi.sp_),
       bsp_(mi.bsp_), rowOffsV_(sp_->rowOffs().view())
-{}
+{
+    validate();
+}
 
+template<typename IndexType, typename MeshType>
+MatrixIterator<IndexType, MeshType> MatrixIterator<IndexType, MeshType>::copyToHost() const
+{
+    return MatrixIterator(
+        ownerOffset_.copyToHost(),
+        neighbourOffset_.copyToHost(),
+        diagOffset_.copyToHost(),
+        std::make_shared<SparsityPattern<IndexType>>(
+            sp_->colIdxs().copyToHost(), sp_->rowOffs().copyToHost()
+        ),
+        std::make_shared<SparsityPattern<IndexType>>(
+            bsp_->colIdxs().copyToHost(), bsp_->rowOffs().copyToHost()
+        )
+    );
+}
+
+template<typename IndexType, typename MeshType>
+void MatrixIterator<IndexType, MeshType>::validate() const
+{
+    NF_ASSERT(sp_ != nullptr, "LocalSparsityPattern cannot be a nullptr");
+    NF_ASSERT(bsp_ != nullptr, "BoundarySparsityPattern cannot be a nullptr");
+}
 
 template class MatrixIterator<localIdx, UnstructuredMesh>;
 
@@ -209,7 +235,8 @@ void setSparsityPatternMatrixIteratorSerial(
 }
 
 template<typename IndexType>
-MatrixIterator<IndexType> createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh)
+std::shared_ptr<const MatrixIterator<IndexType>>
+createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh)
 {
     const auto exec = mesh.exec();
     const auto nInternalFaces = mesh.nInternalFaces();
@@ -229,11 +256,11 @@ MatrixIterator<IndexType> createSparsityPatternMatrixIterator(const Unstructured
     setBoundarySparsityPattern(mesh, diagOffs, bRowOffs, bColIdx);
     auto bsp =
         std::make_shared<const SparsityPattern<IndexType>>(std::move(bColIdx), std::move(bRowOffs));
-    return MatrixIterator<IndexType>(ownOffs, neiOffs, diagOffs, sp, bsp);
+    return std::make_shared<const MatrixIterator<IndexType>>(ownOffs, neiOffs, diagOffs, sp, bsp);
 }
 
 
-template MatrixIterator<localIdx>
+template std::shared_ptr<const MatrixIterator<localIdx>>
 createSparsityPatternMatrixIterator<localIdx>(const UnstructuredMesh&);
 
 }

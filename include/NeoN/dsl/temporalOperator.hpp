@@ -37,7 +37,6 @@ concept HasTemporalImplicitOperator = requires(T t) {
             std::declval<la::LinearSystem<
                 typename T::VectorValueType,
                 la::CSRMatrix<typename T::VectorValueType, localIdx>>&>(),
-            std::declval<la::MatrixIterator<localIdx>&>(),
             std::declval<NeoN::scalar>(),
             std::declval<NeoN::scalar>()
         )
@@ -80,13 +79,10 @@ public:
     }
 
     void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& mi,
-        scalar t,
-        scalar dt
+        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
     ) const
     {
-        model_->implicitOperation(ls, mi, t, dt);
+        model_->implicitOperation(ls, t, dt);
     }
 
     /* returns the fundamental type of an operator, ie explicit, implicit */
@@ -119,10 +115,7 @@ private:
         virtual void explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) = 0;
 
         virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-            const la::MatrixIterator<localIdx>& mi,
-            scalar t,
-            scalar dt
+            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
         ) = 0;
 
         /* @brief Given an input this function reads required properties */
@@ -174,16 +167,12 @@ private:
         }
 
         virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-            const la::MatrixIterator<localIdx>& mi,
-
-            scalar t,
-            scalar dt
+            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
         ) override
         {
             if constexpr (HasTemporalImplicitOperator<ConcreteTemporalOperatorType>)
             {
-                concreteOp_.implicitOperation(ls, mi, t, dt);
+                concreteOp_.implicitOperation(ls, t, dt);
             }
         }
 

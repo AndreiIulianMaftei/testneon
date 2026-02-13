@@ -38,15 +38,12 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
 
 template<typename ValueType>
 void DdtOperator<ValueType>::bdf1Kernel(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<localIdx>& matrixIterator,
-    scalar,
-    scalar dt
+    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar, scalar dt
 ) const
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();
     const auto operatorScaling = this->getCoefficient();
-    const auto diagOffs = matrixIterator.diagOffset().view();
+    const auto diagOffs = ls.matrixIterator()->diagOffset().view();
     const auto oldVector = oldTime(this->field_).internalVector().view();
     auto rhs = ls.rhs().view();
     auto values = ls.matrix().values().view();
@@ -69,18 +66,16 @@ void DdtOperator<ValueType>::bdf1Kernel(
 
 template<typename ValueType>
 void DdtOperator<ValueType>::bdf2Kernel(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<localIdx>& mi,
-    scalar,
-    scalar dt
+    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar, scalar dt
 ) const
 {
+    const auto mi = ls.matrixIterator();
     const auto vol = this->getVector().mesh().cellVolumes().view();
     const auto operatorScaling = this->getCoefficient();
     auto& old = oldTime(this->field_);
     auto& oldOld = oldTime(old);
     const auto [diagOffs, oldVector, oldOldVector] =
-        views(mi.diagOffset(), old.internalVector(), oldOld.internalVector());
+        views(mi->diagOffset(), old.internalVector(), oldOld.internalVector());
     auto rhs = ls.rhs().view();
     auto values = ls.matrix().values().view();
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
@@ -105,25 +100,22 @@ void DdtOperator<ValueType>::bdf2Kernel(
 
 template<typename ValueType>
 void DdtOperator<ValueType>::implicitOperation(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<localIdx>& mi,
-    scalar t,
-    scalar dt
+    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
 ) const
 {
     const int level = oldTimeLevel(this->field_);
 
     if (scheme_ == DdtScheme::BDF1)
     {
-        bdf1Kernel(ls, mi, t, dt);
+        bdf1Kernel(ls, t, dt);
     }
     else if (level < 2)
     {
-        bdf1Kernel(ls, mi, t, dt); // startup step
+        bdf1Kernel(ls, t, dt); // startup step
     }
     else
     {
-        bdf2Kernel(ls, mi, t, dt);
+        bdf2Kernel(ls, t, dt);
     }
 }
 

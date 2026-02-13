@@ -23,7 +23,7 @@ TEST_CASE("SparsityPattern")
 
     auto mesh = create1DUniformMesh(exec, nCells);
     auto mi = NeoN::la::createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh);
-    auto sp = mi.sparsityPattern();
+    auto sp = mi->sparsityPattern();
 
     SECTION("Can produce rowOffs " + execName)
     {

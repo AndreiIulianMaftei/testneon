@@ -34,9 +34,7 @@ public:
 
     void explicitOperation(Vector<ValueType>& source) const;
 
-    void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& matIt
+    void implicitOperation(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
     ) const;
 
     void read(const Input&) {}

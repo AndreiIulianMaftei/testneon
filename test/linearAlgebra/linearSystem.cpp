@@ -29,7 +29,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
     {
         Vector<scalar> rhs(exec, 3, 0.0);
         LinearSystem<scalar, NeoN::la::CSRMatrix<scalar, NeoN::localIdx>> linearSystem(
-            csrMatrix, rhs, csrMatrix, rhs
+            csrMatrix, rhs, csrMatrix, rhs, {}
         );
 
         REQUIRE(linearSystem.matrix().values().size() == 9);
@@ -46,11 +46,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
         auto nnz = nCells + 2 * nFaces;
         auto mesh = create1DUniformMesh(exec, nCells);
 
-        // TODO improve structure here
-        auto mi = NeoN::la::createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh);
-        auto linearSystem = NeoN::la::createEmptyLinearSystem<scalar>(
-            mesh, mi.sparsityPattern(), mi.boundarySparsityPattern()
-        );
+        auto linearSystem = NeoN::la::createEmptyLinearSystem<scalar>(mesh);
 
         REQUIRE(linearSystem.matrix().values().size() == nnz);
         REQUIRE(linearSystem.matrix().colIdxs().size() == nnz);
@@ -62,7 +58,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
     SECTION("view read/write " + execName)
     {
         Vector<scalar> rhs(exec, {10.0, 20.0, 30.0});
-        LinearSystem<scalar, CSRMatrix<scalar, localIdx>> ls(csrMatrix, rhs, csrMatrix, rhs);
+        LinearSystem<scalar, CSRMatrix<scalar, localIdx>> ls(csrMatrix, rhs, csrMatrix, rhs, {});
 
         auto lsView = ls.view();
         auto hostLS = ls.copyToHost();

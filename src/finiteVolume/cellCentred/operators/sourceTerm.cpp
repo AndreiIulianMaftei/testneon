@@ -37,13 +37,13 @@ void SourceTerm<ValueType>::explicitOperation(Vector<ValueType>& source) const
 
 template<typename ValueType>
 void SourceTerm<ValueType>::implicitOperation(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<localIdx>& matIt
+    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
 ) const
 {
+    const auto matIt = ls.matrixIterator();
     const auto operatorScaling = this->getCoefficient();
     const auto vol = coefficients_.mesh().cellVolumes().view();
-    const auto [diagOffs, coeff] = views(matIt.diagOffset(), coefficients_.internalVector());
+    const auto [diagOffs, coeff] = views(matIt->diagOffset(), coefficients_.internalVector());
     auto values = ls.matrix().values().view();
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
 

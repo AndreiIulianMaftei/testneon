@@ -26,7 +26,6 @@ void computeDivExp(
 template<typename ValueType>
 void computeDivImp(
     la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<localIdx>& matIt,
     const SurfaceField<scalar>& faceFlux,
     const VolumeField<ValueType>& phi,
     const SurfaceInterpolation<ValueType>& surfInterp,
@@ -95,12 +94,11 @@ public:
 
     virtual void
     div(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& matIt,
         const SurfaceField<scalar>& faceFlux,
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling) const override
     {
-        computeDivImp(ls, matIt, faceFlux, phi, surfaceInterpolation_, operatorScaling);
+        computeDivImp(ls, faceFlux, phi, surfaceInterpolation_, operatorScaling);
     };
 
     std::unique_ptr<DivOperatorFactory<ValueType>> clone() const override

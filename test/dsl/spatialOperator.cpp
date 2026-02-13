@@ -17,7 +17,6 @@ TEMPLATE_TEST_CASE("SpatialOperator", "[template]", NeoN::scalar, NeoN::Vec3)
     auto [execName, exec] = GENERATE(allAvailableExecutor());
 
     auto mesh = NeoN::createSingleCellMesh(exec);
-    auto mi = NeoN::la::createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh);
 
     auto fA = NeoN::Vector<TestType>(exec, 1, 2.0 * NeoN::one<TestType>());
     auto bf = NeoN::BoundaryData<TestType>(exec, mesh.boundaryMesh().offset());
@@ -91,11 +90,9 @@ TEMPLATE_TEST_CASE("SpatialOperator", "[template]", NeoN::scalar, NeoN::Vec3)
         [[maybe_unused]] auto coeffD = d.getCoefficient();
         [[maybe_unused]] auto coeffE = e.getCoefficient();
 
-        auto ls = NeoN::la::createEmptyLinearSystem<TestType>(
-            mesh, mi.sparsityPattern(), mi.boundarySparsityPattern()
-        );
+        auto ls = NeoN::la::createEmptyLinearSystem<TestType>(mesh);
         Vector source(exec, 1, 2.0);
-        c.implicitOperation(ls, mi);
+        c.implicitOperation(ls);
 
         // c = 2 * 2
         auto [hostRhsC, hostLsC] = NeoN::copyToHosts(ls.rhs(), ls);
@@ -104,14 +101,14 @@ TEMPLATE_TEST_CASE("SpatialOperator", "[template]", NeoN::scalar, NeoN::Vec3)
 
         // d= 2 * 2
         ls.reset();
-        d.implicitOperation(ls, mi);
+        d.implicitOperation(ls);
         auto [hostRhsD, hostLsD] = NeoN::copyToHosts(ls.rhs(), ls);
         REQUIRE(hostRhsD.view()[0] == 4.0 * NeoN::one<TestType>());
         REQUIRE(hostLsD.matrix().values().view()[0] == 4.0 * NeoN::one<TestType>());
 
         // e = - -3 * 2 * 2 = -12
         ls.reset();
-        e.implicitOperation(ls, mi);
+        e.implicitOperation(ls);
         auto [hostRhsE, hostLsE] = NeoN::copyToHosts(ls.rhs(), ls);
         REQUIRE(hostRhsE.view()[0] == -12.0 * NeoN::one<TestType>());
         REQUIRE(hostLsE.matrix().values().view()[0] == -12.0 * NeoN::one<TestType>());

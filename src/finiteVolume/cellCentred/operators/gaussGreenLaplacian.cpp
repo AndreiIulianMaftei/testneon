@@ -77,7 +77,6 @@ NF_DECLARE_COMPUTE_EXP_LAP(Vec3);
 template<typename ValueType>
 void computeLaplacianImpl(
     la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<>& matIt,
     const SurfaceField<scalar>& gamma,
     const VolumeField<ValueType>& phi,
     const dsl::Coeff operatorScaling,
@@ -87,14 +86,15 @@ void computeLaplacianImpl(
     const UnstructuredMesh& mesh = phi.mesh();
     const auto nInternalFaces = mesh.nInternalFaces();
     const auto exec = phi.exec();
+    const auto matIt = ls.matrixIterator();
     const auto [owner, neighbour, surfFaceCells, diagOffs, ownOffs, neiOffs, rowOffs] = views(
         mesh.faceOwner(),
         mesh.faceNeighbour(),
         mesh.boundaryMesh().faceCells(),
-        matIt.diagOffset(),
-        matIt.ownerOffset(),
-        matIt.neighbourOffset(),
-        matIt.sparsityPattern()->rowOffs()
+        matIt->diagOffset(),
+        matIt->ownerOffset(),
+        matIt->neighbourOffset(),
+        matIt->sparsityPattern()->rowOffs()
     );
 
     const auto [sGamma, deltaCoeffs, magFaceArea] = views(
@@ -177,7 +177,7 @@ void computeLaplacianImpl(
 
 #define NN_DECLARE_COMPUTE_IMP_LAP(TYPENAME)                                                       \
     template void computeLaplacianImpl<                                                            \
-        TYPENAME>(la::LinearSystem<TYPENAME, la::CSRMatrix<TYPENAME, localIdx>>&, const la::MatrixIterator<localIdx>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&)
+        TYPENAME>(la::LinearSystem<TYPENAME, la::CSRMatrix<TYPENAME, localIdx>>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&)
 
 NN_DECLARE_COMPUTE_IMP_LAP(scalar);
 NN_DECLARE_COMPUTE_IMP_LAP(Vec3);

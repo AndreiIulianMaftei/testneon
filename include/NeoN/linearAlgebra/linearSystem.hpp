@@ -66,20 +66,39 @@ class LinearSystem
 
 public:
 
+    using LinearSystemIndexType = typename MatrixType::MatrixSparsityType::SparsityIndexType;
+
+    LinearSystem(std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi)
+        : matrix_(
+            Vector<ValueType>(mi->exec(), mi->localNonZeros(), zero<ValueType>()),
+            mi->sparsityPattern()
+        ),
+          rhs_(mi->exec(), mi->localRows(), zero<ValueType>()),
+          boundaryMatrix_(
+              Vector<ValueType>(mi->exec(), mi->boundaryNonZeros(), zero<ValueType>()),
+              mi->boundarySparsityPattern()
+          ),
+          boundaryRhs_(mi->exec(), mi->boundaryNonZeros(), zero<ValueType>()), mi_(mi)
+    {
+        validate();
+    }
+
     LinearSystem(
         const MatrixType& matrix,
         const Vector<ValueType>& rhs,
         const MatrixType& boundaryMatrix,
-        const Vector<ValueType>& boundaryRhs
+        const Vector<ValueType>& boundaryRhs,
+        std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi
     )
-        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs)
+        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs),
+          mi_(mi)
     {
         validate();
     }
 
     LinearSystem(const LinearSystem& ls)
         : matrix_(ls.matrix_), rhs_(ls.rhs_), boundaryMatrix_(ls.boundaryMatrix_),
-          boundaryRhs_(ls.boundaryRhs_)
+          boundaryRhs_(ls.boundaryRhs_), mi_(ls.mi_)
     {}
 
     ~LinearSystem() = default;
@@ -100,14 +119,33 @@ public:
 
     [[nodiscard]] const Vector<ValueType>& boundaryRhs() const { return boundaryRhs_; }
 
-    [[nodiscard]] LinearSystem copyToHost() const
+    [[nodiscard]] LinearSystem<ValueType, MatrixType> copyToHost() const
     {
-        return LinearSystem(
+        if (mi_ == nullptr)
+        {
+            return {
+                matrix_.copyToHost(),
+                rhs_.copyToHost(),
+                boundaryMatrix_.copyToHost(),
+                boundaryRhs_.copyToHost(),
+                {}
+            };
+        }
+        auto mi = std::make_shared<MatrixIterator<LinearSystemIndexType>>(
+            mi_->ownerOffset().copyToHost(),
+            mi_->neighbourOffset().copyToHost(),
+            mi_->diagOffset().copyToHost(),
+            // FIXME
+            mi_->sparsityPattern(),
+            mi_->boundarySparsityPattern()
+        );
+        return {
             matrix_.copyToHost(),
             rhs_.copyToHost(),
             boundaryMatrix_.copyToHost(),
-            boundaryRhs_.copyToHost()
-        );
+            boundaryRhs_.copyToHost(),
+            mi
+        };
     }
 
     void reset()
@@ -128,19 +166,20 @@ public:
 
     [[nodiscard]] LinearSystemView<
         ValueType,
-        MatrixView<
-            ValueType,
-            SparsityView<typename MatrixType::MatrixSparsityType::SparsityIndexType>>>
+        MatrixView<ValueType, SparsityView<LinearSystemIndexType>>>
     view() &
     {
         return {matrix_.view(), rhs_.view(), boundaryMatrix_.view(), boundaryRhs_.view()};
     }
 
+    std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> matrixIterator() const
+    {
+        return mi_;
+    }
+
     [[nodiscard]] LinearSystemView<
         const ValueType,
-        const MatrixView<
-            ValueType,
-            SparsityView<const typename MatrixType::MatrixSparsityType::SparsityIndexType>>>
+        const MatrixView<ValueType, SparsityView<const LinearSystemIndexType>>>
     view() const&
     {
         return {matrix_.view(), rhs_.view(), boundaryMatrix_.view(), boundaryRhs_.view()};
@@ -161,31 +200,17 @@ private:
     Vector<ValueType> boundaryRhs_;
 
     Dictionary auxiliaryCoefficients_;
+
+    std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi_;
 };
 
 /*@brief helper function that creates a zero initialised linear system based on given sparsity
  * pattern
  */
 template<typename ValueType, typename MatrixType = CSRMatrix<ValueType, localIdx>>
-LinearSystem<ValueType, MatrixType> createEmptyLinearSystem(
-    const UnstructuredMesh& mesh,
-    std::shared_ptr<const typename MatrixType::MatrixSparsityType> sparsity,
-    std::shared_ptr<const typename MatrixType::MatrixSparsityType> bsparsity
-)
+LinearSystem<ValueType, MatrixType> createEmptyLinearSystem(const UnstructuredMesh& mesh)
 {
-    NF_ASSERT(mesh.nCells() == sparsity->rows(), "Inconsistent sparsity pattern");
-
-    const auto& exec = mesh.exec();
-    localIdx rows {sparsity->rows()};
-    localIdx nnzs {sparsity->nnz()};
-    localIdx nBoundaryFaces {mesh.boundaryMesh().faceCells().size()};
-
-    return {
-        {Vector<ValueType>(exec, nnzs, zero<ValueType>()), sparsity},
-        {exec, rows, zero<ValueType>()},
-        {Vector<ValueType>(exec, nBoundaryFaces, zero<ValueType>()), bsparsity},
-        {exec, bsparsity->rows(), zero<ValueType>()}
-    };
+    return {createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh)};
 }
 
 

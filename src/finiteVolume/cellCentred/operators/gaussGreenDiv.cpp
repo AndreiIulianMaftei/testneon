@@ -154,7 +154,6 @@ NF_DECLARE_COMPUTE_EXP_DIV(Vec3);
 template<typename ValueType>
 void computeDivImp(
     la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-    const la::MatrixIterator<>& matIt,
     const SurfaceField<scalar>& faceFlux,
     const VolumeField<ValueType>& phi,
     const SurfaceInterpolation<ValueType>& surfInterp,
@@ -162,6 +161,7 @@ void computeDivImp(
 )
 {
     const UnstructuredMesh& mesh = phi.mesh();
+    const auto matIt = ls.matrixIterator();
     const auto nInternalFaces = mesh.nInternalFaces();
     const auto exec = phi.exec();
     const auto weights = surfInterp.weight(faceFlux, phi);
@@ -182,10 +182,10 @@ void computeDivImp(
                 mesh.faceOwner(),
                 mesh.faceNeighbour(),
                 mesh.boundaryMesh().faceCells(),
-                matIt.diagOffset(),
-                matIt.ownerOffset(),
-                matIt.neighbourOffset(),
-                matIt.sparsityPattern()->rowOffs()
+                matIt->diagOffset(),
+                matIt->ownerOffset(),
+                matIt->neighbourOffset(),
+                matIt->sparsityPattern()->rowOffs()
             );
     auto rhs = ls.rhs().view();
     auto values = ls.matrix().values().view();
@@ -265,7 +265,6 @@ void computeDivImp(
 #define NN_DECLARE_COMPUTE_IMP_DIV(TYPENAME)                                                       \
     template void computeDivImp<TYPENAME>(                                                         \
         la::LinearSystem<TYPENAME, la::CSRMatrix<TYPENAME, localIdx>>&,                            \
-        const la::MatrixIterator<localIdx>&,                                                       \
         const SurfaceField<scalar>&,                                                               \
         const VolumeField<TYPENAME>&,                                                              \
         const SurfaceInterpolation<TYPENAME>&,                                                     \

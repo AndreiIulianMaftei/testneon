@@ -26,8 +26,6 @@ template<typename IndexType = localIdx, typename MeshType = UnstructuredMesh>
 class MatrixIterator
 {
 
-    // const MeshType& mesh;
-
     // NOTE The following data member store a simple mapping from face ids to offsets in the
     // corresponding rows I.e. Assume the following row  [ . 18 . 20 d 18 . 20 . ] this yields
     // ownerOffset[18] = 0 ownerOffset[20] = 1 and neighbourOffset[18] = 4 neighbourOffset[20] = 5
@@ -52,6 +50,10 @@ class MatrixIterator
 
     View<const IndexType> rowOffsV_;
 
+private:
+
+    void validate() const;
+
 public:
 
     /* @brief create an SparsityPattern from existing mesh */
@@ -66,6 +68,7 @@ public:
     /* @brief create an SparsityPattern from existing mesh */
     MatrixIterator(const MatrixIterator& mi);
 
+    MatrixIterator copyToHost() const;
 
     std::shared_ptr<const SparsityPattern<IndexType>> sparsityPattern() const { return sp_; }
 
@@ -73,6 +76,16 @@ public:
     {
         return bsp_;
     }
+
+    const Executor& exec() const { return sp_->exec(); }
+
+    localIdx localRows() const { return sp_->rows(); };
+
+    localIdx localNonZeros() const { return sp_->nnz(); };
+
+    localIdx boundaryRows() const { return bsp_->rows(); };
+
+    localIdx boundaryNonZeros() const { return bsp_->nnz(); };
 
     /*@brief getter for ownerOffset */
     const Array<uint8_t>& ownerOffset() const;
@@ -113,6 +126,7 @@ public:
 };
 
 template<typename IndexType>
-MatrixIterator<IndexType> createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh);
+std::shared_ptr<const MatrixIterator<IndexType>>
+createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh);
 
 }

@@ -27,14 +27,14 @@ TEST_CASE("MatrixIterator")
     SECTION("Can construct sparsity pattern " + execName)
     {
         // some basic sanity checks
-        REQUIRE(mi.diagOffset().size() == nCells);
-        REQUIRE(mi.ownerOffset().size() == nFaces);
-        REQUIRE(mi.neighbourOffset().size() == nFaces);
+        REQUIRE(mi->diagOffset().size() == nCells);
+        REQUIRE(mi->ownerOffset().size() == nFaces);
+        REQUIRE(mi->neighbourOffset().size() == nFaces);
     }
 
     SECTION("has correct diagOffs" + execName)
     {
-        auto diagOffs = mi.diagOffset().copyToHost();
+        auto diagOffs = mi->diagOffset().copyToHost();
         auto diagOffsS = diagOffs.view();
 
         REQUIRE(diagOffsS[0] == 0);

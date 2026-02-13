@@ -25,7 +25,6 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
 
     const NeoN::localIdx nCells = 10;
     auto mesh = create1DUniformMesh(exec, nCells);
-    auto mi = NeoN::la::createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh);
 
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<scalar>>(mesh);
     fvcc::SurfaceField<scalar> gamma(exec, "gamma", mesh, surfaceBCs);
@@ -86,9 +85,7 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
             }
         }
 
-        auto ls = NeoN::la::createEmptyLinearSystem<TestType>(
-            mesh, mi.sparsityPattern(), mi.boundarySparsityPattern()
-        );
+        auto ls = NeoN::la::createEmptyLinearSystem<TestType>(mesh);
 
         SECTION("implicit laplacian operator of constant field on " + execName)
         {
@@ -97,7 +94,7 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
             // currently only defined for scalar types
             if constexpr (std::is_same_v<TestType, scalar>)
             {
-                lapOp.implicitOperation(ls, mi);
+                lapOp.implicitOperation(ls);
                 auto res = Vector<scalar>(phi.internalVector());
                 fill(res, 1.0);
 
@@ -122,7 +119,7 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
                 lapOp.read(input);
                 lapOp = dsl::Coeff(-0.5) * lapOp;
 
-                lapOp.implicitOperation(ls, mi);
+                lapOp.implicitOperation(ls);
 
                 auto res = Vector<scalar>(phi.internalVector());
                 computeResidual(ls.matrix(), ls.rhs(), phi.internalVector(), res);

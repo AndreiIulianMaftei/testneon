@@ -37,24 +37,15 @@ public:
     void explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) const;
 
     void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& matrixIterator,
-        scalar,
-        scalar dt
+        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar, scalar dt
     ) const;
 
     void bdf1Kernel(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& matrixIterator,
-        scalar t,
-        scalar dt
+        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
     ) const;
 
     void bdf2Kernel(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& matrixIterator,
-        scalar t,
-        scalar dt
+        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
     ) const;
 
     DdtScheme scheme() const noexcept { return scheme_; }

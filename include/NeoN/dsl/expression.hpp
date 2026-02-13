@@ -25,9 +25,7 @@ template<typename VectorType, typename IndexType>
 struct PostAssemblyBase
 {
     virtual ~PostAssemblyBase() = default;
-    virtual void
-    operator()(const la::MatrixIterator<IndexType>&, la::LinearSystem<VectorType, la::CSRMatrix<VectorType, IndexType>>&) {
-    };
+    virtual void operator()(la::LinearSystem<VectorType, la::CSRMatrix<VectorType, IndexType>>&) {};
 };
 
 
@@ -93,16 +91,14 @@ public:
     }
 
     /*@brief compute matrix coefficients based on all spatial operators */
-    void assembleSpatialOperator(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<IndexType>& matIt
+    void assembleSpatialOperator(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
     ) const
     {
         for (auto& op : spatialOperators_)
         {
             if (op.getType() == Operator::Type::Implicit)
             {
-                op.implicitOperation(ls, matIt);
+                op.implicitOperation(ls);
             }
         }
     }
@@ -111,17 +107,14 @@ public:
      * assemble directly into linear system
      */
     void assembleTemporalOperator(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<IndexType>& matIt,
-        scalar t,
-        scalar dt
+        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
     ) const
     {
         for (auto& op : temporalOperators_)
         {
             if (op.getType() == Operator::Type::Implicit)
             {
-                op.implicitOperation(ls, matIt, t, dt);
+                op.implicitOperation(ls, t, dt);
             }
         }
     }
@@ -141,12 +134,9 @@ public:
         std::span<const PostAssemblyBase<ValueType, IndexType>> ps = {}
     ) const
     {
-        auto mi = la::createSparsityPatternMatrixIterator<IndexType>(mesh);
-        auto ls = la::createEmptyLinearSystem<ValueType>(
-            mesh, mi.sparsityPattern(), mi.boundarySparsityPattern()
-        );
-        assemble(t, dt, mi, ls, ps);
-        return {mi.sparsityPattern(), ls};
+        auto ls = la::createEmptyLinearSystem<ValueType>(mesh);
+        assemble(t, dt, ls, ps);
+        return {ls.matrixIterator()->sparsityPattern(), ls};
     };
 
     /* @brief assemble into a given linear system
@@ -156,18 +146,17 @@ public:
     void assemble(
         scalar t,
         scalar dt,
-        const la::MatrixIterator<IndexType>& mi,
         la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
         std::span<const PostAssemblyBase<ValueType, IndexType>> ps = {}
     ) const
     {
-        assembleSpatialOperator(ls, mi);         // add spatial operator
-        assembleTemporalOperator(ls, mi, t, dt); // add temporal operators
+        assembleSpatialOperator(ls);         // add spatial operator
+        assembleTemporalOperator(ls, t, dt); // add temporal operators
 
         // perform post assembly transformations
         for (auto p : ps)
         {
-            p(mi, ls);
+            p(ls);
         }
     };
 

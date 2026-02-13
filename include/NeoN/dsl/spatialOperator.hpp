@@ -30,12 +30,9 @@ concept HasExplicitOperator = requires(T const t) {
 template<typename T>
 concept HasImplicitOperator = requires(T const t) {
     {
-        t.implicitOperation(
-            std::declval<la::LinearSystem<
-                typename T::VectorValueType,
-                la::CSRMatrix<typename T::VectorValueType, localIdx>>&>(),
-            std::declval<la::MatrixIterator<localIdx>&>()
-        )
+        t.implicitOperation(std::declval<la::LinearSystem<
+                                typename T::VectorValueType,
+                                la::CSRMatrix<typename T::VectorValueType, localIdx>>&>())
     } -> std::same_as<void>; // Adjust return type and arguments as needed
 };
 
@@ -77,12 +74,10 @@ public:
 
     void explicitOperation(Vector<ValueType>& source) const { model_->explicitOperation(source); }
 
-    void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-        const la::MatrixIterator<localIdx>& mi
+    void implicitOperation(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
     ) const
     {
-        model_->implicitOperation(ls, mi);
+        model_->implicitOperation(ls);
     }
 
     /* returns the fundamental type of an operator, ie explicit, implicit */
@@ -112,9 +107,8 @@ private:
 
         virtual void explicitOperation(Vector<ValueType>& source) const = 0;
 
-        virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-            const la::MatrixIterator<localIdx>& mi
+        virtual void
+        implicitOperation(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
         ) const = 0;
 
         /* @brief Given an input this function reads required coeffs */
@@ -157,14 +151,13 @@ private:
             }
         }
 
-        virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
-            const la::MatrixIterator<localIdx>& mi
+        virtual void
+        implicitOperation(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
         ) const override
         {
             if constexpr (HasImplicitOperator<ConcreteOperatorType>)
             {
-                concreteOp_.implicitOperation(ls, mi);
+                concreteOp_.implicitOperation(ls);
             }
         }
 
