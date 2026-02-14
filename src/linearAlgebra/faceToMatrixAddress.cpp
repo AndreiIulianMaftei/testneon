@@ -4,49 +4,49 @@
 
 #include "NeoN/core/macros.hpp"
 #include "NeoN/core/segmentedVector.hpp"
-#include "NeoN/linearAlgebra/matrixIterator.hpp"
+#include "NeoN/linearAlgebra/faceToMatrixAddress.hpp"
 
 namespace NeoN::la
 {
 
 template<typename IndexType, typename MeshType>
-const NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::ownerOffset() const
+const NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::ownerOffset() const
 {
     return ownerOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-const NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::neighbourOffset() const
+const NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::neighbourOffset() const
 {
     return neighbourOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-const NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::diagOffset() const
+const NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::diagOffset() const
 {
     return diagOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::ownerOffset()
+NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::ownerOffset()
 {
     return ownerOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::neighbourOffset()
+NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::neighbourOffset()
 {
     return neighbourOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-NeoN::Array<uint8_t>& MatrixIterator<IndexType, MeshType>::diagOffset()
+NeoN::Array<uint8_t>& FaceToMatrixAddress<IndexType, MeshType>::diagOffset()
 {
     return diagOffset_;
 }
 
 template<typename IndexType, typename MeshType>
-MatrixIterator<IndexType, MeshType>::MatrixIterator(
+FaceToMatrixAddress<IndexType, MeshType>::FaceToMatrixAddress(
     Array<uint8_t> ownerOffset,
     Array<uint8_t> neighbourOffset,
     Array<uint8_t> diagOffset,
@@ -62,7 +62,7 @@ MatrixIterator<IndexType, MeshType>::MatrixIterator(
 }
 
 template<typename IndexType, typename MeshType>
-MatrixIterator<IndexType, MeshType>::MatrixIterator(const MatrixIterator& mi)
+FaceToMatrixAddress<IndexType, MeshType>::FaceToMatrixAddress(const FaceToMatrixAddress& mi)
     : ownerOffset_(mi.ownerOffset_), neighbourOffset_(mi.neighbourOffset_),
       diagOffset_(mi.diagOffset_), ownerOffsetV_(ownerOffset_.view()),
       neighbourOffsetV_(neighbourOffset_.view()), diagOffsetV_(diagOffset_.view()), sp_(mi.sp_),
@@ -72,9 +72,10 @@ MatrixIterator<IndexType, MeshType>::MatrixIterator(const MatrixIterator& mi)
 }
 
 template<typename IndexType, typename MeshType>
-MatrixIterator<IndexType, MeshType> MatrixIterator<IndexType, MeshType>::copyToHost() const
+FaceToMatrixAddress<IndexType, MeshType>
+FaceToMatrixAddress<IndexType, MeshType>::copyToHost() const
 {
-    return MatrixIterator(
+    return FaceToMatrixAddress(
         ownerOffset_.copyToHost(),
         neighbourOffset_.copyToHost(),
         diagOffset_.copyToHost(),
@@ -88,13 +89,13 @@ MatrixIterator<IndexType, MeshType> MatrixIterator<IndexType, MeshType>::copyToH
 }
 
 template<typename IndexType, typename MeshType>
-void MatrixIterator<IndexType, MeshType>::validate() const
+void FaceToMatrixAddress<IndexType, MeshType>::validate() const
 {
     NF_ASSERT(sp_ != nullptr, "LocalSparsityPattern cannot be a nullptr");
     NF_ASSERT(bsp_ != nullptr, "BoundarySparsityPattern cannot be a nullptr");
 }
 
-template class MatrixIterator<localIdx, UnstructuredMesh>;
+template class FaceToMatrixAddress<localIdx, UnstructuredMesh>;
 
 template<typename IndexType>
 void setBoundarySparsityPattern(
@@ -118,12 +119,12 @@ void setBoundarySparsityPattern(
             bColIdxV[bfacei] = celli + diagOffsV[celli];
             bRowOffsV[bfacei] = celli;
         },
-        "setSparsityPatternMatrixIterator::setBoundarySparsity"
+        "setSparsityPatternFaceToMatrixAddress::setBoundarySparsity"
     );
 }
 
 template<typename IndexType>
-void setSparsityPatternMatrixIteratorSerial(
+void setSparsityPatternFaceToMatrixAddressSerial(
     const UnstructuredMesh& mesh,
     Array<uint8_t>& diagOffs,
     Array<uint8_t>& ownOffs,
@@ -159,7 +160,7 @@ void setSparsityPatternMatrixIteratorSerial(
             Kokkos::atomic_inc(&nFacesPerCellHV[own]);
             Kokkos::atomic_inc(&nFacesPerCellHV[nei]);
         },
-        "setSparsityPatternMatrixIterator::accumulateNonZeros"
+        "setSparsityPatternFaceToMatrixAddress::accumulateNonZeros"
     );
 
     // get number of total non-zeros
@@ -189,7 +190,7 @@ void setSparsityPatternMatrixIteratorSerial(
             // colIdx for row[neighbour] stores owner as a column entry
             Kokkos::atomic_store(&colIdxHV[startSegNei + segIdxNei], own);
         },
-        "setSparsityPatternMatrixIterator::computeLowerTriangular"
+        "setSparsityPatternFaceToMatrixAddress::computeLowerTriangular"
     );
 
     map(
@@ -222,7 +223,7 @@ void setSparsityPatternMatrixIteratorSerial(
             // colIdx --> needs to be store the neighbour
             Kokkos::atomic_store(&colIdxHV[startSegOwn + segIdxOwn], nei);
         },
-        "setSparsityPatternMatrixIterator::computeUpperTriangular"
+        "setSparsityPatternFaceToMatrixAddress::computeUpperTriangular"
     );
 
     // NOTE copy back to device
@@ -235,8 +236,8 @@ void setSparsityPatternMatrixIteratorSerial(
 }
 
 template<typename IndexType>
-std::shared_ptr<const MatrixIterator<IndexType>>
-createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh)
+std::shared_ptr<const FaceToMatrixAddress<IndexType>>
+createSparsityPatternFaceToMatrixAddress(const UnstructuredMesh& mesh)
 {
     const auto exec = mesh.exec();
     const auto nInternalFaces = mesh.nInternalFaces();
@@ -250,17 +251,19 @@ createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh)
     Vector<IndexType> bRowOffs(exec, nBoundaryFaces + 1, 0);
     Vector<IndexType> bColIdx(exec, nBoundaryFaces, 0);
 
-    setSparsityPatternMatrixIteratorSerial(mesh, diagOffs, ownOffs, neiOffs, rowOffs, colIdx);
+    setSparsityPatternFaceToMatrixAddressSerial(mesh, diagOffs, ownOffs, neiOffs, rowOffs, colIdx);
     auto sp =
         std::make_shared<const SparsityPattern<IndexType>>(std::move(colIdx), std::move(rowOffs));
     setBoundarySparsityPattern(mesh, diagOffs, bRowOffs, bColIdx);
     auto bsp =
         std::make_shared<const SparsityPattern<IndexType>>(std::move(bColIdx), std::move(bRowOffs));
-    return std::make_shared<const MatrixIterator<IndexType>>(ownOffs, neiOffs, diagOffs, sp, bsp);
+    return std::make_shared<const FaceToMatrixAddress<IndexType>>(
+        ownOffs, neiOffs, diagOffs, sp, bsp
+    );
 }
 
 
-template std::shared_ptr<const MatrixIterator<localIdx>>
-createSparsityPatternMatrixIterator<localIdx>(const UnstructuredMesh&);
+template std::shared_ptr<const FaceToMatrixAddress<localIdx>>
+createSparsityPatternFaceToMatrixAddress<localIdx>(const UnstructuredMesh&);
 
 }

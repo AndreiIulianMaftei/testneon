@@ -6,7 +6,7 @@
 
 #include "NeoN/core/vector/vector.hpp"
 #include "sparsityPattern.hpp"
-#include "matrixIterator.hpp"
+#include "faceToMatrixAddress.hpp"
 
 #include <type_traits>
 
@@ -261,11 +261,11 @@ void scaledInverseDiag(
  * entries are identical
  */
 [[nodiscard]] Vector<scalar>
-scaledInverseDiag(const CSRMatrix<Vec3, localIdx>&, const MatrixIterator<localIdx>& mi, const Vector<scalar>&);
+scaledInverseDiag(const CSRMatrix<Vec3, localIdx>&, const FaceToMatrixAddress<localIdx>& mi, const Vector<scalar>&);
 
 void scaledInverseDiag(
     const CSRMatrix<Vec3, localIdx>& mtx,
-    const MatrixIterator<localIdx>& mi,
+    const FaceToMatrixAddress<localIdx>& mi,
     const Vector<scalar>& a,
     Vector<scalar>& out
 );
@@ -287,7 +287,7 @@ void negLUx(
     const Vector<Vec3>& a,
     const Vector<Vec3>& b,
     const Vector<scalar>& rAU,
-    const Vector<scalar>& V,
+    const Vector<scalar>& vol,
     Vector<Vec3>& out
 );
 
@@ -295,11 +295,11 @@ void negLUx(
  *
  * @notes explicitly sets out values to zero
  */
-void scaledInvDiagnegLUx(
+void scaledInvDiagNegLUx(
     const CSRMatrix<Vec3, localIdx>& mtx,
     const Vector<Vec3>& a,
     const Vector<Vec3>& b,
-    const Vector<scalar>& V,
+    const Vector<scalar>& vol,
     Vector<scalar>& rAU,
     Vector<Vec3>& out
 );

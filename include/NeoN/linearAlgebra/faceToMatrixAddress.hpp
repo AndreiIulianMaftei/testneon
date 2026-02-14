@@ -12,7 +12,7 @@ namespace NeoN::la
 {
 
 
-/* @class MatrixIterator
+/* @class FaceToMatrixAddress
  * @brief class storing the mapping between mesh faces and target matrix sparsity pattern
  *
  * Based on given computational mesh this class stores a mapping for a consistent iteration
@@ -23,7 +23,7 @@ namespace NeoN::la
  *
  */
 template<typename IndexType = localIdx, typename MeshType = UnstructuredMesh>
-class MatrixIterator
+class FaceToMatrixAddress
 {
 
     // NOTE The following data member store a simple mapping from face ids to offsets in the
@@ -57,7 +57,7 @@ private:
 public:
 
     /* @brief create an SparsityPattern from existing mesh */
-    MatrixIterator(
+    FaceToMatrixAddress(
         Array<uint8_t> ownerOffset,
         Array<uint8_t> neighbourOffset,
         Array<uint8_t> diagOffset,
@@ -66,9 +66,9 @@ public:
     );
 
     /* @brief create an SparsityPattern from existing mesh */
-    MatrixIterator(const MatrixIterator& mi);
+    FaceToMatrixAddress(const FaceToMatrixAddress& mi);
 
-    MatrixIterator copyToHost() const;
+    FaceToMatrixAddress copyToHost() const;
 
     std::shared_ptr<const SparsityPattern<IndexType>> sparsityPattern() const { return sp_; }
 
@@ -126,7 +126,7 @@ public:
 };
 
 template<typename IndexType>
-std::shared_ptr<const MatrixIterator<IndexType>>
-createSparsityPatternMatrixIterator(const UnstructuredMesh& mesh);
+std::shared_ptr<const FaceToMatrixAddress<IndexType>>
+createSparsityPatternFaceToMatrixAddress(const UnstructuredMesh& mesh);
 
 }

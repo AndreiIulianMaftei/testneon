@@ -139,7 +139,7 @@ void negLUx(
     );
 }
 
-void scaledInvDiagnegLUx(
+void scaledInvDiagNegLUx(
     const CSRMatrix<Vec3, localIdx>& mtx,
     const Vector<Vec3>& a,
     const Vector<Vec3>& b,
@@ -214,7 +214,7 @@ void scaledInverseDiag(
 
 Vector<scalar> scaledInverseDiag(
     const CSRMatrix<Vec3, localIdx>& mtx,
-    const MatrixIterator<localIdx>& mi,
+    const FaceToMatrixAddress<localIdx>& mi,
     const Vector<scalar>& a
 )
 {
@@ -225,7 +225,7 @@ Vector<scalar> scaledInverseDiag(
 
 void scaledInverseDiag(
     const CSRMatrix<Vec3, localIdx>& mtx,
-    const MatrixIterator<localIdx>& mi,
+    const FaceToMatrixAddress<localIdx>& mi,
     const Vector<scalar>& a,
     Vector<scalar>& out
 )

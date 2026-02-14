@@ -30,7 +30,6 @@ namespace detail
 template<typename VectorType, typename IndexType>
 la::SolverStats iterativeSolveImpl(
     Expression<typename VectorType::ElementType>& exp,
-    const la::MatrixIterator<IndexType>& mi,
     la::LinearSystem<
         typename VectorType::ElementType,
         la::CSRMatrix<typename VectorType::ElementType, IndexType>>& ls,
@@ -43,7 +42,7 @@ la::SolverStats iterativeSolveImpl(
 )
 {
     exp.read(fvSchemes);
-    exp.assemble(t, dt, mi, ls, ps);
+    exp.assemble(t, dt, ls, ps);
 
     // TODO move that to expression explicit operation or
     // into functor ?

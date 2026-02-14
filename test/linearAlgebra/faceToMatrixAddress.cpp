@@ -14,7 +14,7 @@ namespace fvcc = NeoN::finiteVolume::cellCentred;
 namespace NeoN
 {
 
-TEST_CASE("MatrixIterator")
+TEST_CASE("FaceToMatrixAddress")
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
 
@@ -22,7 +22,7 @@ TEST_CASE("MatrixIterator")
     auto nFaces = 9;
 
     auto mesh = create1DUniformMesh(exec, nCells);
-    auto mi = NeoN::la::createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh);
+    auto mi = NeoN::la::createSparsityPatternFaceToMatrixAddress<NeoN::localIdx>(mesh);
 
     SECTION("Can construct sparsity pattern " + execName)
     {

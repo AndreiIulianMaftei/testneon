@@ -8,7 +8,7 @@
 #include "NeoN/core/dictionary.hpp"
 #include "NeoN/linearAlgebra/matrix.hpp"
 #include "NeoN/linearAlgebra/sparsityPattern.hpp"
-#include "NeoN/linearAlgebra/matrixIterator.hpp"
+#include "NeoN/linearAlgebra/faceToMatrixAddress.hpp"
 
 #include <string>
 
@@ -68,7 +68,7 @@ public:
 
     using LinearSystemIndexType = typename MatrixType::MatrixSparsityType::SparsityIndexType;
 
-    LinearSystem(std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi)
+    LinearSystem(std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi)
         : matrix_(
             Vector<ValueType>(mi->exec(), mi->localNonZeros(), zero<ValueType>()),
             mi->sparsityPattern()
@@ -88,7 +88,7 @@ public:
         const Vector<ValueType>& rhs,
         const MatrixType& boundaryMatrix,
         const Vector<ValueType>& boundaryRhs,
-        std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi
+        std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi
     )
         : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs),
           mi_(mi)
@@ -131,13 +131,16 @@ public:
                 {}
             };
         }
-        auto mi = std::make_shared<MatrixIterator<LinearSystemIndexType>>(
+        auto mi = std::make_shared<FaceToMatrixAddress<LinearSystemIndexType>>(
             mi_->ownerOffset().copyToHost(),
             mi_->neighbourOffset().copyToHost(),
             mi_->diagOffset().copyToHost(),
-            // FIXME
-            mi_->sparsityPattern(),
-            mi_->boundarySparsityPattern()
+            std::make_shared<SparsityPattern<LinearSystemIndexType>>(
+                mi_->sparsityPattern()->copyToHost()
+            ),
+            std::make_shared<SparsityPattern<LinearSystemIndexType>>(
+                mi_->boundarySparsityPattern()->copyToHost()
+            )
         );
         return {
             matrix_.copyToHost(),
@@ -172,7 +175,7 @@ public:
         return {matrix_.view(), rhs_.view(), boundaryMatrix_.view(), boundaryRhs_.view()};
     }
 
-    std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> matrixIterator() const
+    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> matrixIterator() const
     {
         return mi_;
     }
@@ -201,7 +204,7 @@ private:
 
     Dictionary auxiliaryCoefficients_;
 
-    std::shared_ptr<const MatrixIterator<LinearSystemIndexType>> mi_;
+    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi_;
 };
 
 /*@brief helper function that creates a zero initialised linear system based on given sparsity
@@ -210,7 +213,7 @@ private:
 template<typename ValueType, typename MatrixType = CSRMatrix<ValueType, localIdx>>
 LinearSystem<ValueType, MatrixType> createEmptyLinearSystem(const UnstructuredMesh& mesh)
 {
-    return {createSparsityPatternMatrixIterator<NeoN::localIdx>(mesh)};
+    return {createSparsityPatternFaceToMatrixAddress<NeoN::localIdx>(mesh)};
 }
 
 

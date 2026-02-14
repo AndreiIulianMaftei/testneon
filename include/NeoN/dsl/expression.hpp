@@ -10,7 +10,7 @@
 #include "NeoN/core/primitives/scalar.hpp"
 #include "NeoN/fields/field.hpp"
 #include "NeoN/linearAlgebra/sparsityPattern.hpp"
-#include "NeoN/linearAlgebra/matrixIterator.hpp"
+#include "NeoN/linearAlgebra/faceToMatrixAddress.hpp"
 #include "NeoN/linearAlgebra/linearSystem.hpp"
 #include "NeoN/dsl/spatialOperator.hpp"
 #include "NeoN/dsl/temporalOperator.hpp"
