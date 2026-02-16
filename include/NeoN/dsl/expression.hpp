@@ -192,7 +192,7 @@ public:
             return std::find_if(spatialOperators_.begin(), spatialOperators_.end(), matchName)
                 != spatialOperators_.end();
         }
-        if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
+        else if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
         {
             return std::find_if(temporalOperators_.begin(), temporalOperators_.end(), matchName)
                 != temporalOperators_.end();
