@@ -184,9 +184,9 @@ public:
 
     /**@brief returns operator of given type and name exists */
     template<typename OperatorType>
-    bool hasOperatorOfType(std::string name) const
+    bool hasOperatorOfType(const std::string& name) const
     {
-        auto matchName = [name](auto& op) { return op.getName() == name; };
+        auto matchName = [name](const auto& op) { return op.getName() == name; };
         if constexpr (std::is_same_v<OperatorType, SpatialOperator<ValueType>>)
         {
             return std::find_if(spatialOperators_.begin(), spatialOperators_.end(), matchName)
@@ -200,7 +200,7 @@ public:
     }
 
     /**@brief returns whether the expression contains an operator with a given name */
-    bool hasOperator(std::string name) const
+    bool hasOperator(const std::string& name) const
     {
         return hasOperatorOfType<SpatialOperator<ValueType>>(name)
             || hasOperatorOfType<TemporalOperator<ValueType>>(name);
@@ -208,18 +208,18 @@ public:
 
     /**@brief returns operator of given type and name */
     template<typename OperatorType>
-    OperatorType& getOperator(std::string name)
+    OperatorType& getOperator(const std::string& name)
     {
         if (!hasOperatorOfType<OperatorType>(name))
         {
             throw std::runtime_error("No operator with given name and type found");
         }
-        auto matchName = [name](auto& op) { return op.getName() == name; };
+        auto matchName = [name](const auto& op) { return op.getName() == name; };
         if constexpr (std::is_same_v<OperatorType, SpatialOperator<ValueType>>)
         {
             return *std::find_if(spatialOperators_.begin(), spatialOperators_.end(), matchName);
         }
-        if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
+        else if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
         {
             return *std::find_if(temporalOperators_.begin(), temporalOperators_.end(), matchName);
         }
@@ -228,13 +228,13 @@ public:
     }
 
     /**@brief removes operator of given name */
-    void dropOperator(std::string name)
+    void dropOperator(const std::string& name)
     {
         if (!hasOperator(name))
         {
             throw std::runtime_error("No operator with given name and type found");
         }
-        auto matchName = [name](auto& op) { return op.getName() == name; };
+        auto matchName = [name](const auto& op) { return op.getName() == name; };
         if (hasOperatorOfType<SpatialOperator<ValueType>>(name))
         {
             std::erase_if(spatialOperators_, matchName);

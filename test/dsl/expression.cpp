@@ -34,13 +34,13 @@ TEMPLATE_TEST_CASE("Expression", "[template]", NeoN::scalar, NeoN::Vec3)
         auto expr = dsl::Expression<TestType>(exec);
         expr.addOperator(a);
 
-        REQUIRE(expr.hasOperator("Dummy") == true);
+        REQUIRE(expr.hasOperator("Dummy"));
         REQUIRE_NOTHROW(expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy"));
         REQUIRE_THROWS_AS(
             expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy2"), std::runtime_error
         );
         REQUIRE_NOTHROW(expr.dropOperator("Dummy"));
-        REQUIRE(expr.hasOperator("Dummy") == false);
+        REQUIRE_FALSE(expr.hasOperator("Dummy"));
         REQUIRE_THROWS_AS(
             expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy"), std::runtime_error
         );
