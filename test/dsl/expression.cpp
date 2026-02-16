@@ -28,22 +28,31 @@ TEMPLATE_TEST_CASE("Expression", "[template]", NeoN::scalar, NeoN::Vec3)
     NeoN::Vector<NeoN::scalar> scaleVector(exec, 1, 4.0);
     auto vf = fvcc::VolumeField(exec, "vf", mesh, fA, bf, bcs);
 
-    SECTION("Create equation and perform explicit Operation on " + execName)
+    SECTION("Test Expression queries on " + execName)
     {
         dsl::SpatialOperator<TestType> a = Dummy<TestType>(vf);
         auto expr = dsl::Expression<TestType>(exec);
         expr.addOperator(a);
 
-        REQUIRE(expr.hasOperator("Dummy"));
-        REQUIRE_NOTHROW(expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy"));
-        REQUIRE_THROWS_AS(
-            expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy2"), std::runtime_error
+        REQUIRE(expr.template hasOperator<Operator::Type::Explicit>("Dummy"));
+        REQUIRE_FALSE(expr.template hasOperator<Operator::Type::Implicit>("Dummy"));
+        REQUIRE_NOTHROW(
+            expr.template getOperator<dsl::SpatialOperator<TestType>, Operator::Type::Explicit>(
+                "Dummy"
+            )
         );
-        REQUIRE_NOTHROW(expr.dropOperator("Dummy"));
-        REQUIRE_FALSE(expr.hasOperator("Dummy"));
-        REQUIRE_THROWS_AS(
-            expr.template getOperator<dsl::SpatialOperator<TestType>>("Dummy"), std::runtime_error
-        );
+
+        auto call_failing = [&]()
+        {
+            return expr
+                .template getOperator<dsl::SpatialOperator<TestType>, Operator::Type::Explicit>(
+                    "Dummy2"
+                );
+        };
+        REQUIRE_THROWS_AS(call_failing(), std::runtime_error);
+
+        REQUIRE_NOTHROW(expr.template dropOperator<Operator::Type::Explicit>("Dummy"));
+        REQUIRE_FALSE(expr.template hasOperator<Operator::Type::Explicit>("Dummy"));
     }
 
     SECTION("Create equation and perform explicit Operation on " + execName)
