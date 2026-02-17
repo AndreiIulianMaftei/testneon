@@ -34,9 +34,7 @@ template<typename T>
 concept HasTemporalImplicitOperator = requires(T t) {
     {
         t.implicitOperation(
-            std::declval<la::LinearSystem<
-                typename T::VectorValueType,
-                la::CSRMatrix<typename T::VectorValueType, localIdx>>&>(),
+            std::declval<la::LinearSystem<typename T::VectorValueType>&>(),
             std::declval<NeoN::scalar>(),
             std::declval<NeoN::scalar>()
         )
@@ -78,9 +76,7 @@ public:
         model_->explicitOperation(source, t, dt);
     }
 
-    void implicitOperation(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
-    ) const
+    void implicitOperation(la::LinearSystem<ValueType>& ls, scalar t, scalar dt) const
     {
         model_->implicitOperation(ls, t, dt);
     }
@@ -114,9 +110,7 @@ private:
 
         virtual void explicitOperation(Vector<ValueType>& source, scalar t, scalar dt) = 0;
 
-        virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
-        ) = 0;
+        virtual void implicitOperation(la::LinearSystem<ValueType>& ls, scalar t, scalar dt) = 0;
 
         /* @brief Given an input this function reads required properties */
         virtual void read(const Input& input) = 0;
@@ -166,9 +160,8 @@ private:
             }
         }
 
-        virtual void implicitOperation(
-            la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
-        ) override
+        virtual void
+        implicitOperation(la::LinearSystem<ValueType>& ls, scalar t, scalar dt) override
         {
             if constexpr (HasTemporalImplicitOperator<ConcreteTemporalOperatorType>)
             {

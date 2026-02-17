@@ -26,9 +26,7 @@ public:
     static std::string schema() { return "none"; }
 
     // -------- scalar --------
-    SolverStats solve(
-        const la::LinearSystem<scalar, la::CSRMatrix<scalar, localIdx>>& sys, Vector<scalar>& x
-    ) const override
+    SolverStats solve(const la::LinearSystem<scalar>& sys, Vector<scalar>& x) const override
     {
         auto start = std::chrono::steady_clock::now();
 
@@ -78,9 +76,7 @@ public:
     }
 
     // -------- Vec3 --------
-    SolverStats solve(
-        const la::LinearSystem<Vec3, la::CSRMatrix<Vec3, localIdx>>& sys, Vector<Vec3>& x
-    ) const override
+    SolverStats solve(const la::LinearSystem<Vec3>& sys, Vector<Vec3>& x) const override
     {
         const auto rhs = sys.rhs();
         const auto mtx = sys.matrix();

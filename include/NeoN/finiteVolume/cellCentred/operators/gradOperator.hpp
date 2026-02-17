@@ -53,7 +53,7 @@ public:
     virtual void grad(
         const VolumeField<scalar>& phi,
         const dsl::Coeff operatorScaling,
-        la::LinearSystem<ValueType, localIdx>& ls
+        la::LinearSystem<ValueType>& ls
     ) const = 0;
 
     /* @brief compute explicit gradient operator
@@ -136,15 +136,8 @@ public:
         source += tmpsource;
     }
 
-    [[deprecated("This function will be removed")]] la::LinearSystem<ValueType, localIdx>
-    createEmptyLinearSystem() const
-    {
-        NF_ASSERT(gradOperatorStrategy_, "GradOperatorStrategy not initialized");
-        return gradOperatorStrategy_->createEmptyLinearSystem();
-    }
-
     /* @brief forwards to implicit gradOperatorStrategy_->grad() with arguments */
-    void implicitOperation(la::LinearSystem<ValueType, localIdx>& ls) const
+    void implicitOperation(la::LinearSystem<ValueType>& ls) const
     {
         NF_ASSERT(gradOperatorStrategy_, "GradOperatorStrategy not initialized");
         const auto operatorScaling = this->getCoefficient();

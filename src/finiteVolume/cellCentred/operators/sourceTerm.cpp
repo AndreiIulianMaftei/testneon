@@ -36,9 +36,7 @@ void SourceTerm<ValueType>::explicitOperation(Vector<ValueType>& source) const
 }
 
 template<typename ValueType>
-void SourceTerm<ValueType>::implicitOperation(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
-) const
+void SourceTerm<ValueType>::implicitOperation(la::LinearSystem<ValueType>& ls) const
 {
     const auto matIt = ls.matrixIterator();
     const auto operatorScaling = this->getCoefficient();

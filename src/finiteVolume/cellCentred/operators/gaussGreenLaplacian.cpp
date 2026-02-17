@@ -76,7 +76,7 @@ NF_DECLARE_COMPUTE_EXP_LAP(Vec3);
 
 template<typename ValueType>
 void computeLaplacianImpl(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
+    la::LinearSystem<ValueType>& ls,
     const SurfaceField<scalar>& gamma,
     const VolumeField<ValueType>& phi,
     const dsl::Coeff operatorScaling,
@@ -177,7 +177,7 @@ void computeLaplacianImpl(
 
 #define NN_DECLARE_COMPUTE_IMP_LAP(TYPENAME)                                                       \
     template void computeLaplacianImpl<                                                            \
-        TYPENAME>(la::LinearSystem<TYPENAME, la::CSRMatrix<TYPENAME, localIdx>>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&)
+        TYPENAME>(la::LinearSystem<TYPENAME>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&)
 
 NN_DECLARE_COMPUTE_IMP_LAP(scalar);
 NN_DECLARE_COMPUTE_IMP_LAP(Vec3);

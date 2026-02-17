@@ -91,8 +91,7 @@ public:
     }
 
     /*@brief compute matrix coefficients based on all spatial operators */
-    void assembleSpatialOperator(la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls
-    ) const
+    void assembleSpatialOperator(la::LinearSystem<ValueType>& ls) const
     {
         for (auto& op : spatialOperators_)
         {
@@ -106,9 +105,7 @@ public:
     /*@brief compute matrix coefficients based on all temporal operators
      * assemble directly into linear system
      */
-    void assembleTemporalOperator(
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
-    ) const
+    void assembleTemporalOperator(la::LinearSystem<ValueType>& ls, scalar t, scalar dt) const
     {
         for (auto& op : temporalOperators_)
         {
@@ -124,9 +121,7 @@ public:
      * @param ps a vector of functor performing transformation on the created linear system
      * @return a tuple of the sparsity pattern and the assembled linear system
      */
-    std::tuple<
-        std::shared_ptr<const la::SparsityPattern<IndexType>>,
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>>
+    std::tuple<std::shared_ptr<const la::SparsityPattern<IndexType>>, la::LinearSystem<ValueType>>
     assemble(
         const UnstructuredMesh& mesh,
         scalar t,
@@ -146,7 +141,7 @@ public:
     void assemble(
         scalar t,
         scalar dt,
-        la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls,
+        la::LinearSystem<ValueType>& ls,
         std::span<const PostAssemblyBase<ValueType, IndexType>> ps = {}
     ) const
     {

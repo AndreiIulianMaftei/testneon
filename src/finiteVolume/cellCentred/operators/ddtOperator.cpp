@@ -37,9 +37,7 @@ void DdtOperator<ValueType>::explicitOperation(Vector<ValueType>& source, scalar
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::bdf1Kernel(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar, scalar dt
-) const
+void DdtOperator<ValueType>::bdf1Kernel(la::LinearSystem<ValueType>& ls, scalar, scalar dt) const
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();
     const auto operatorScaling = this->getCoefficient();
@@ -65,9 +63,7 @@ void DdtOperator<ValueType>::bdf1Kernel(
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::bdf2Kernel(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar, scalar dt
-) const
+void DdtOperator<ValueType>::bdf2Kernel(la::LinearSystem<ValueType>& ls, scalar, scalar dt) const
 {
     const auto mi = ls.matrixIterator();
     const auto vol = this->getVector().mesh().cellVolumes().view();
@@ -99,9 +95,8 @@ void DdtOperator<ValueType>::bdf2Kernel(
 }
 
 template<typename ValueType>
-void DdtOperator<ValueType>::implicitOperation(
-    la::LinearSystem<ValueType, la::CSRMatrix<ValueType, localIdx>>& ls, scalar t, scalar dt
-) const
+void DdtOperator<ValueType>::implicitOperation(la::LinearSystem<ValueType>& ls, scalar t, scalar dt)
+    const
 {
     const int level = oldTimeLevel(this->field_);
 
