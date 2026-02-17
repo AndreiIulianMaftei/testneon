@@ -54,12 +54,12 @@ void mul(Vector<ValueType>& vect1, const Vector<std::type_identity_t<ValueType>>
  * @returns The resulting scalar vector
  */
 template<unsigned int I>
-[[nodiscard]] Vector<scalar> get(const Vector<Vec3>& in);
+[[nodiscard]] Vector<scalar> getComponent(const Vector<Vec3>& in);
 
 /**
  * @brief Given a Vector of Vec3 this function sets a single component
  * @returns The resulting scalar vector
  */
 template<unsigned int I>
-void set(const Vector<scalar>& in, Vector<Vec3>& out);
+void setComponent(const Vector<scalar>& in, Vector<Vec3>& out);
 } // namespace NeoN

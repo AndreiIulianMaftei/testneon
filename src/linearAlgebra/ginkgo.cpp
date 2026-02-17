@@ -341,9 +341,9 @@ GinkgoSolver::solve(const LinearSystem<Vec3, CSRMatrix<Vec3, localIdx>>& sys, Ve
         auto stats = SolverStats {};
         auto sparsity = sys.matrix().sparsity();
         {
-            auto rhs = get<0>(sys.rhs());
-            auto xcopy = get<0>(x);
-            auto values = get<0>(sys.matrix().values());
+            auto rhs = getComponent<0>(sys.rhs());
+            auto xcopy = getComponent<0>(x);
+            auto values = getComponent<0>(sys.matrix().values());
 
             auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
 
@@ -351,31 +351,31 @@ GinkgoSolver::solve(const LinearSystem<Vec3, CSRMatrix<Vec3, localIdx>>& sys, Ve
             auto solver = factory_->generate(gkoMtx);
             stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
 
-            set<0>(xcopy, x);
+            setComponent<0>(xcopy, x);
         }
         {
-            auto rhs = get<1>(sys.rhs());
-            auto xcopy = get<1>(x);
-            auto values = get<1>(sys.matrix().values());
+            auto rhs = getComponent<1>(sys.rhs());
+            auto xcopy = getComponent<1>(x);
+            auto values = getComponent<1>(sys.matrix().values());
 
             auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
 
             auto gkoMtx = createGkoMtx(gkoExec_, mtx);
             auto solver = factory_->generate(gkoMtx);
             stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
-            set<1>(xcopy, x);
+            setComponent<1>(xcopy, x);
         }
         {
-            auto rhs = get<2>(sys.rhs());
-            auto xcopy = get<2>(x);
-            auto values = get<2>(sys.matrix().values());
+            auto rhs = getComponent<2>(sys.rhs());
+            auto xcopy = getComponent<2>(x);
+            auto values = getComponent<2>(sys.matrix().values());
 
             auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
 
             auto gkoMtx = createGkoMtx(gkoExec_, mtx);
             auto solver = factory_->generate(gkoMtx);
             stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
-            set<2>(xcopy, x);
+            setComponent<2>(xcopy, x);
         }
         return stats;
     }

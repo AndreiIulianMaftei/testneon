@@ -120,7 +120,7 @@ void mul(Vector<ValueType>& vect1, const Vector<std::type_identity_t<ValueType>>
 }
 
 template<unsigned int I>
-Vector<scalar> get(const Vector<Vec3>& in)
+Vector<scalar> getComponent(const Vector<Vec3>& in)
 {
     const auto exec = in.exec();
     const auto inV = in.view();
@@ -133,12 +133,12 @@ Vector<scalar> get(const Vector<Vec3>& in)
     return out;
 };
 
-template Vector<scalar> get<0>(const Vector<Vec3>&);
-template Vector<scalar> get<1>(const Vector<Vec3>&);
-template Vector<scalar> get<2>(const Vector<Vec3>&);
+template Vector<scalar> getComponent<0>(const Vector<Vec3>&);
+template Vector<scalar> getComponent<1>(const Vector<Vec3>&);
+template Vector<scalar> getComponent<2>(const Vector<Vec3>&);
 
 template<unsigned int I>
-void set(const Vector<scalar>& in, Vector<Vec3>& out)
+void setComponent(const Vector<scalar>& in, Vector<Vec3>& out)
 {
     const auto exec = in.exec();
     const auto inV = in.view();
@@ -149,9 +149,9 @@ void set(const Vector<scalar>& in, Vector<Vec3>& out)
     );
 };
 
-template void set<0>(const Vector<scalar>&, Vector<Vec3>&);
-template void set<1>(const Vector<scalar>&, Vector<Vec3>&);
-template void set<2>(const Vector<scalar>&, Vector<Vec3>&);
+template void setComponent<0>(const Vector<scalar>&, Vector<Vec3>&);
+template void setComponent<1>(const Vector<scalar>&, Vector<Vec3>&);
+template void setComponent<2>(const Vector<scalar>&, Vector<Vec3>&);
 
 // operator instantiation
 #define NN_VECTOR_OPERATOR_INSTANTIATION(Type)                                                     \
