@@ -320,10 +320,26 @@ std::shared_ptr<const gko::matrix::Csr<scalar, IndexType>> createGkoMtx(
     ));
 }
 
+// wrapper to solve a single component of a <vec3> equation
+template<unsigned int I>
+void solveComponent(auto& sys, auto& x, auto& exec, auto& factory, auto& stats)
+{
+    auto rhs = getComponent<I>(sys.rhs());
+    auto xcopy = getComponent<I>(x);
+    auto values = getComponent<I>(sys.matrix().values());
+    auto sparsity = sys.matrix().sparsity();
+    auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
+    auto gkoMtx = createGkoMtx(exec, mtx);
+    auto solver = factory->generate(gkoMtx);
+
+    stats.entries.push_back(solve_impl(exec, rhs, xcopy, gkoMtx, std::move(solver)));
+    setComponent<I>(xcopy, x);
+}
+
 SolverStats
 GinkgoSolver::solve(const LinearSystem<Vec3, CSRMatrix<Vec3, localIdx>>& sys, Vector<Vec3>& x) const
 {
-    if (fused_)
+    if (coupled_)
     {
         const auto gkoMtx = createGkoMtx(gkoExec_, sys);
         auto solver = factory_->generate(gkoMtx);
@@ -339,44 +355,9 @@ GinkgoSolver::solve(const LinearSystem<Vec3, CSRMatrix<Vec3, localIdx>>& sys, Ve
     else
     {
         auto stats = SolverStats {};
-        auto sparsity = sys.matrix().sparsity();
-        {
-            auto rhs = getComponent<0>(sys.rhs());
-            auto xcopy = getComponent<0>(x);
-            auto values = getComponent<0>(sys.matrix().values());
-
-            auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
-
-            auto gkoMtx = createGkoMtx(gkoExec_, mtx);
-            auto solver = factory_->generate(gkoMtx);
-            stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
-
-            setComponent<0>(xcopy, x);
-        }
-        {
-            auto rhs = getComponent<1>(sys.rhs());
-            auto xcopy = getComponent<1>(x);
-            auto values = getComponent<1>(sys.matrix().values());
-
-            auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
-
-            auto gkoMtx = createGkoMtx(gkoExec_, mtx);
-            auto solver = factory_->generate(gkoMtx);
-            stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
-            setComponent<1>(xcopy, x);
-        }
-        {
-            auto rhs = getComponent<2>(sys.rhs());
-            auto xcopy = getComponent<2>(x);
-            auto values = getComponent<2>(sys.matrix().values());
-
-            auto mtx = CSRMatrix<scalar, localIdx> {values, sparsity};
-
-            auto gkoMtx = createGkoMtx(gkoExec_, mtx);
-            auto solver = factory_->generate(gkoMtx);
-            stats.entries.push_back(solve_impl(gkoExec_, rhs, xcopy, gkoMtx, std::move(solver)));
-            setComponent<2>(xcopy, x);
-        }
+        solveComponent<0>(sys, x, gkoExec_, factory_, stats);
+        solveComponent<1>(sys, x, gkoExec_, factory_, stats);
+        solveComponent<2>(sys, x, gkoExec_, factory_, stats);
         return stats;
     }
 }
