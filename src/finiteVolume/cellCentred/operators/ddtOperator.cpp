@@ -43,8 +43,7 @@ void DdtOperator<ValueType>::bdf1Kernel(la::LinearSystem<ValueType>& ls, scalar,
     const auto operatorScaling = this->getCoefficient();
     const auto diagOffs = ls.matrixIterator()->diagOffset().view();
     const auto oldVector = oldTime(this->field_).internalVector().view();
-    auto rhs = ls.rhs().view();
-    auto values = ls.matrix().values().view();
+    auto [rhs, values] = views(ls.rhs(), ls.matrix().values());
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
 
     const scalar a0a1 = 1.0 / dt;
@@ -72,8 +71,7 @@ void DdtOperator<ValueType>::bdf2Kernel(la::LinearSystem<ValueType>& ls, scalar,
     auto& oldOld = oldTime(old);
     const auto [diagOffs, oldVector, oldOldVector] =
         views(mi->diagOffset(), old.internalVector(), oldOld.internalVector());
-    auto rhs = ls.rhs().view();
-    auto values = ls.matrix().values().view();
+    auto [rhs, values] = views(ls.rhs(), ls.matrix().values());
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
 
     const scalar a0 = 1.5 / dt;
