@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Kokkos_Core.hpp> // IWYU pragma: keep
+
 #include "NeoN/core/primitives/traits.hpp"
 
 // TODO this needs to be implemented in the corresponding cmake file
