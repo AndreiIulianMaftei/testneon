@@ -38,7 +38,7 @@ void SourceTerm<ValueType>::explicitOperation(Vector<ValueType>& source) const
 template<typename ValueType>
 void SourceTerm<ValueType>::implicitOperation(la::LinearSystem<ValueType>& ls) const
 {
-    const auto matIt = ls.matrixIterator();
+    const auto matIt = ls.faceToMatrixAddress();
     const auto operatorScaling = this->getCoefficient();
     const auto vol = coefficients_.mesh().cellVolumes().view();
     const auto [diagOffs, coeff] = views(matIt->diagOffset(), coefficients_.internalVector());

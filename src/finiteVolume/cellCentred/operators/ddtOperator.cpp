@@ -41,7 +41,7 @@ void DdtOperator<ValueType>::bdf1Kernel(la::LinearSystem<ValueType>& ls, scalar,
 {
     const auto vol = this->getVector().mesh().cellVolumes().view();
     const auto operatorScaling = this->getCoefficient();
-    const auto diagOffs = ls.matrixIterator()->diagOffset().view();
+    const auto diagOffs = ls.faceToMatrixAddress()->diagOffset().view();
     const auto oldVector = oldTime(this->field_).internalVector().view();
     auto [rhs, values] = views(ls.rhs(), ls.matrix().values());
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
@@ -64,13 +64,13 @@ void DdtOperator<ValueType>::bdf1Kernel(la::LinearSystem<ValueType>& ls, scalar,
 template<typename ValueType>
 void DdtOperator<ValueType>::bdf2Kernel(la::LinearSystem<ValueType>& ls, scalar, scalar dt) const
 {
-    const auto mi = ls.matrixIterator();
+    const auto matIt = ls.faceToMatrixAddress();
     const auto vol = this->getVector().mesh().cellVolumes().view();
     const auto operatorScaling = this->getCoefficient();
     auto& old = oldTime(this->field_);
     auto& oldOld = oldTime(old);
     const auto [diagOffs, oldVector, oldOldVector] =
-        views(mi->diagOffset(), old.internalVector(), oldOld.internalVector());
+        views(matIt->diagOffset(), old.internalVector(), oldOld.internalVector());
     auto [rhs, values] = views(ls.rhs(), ls.matrix().values());
     auto [colIdx, rowOffs] = ls.matrix().sparsity()->view();
 

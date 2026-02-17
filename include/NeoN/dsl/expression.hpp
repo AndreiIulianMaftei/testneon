@@ -131,7 +131,7 @@ public:
     {
         auto ls = la::createEmptyLinearSystem<ValueType>(mesh);
         assemble(t, dt, ls, ps);
-        return {ls.matrixIterator()->sparsityPattern(), ls};
+        return {ls.faceToMatrixAddress()->sparsityPattern(), ls};
     };
 
     /* @brief assemble into a given linear system

@@ -86,7 +86,7 @@ void computeLaplacianImpl(
     const UnstructuredMesh& mesh = phi.mesh();
     const auto nInternalFaces = mesh.nInternalFaces();
     const auto exec = phi.exec();
-    const auto matIt = ls.matrixIterator();
+    const auto matIt = ls.faceToMatrixAddress();
     const auto [owner, neighbour, surfFaceCells, diagOffs, ownOffs, neiOffs, rowOffs] = views(
         mesh.faceOwner(),
         mesh.faceNeighbour(),

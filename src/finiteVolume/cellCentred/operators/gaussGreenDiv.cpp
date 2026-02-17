@@ -161,7 +161,7 @@ void computeDivImp(
 )
 {
     const UnstructuredMesh& mesh = phi.mesh();
-    const auto matIt = ls.matrixIterator();
+    const auto matIt = ls.faceToMatrixAddress();
     const auto nInternalFaces = mesh.nInternalFaces();
     const auto exec = phi.exec();
     const auto weights = surfInterp.weight(faceFlux, phi);

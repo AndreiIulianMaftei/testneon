@@ -175,7 +175,7 @@ public:
         return {matrix_.view(), rhs_.view(), boundaryMatrix_.view(), boundaryRhs_.view()};
     }
 
-    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> matrixIterator() const
+    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> faceToMatrixAddress() const
     {
         return mi_;
     }
