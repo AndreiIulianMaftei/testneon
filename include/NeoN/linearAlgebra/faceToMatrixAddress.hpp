@@ -26,9 +26,18 @@ template<typename IndexType = localIdx, typename MeshType = UnstructuredMesh>
 class FaceToMatrixAddress
 {
 
+    // clang-format off
     // NOTE The following data member store a simple mapping from face ids to offsets in the
-    // corresponding rows I.e. Assume the following row  [ . 18 . 20 d 18 . 20 . ] this yields
-    // ownerOffset[18] = 0 ownerOffset[20] = 1 and neighbourOffset[18] = 4 neighbourOffset[20] = 5
+    // corresponding rows.
+    // I.e. Assume the following row  [ . a_18 . a_20 d a_18 . a_20 . ]
+    // where a_i corresponds to a value on a face i
+    // this yields:
+    // ownerOffset[18] = 0
+    // ownerOffset[20] = 1
+    // and
+    // neighbourOffset[18] = 4
+    // neighbourOffset[20] = 5
+    // clang-format on
     Array<uint8_t> ownerOffset_; //! mapping from faceId to lower index in a row
 
     Array<uint8_t> neighbourOffset_; //! mapping from faceId to upper index in a row
@@ -48,6 +57,7 @@ class FaceToMatrixAddress
     // the common boundary sparsity pattern
     std::shared_ptr<const SparsityPattern<IndexType>> bsp_;
 
+    // start of a given row.
     View<const IndexType> rowOffsV_;
 
 private:
@@ -56,7 +66,7 @@ private:
 
 public:
 
-    /* @brief create an SparsityPattern from existing mesh */
+    /* @brief constructor setting members explicitly */
     FaceToMatrixAddress(
         Array<uint8_t> ownerOffset,
         Array<uint8_t> neighbourOffset,
@@ -65,7 +75,7 @@ public:
         std::shared_ptr<const SparsityPattern<IndexType>> boundarySparsityPattern
     );
 
-    /* @brief create an SparsityPattern from existing mesh */
+    /* @brief copy constructor */
     FaceToMatrixAddress(const FaceToMatrixAddress& mi);
 
     FaceToMatrixAddress copyToHost() const;
@@ -79,12 +89,16 @@ public:
 
     const Executor& exec() const { return sp_->exec(); }
 
+    /*@brief return the number of rows in local matrix */
     localIdx localRows() const { return sp_->rows(); };
 
+    /*@brief return the number of non-zeros in local matrix */
     localIdx localNonZeros() const { return sp_->nnz(); };
 
+    /*@brief return the number of rows in boundary matrix */
     localIdx boundaryRows() const { return bsp_->rows(); };
 
+    /*@brief return the number of non-zeros in boundary matrix */
     localIdx boundaryNonZeros() const { return bsp_->nnz(); };
 
     /*@brief getter for ownerOffset */
@@ -106,19 +120,19 @@ public:
     Array<uint8_t>& diagOffset();
 
     // TODO check performance
-    /* @brief given celli the function returns index of the diagonal element  */
+    /* @brief given a cell ID, the function returns index of the diagonal element  */
     KOKKOS_INLINE_FUNCTION localIdx diagIdx(localIdx celli) const
     {
         return rowOffsV_[celli] + diagOffsetV_[celli];
     }
 
-    /* @brief given celli the function returns index of the diagonal element  */
+    /* @brief given a cell ID and a face ID, the function returns index of the element in the upper triangular matrix */
     KOKKOS_INLINE_FUNCTION localIdx upperIdx(localIdx celli, localIdx faceIdx) const
     {
         return rowOffsV_[celli] + neighbourOffsetV_[faceIdx];
     }
 
-    /* @brief given celli the function returns index of the diagonal element  */
+    /* @brief given a cell ID and a face ID, the function returns index of the element in the lower triangular matrix */
     KOKKOS_INLINE_FUNCTION localIdx lowerIdx(localIdx celli, localIdx faceIdx) const
     {
         return rowOffsV_[celli] + ownerOffsetV_[faceIdx];

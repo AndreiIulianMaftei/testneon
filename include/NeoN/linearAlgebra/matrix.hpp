@@ -175,8 +175,8 @@ public:
             return *this;
         }
         return {
-            values_.copyToHost(),
-            std::make_shared<const SparsityType>(this->sparsityPattern_->copyToHost())
+            values_.copyToExecutor(dstExec),
+            std::make_shared<const SparsityType>(this->sparsityPattern_->copyToExecutor(dstExec))
         };
     }
 
@@ -272,10 +272,10 @@ void scaledInverseDiag(
 
 /* @brief given Matrix<Vec3> this function returns a component Matrix<scalar>*/
 template<unsigned int I>
-[[nodiscard]] auto get(const CSRMatrix<Vec3, localIdx>& in)
+[[nodiscard]] auto getComponent(const CSRMatrix<Vec3, localIdx>& in)
 {
     auto sparsity = in.sparsity();
-    return CSRMatrix<scalar, localIdx>(get<I>(in.values()), sparsity);
+    return CSRMatrix<scalar, localIdx>(getComponent<I>(in.values()), sparsity);
 }
 
 /** @brief computes out = -(L+U) x

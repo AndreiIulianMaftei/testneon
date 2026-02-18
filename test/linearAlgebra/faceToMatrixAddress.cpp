@@ -21,6 +21,7 @@ TEST_CASE("FaceToMatrixAddress")
     auto nCells = 10;
     auto nFaces = 9;
 
+    // TODO use 2D/3D versions of create1DUniform mesh
     auto mesh = create1DUniformMesh(exec, nCells);
     auto mi = NeoN::la::createSparsityPatternFaceToMatrixAddress<NeoN::localIdx>(mesh);
 

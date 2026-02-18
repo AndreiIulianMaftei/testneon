@@ -75,8 +75,18 @@ public:
 
     [[nodiscard]] SparsityPattern copyToHost() const
     {
-        return SparsityPattern<IndexType>(colIdxs_.copyToHost(), rowOffs_.copyToHost());
+        return SparsityPattern<IndexType>(
+            colIdxs_.copyToExecutor(SerialExecutor()), rowOffs_.copyToExecutor(SerialExecutor())
+        );
     }
+
+    [[nodiscard]] SparsityPattern copyToExecutor(Executor dstExec) const
+    {
+        return SparsityPattern<IndexType>(
+            colIdxs_.copyToExecutor(dstExec), rowOffs_.copyToExecutor(dstExec)
+        );
+    }
+
 
     ~SparsityPattern() = default;
 

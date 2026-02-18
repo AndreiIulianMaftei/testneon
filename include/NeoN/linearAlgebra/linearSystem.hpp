@@ -20,7 +20,7 @@ namespace NeoN::la
  * @brief A view linear into a linear system's data.
  *
  * @tparam ValueType The value type of the linear system.
- * @tparam IndexType The index type of the linear system.
+ * @tparam MatrixViewType The type representing the matrix view
  */
 template<typename ValueType, typename MatrixViewType>
 struct LinearSystemView
@@ -60,25 +60,39 @@ class LinearSystem
     {
         NF_ASSERT(matrix_.exec() == rhs_.exec(), "Executors are not the same");
         NF_ASSERT(matrix_.nRows() == rhs_.size(), "Matrix and RHS size mismatch");
-        std::string msg = "BMatrix.size()={} != bRHS.size()={}";
-        NF_ASSERT_EQUAL(boundaryMatrix_.nRows(), boundaryRhs_.size());
+        NF_ASSERT(
+            boundaryMatrix_.nRows() == boundaryRhs_.size(), "BMatrix.nRows() != boundaryRHS.size()"
+        );
     }
 
 public:
 
     using LinearSystemIndexType = typename MatrixType::MatrixSparsityType::SparsityIndexType;
 
-    LinearSystem(std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi)
+    LinearSystem(
+        std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> faceToMatrixAddress
+    )
         : matrix_(
-            Vector<ValueType>(mi->exec(), mi->localNonZeros(), zero<ValueType>()),
-            mi->sparsityPattern()
+            Vector<ValueType>(
+                faceToMatrixAddress->exec(), faceToMatrixAddress->localNonZeros(), zero<ValueType>()
+            ),
+            faceToMatrixAddress->sparsityPattern()
         ),
-          rhs_(mi->exec(), mi->localRows(), zero<ValueType>()),
+          rhs_(faceToMatrixAddress->exec(), faceToMatrixAddress->localRows(), zero<ValueType>()),
           boundaryMatrix_(
-              Vector<ValueType>(mi->exec(), mi->boundaryNonZeros(), zero<ValueType>()),
-              mi->boundarySparsityPattern()
+              Vector<ValueType>(
+                  faceToMatrixAddress->exec(),
+                  faceToMatrixAddress->boundaryNonZeros(),
+                  zero<ValueType>()
+              ),
+              faceToMatrixAddress->boundarySparsityPattern()
           ),
-          boundaryRhs_(mi->exec(), mi->boundaryNonZeros(), zero<ValueType>()), mi_(mi)
+          boundaryRhs_(
+              faceToMatrixAddress->exec(),
+              faceToMatrixAddress->boundaryNonZeros(),
+              zero<ValueType>()
+          ),
+          faceToMatrixAddress_(faceToMatrixAddress)
     {
         validate();
     }
@@ -91,14 +105,14 @@ public:
         std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi
     )
         : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs),
-          mi_(mi)
+          faceToMatrixAddress_(mi)
     {
         validate();
     }
 
     LinearSystem(const LinearSystem& ls)
         : matrix_(ls.matrix_), rhs_(ls.rhs_), boundaryMatrix_(ls.boundaryMatrix_),
-          boundaryRhs_(ls.boundaryRhs_), mi_(ls.mi_)
+          boundaryRhs_(ls.boundaryRhs_), faceToMatrixAddress_(ls.faceToMatrixAddress_)
     {}
 
     ~LinearSystem() = default;
@@ -121,7 +135,7 @@ public:
 
     [[nodiscard]] LinearSystem<ValueType, MatrixType> copyToHost() const
     {
-        if (mi_ == nullptr)
+        if (faceToMatrixAddress_ == nullptr)
         {
             return {
                 matrix_.copyToHost(),
@@ -132,14 +146,14 @@ public:
             };
         }
         auto mi = std::make_shared<FaceToMatrixAddress<LinearSystemIndexType>>(
-            mi_->ownerOffset().copyToHost(),
-            mi_->neighbourOffset().copyToHost(),
-            mi_->diagOffset().copyToHost(),
+            faceToMatrixAddress_->ownerOffset().copyToHost(),
+            faceToMatrixAddress_->neighbourOffset().copyToHost(),
+            faceToMatrixAddress_->diagOffset().copyToHost(),
             std::make_shared<SparsityPattern<LinearSystemIndexType>>(
-                mi_->sparsityPattern()->copyToHost()
+                faceToMatrixAddress_->sparsityPattern()->copyToHost()
             ),
             std::make_shared<SparsityPattern<LinearSystemIndexType>>(
-                mi_->boundarySparsityPattern()->copyToHost()
+                faceToMatrixAddress_->boundarySparsityPattern()->copyToHost()
             )
         );
         return {
@@ -155,6 +169,8 @@ public:
     {
         fill(matrix_.values(), zero<ValueType>());
         fill(rhs_, zero<ValueType>());
+        fill(boundaryMatrix_.values(), zero<ValueType>());
+        fill(boundaryRhs_, zero<ValueType>());
     }
 
     [[nodiscard]] LinearSystemView<
@@ -177,7 +193,7 @@ public:
 
     std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> faceToMatrixAddress() const
     {
-        return mi_;
+        return faceToMatrixAddress_;
     }
 
     [[nodiscard]] LinearSystemView<
@@ -204,11 +220,10 @@ private:
 
     Dictionary auxiliaryCoefficients_;
 
-    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> mi_;
+    std::shared_ptr<const FaceToMatrixAddress<LinearSystemIndexType>> faceToMatrixAddress_;
 };
 
-/*@brief helper function that creates a zero initialised linear system based on given sparsity
- * pattern
+/*@brief helper function that creates a zero initialised linear system based on a given mesh
  */
 template<typename ValueType, typename MatrixType = CSRMatrix<ValueType, localIdx>>
 LinearSystem<ValueType, MatrixType> createEmptyLinearSystem(const UnstructuredMesh& mesh)
