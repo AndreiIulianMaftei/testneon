@@ -34,18 +34,15 @@ public:
 
     void explicitOperation(Vector<ValueType>& source) const;
 
-    void implicitOperation(la::LinearSystem<ValueType, localIdx>& ls) const;
+    void implicitOperation(la::LinearSystem<ValueType>& ls) const;
 
     void read(const Input&) {}
 
     std::string getName() const { return "sourceTerm"; }
 
-    const la::SparsityPattern& getSparsityPattern() const { return sparsityPattern_; }
-
 private:
 
     const VolumeField<scalar>& coefficients_;
-    const la::SparsityPattern& sparsityPattern_;
 };
 
 
