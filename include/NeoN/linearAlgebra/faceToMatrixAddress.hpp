@@ -126,13 +126,15 @@ public:
         return rowOffsV_[celli] + diagOffsetV_[celli];
     }
 
-    /* @brief given a cell ID and a face ID, the function returns index of the element in the upper triangular matrix */
+    /* @brief given a cell ID and a face ID, the function returns index of the element in the upper
+     * triangular matrix */
     KOKKOS_INLINE_FUNCTION localIdx upperIdx(localIdx celli, localIdx faceIdx) const
     {
         return rowOffsV_[celli] + neighbourOffsetV_[faceIdx];
     }
 
-    /* @brief given a cell ID and a face ID, the function returns index of the element in the lower triangular matrix */
+    /* @brief given a cell ID and a face ID, the function returns index of the element in the lower
+     * triangular matrix */
     KOKKOS_INLINE_FUNCTION localIdx lowerIdx(localIdx celli, localIdx faceIdx) const
     {
         return rowOffsV_[celli] + ownerOffsetV_[faceIdx];
