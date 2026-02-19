@@ -153,18 +153,21 @@ Vec3 operator*(const scalar& sclr, Vec3 rhs)
     return rhs;
 }
 
-/* @brief inner product */
+// TODO replace by compProd, innerProd, outerProd
+/**@brief compute component wise product */
+KOKKOS_INLINE_FUNCTION
+Vec3 operator*(const Vec3& lhs, Vec3 rhs)
+{
+    return {lhs[0] * rhs[0], lhs[1] * rhs[1], lhs[2] * rhs[2]};
+}
+
+/** @brief inner product */
 KOKKOS_INLINE_FUNCTION
 scalar operator&(const Vec3& lhs, Vec3 rhs)
 {
     return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
 }
 
-KOKKOS_INLINE_FUNCTION
-Vec3 operator*(const Vec3& lhs, Vec3 rhs)
-{
-    return {lhs[0] * rhs[0], lhs[1] * rhs[1], lhs[2] * rhs[2]};
-}
 
 KOKKOS_INLINE_FUNCTION
 Vec3 operator/(const Vec3& lhs, scalar rhs) { return {lhs[0] / rhs, lhs[1] / rhs, lhs[2] / rhs}; }
