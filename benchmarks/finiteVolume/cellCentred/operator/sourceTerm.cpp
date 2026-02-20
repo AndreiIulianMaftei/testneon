@@ -47,8 +47,7 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            const auto& sp = la::SparsityPattern::readOrCreate(mesh);
-            auto ls = la::createEmptyLinearSystem<NeoN::Vec3, NeoN::localIdx>(mesh, sp);
+            auto ls = la::createEmptyLinearSystem<NeoN::Vec3>(mesh);
 
             auto op = fvcc::SourceTerm<NeoN::Vec3>(Operator::Type::Implicit, coeff, phi);
 

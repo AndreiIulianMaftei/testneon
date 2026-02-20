@@ -123,8 +123,7 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             fvSchemes.insert("ddtSchemes", ddtSchemes);
 
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            const auto& sp1 = la::SparsityPattern::readOrCreate(mesh);
-            auto ls1 = la::createEmptyLinearSystem<TestType, NeoN::localIdx>(mesh, sp1);
+            auto ls1 = la::createEmptyLinearSystem<TestType>(mesh);
 
             // Implicit operators - First order
             auto ddtOpImp1 = fvcc::DdtOperator(Operator::Type::Implicit, phi);
@@ -153,8 +152,7 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             fvSchemes.insert("ddtSchemes", ddtSchemes);
 
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            const auto& sp2 = la::SparsityPattern::readOrCreate(mesh);
-            auto ls2 = la::createEmptyLinearSystem<TestType, NeoN::localIdx>(mesh, sp2);
+            auto ls2 = la::createEmptyLinearSystem<TestType>(mesh);
 
             // Implicit operators - Second order
             auto ddtOpImp2 = fvcc::DdtOperator(Operator::Type::Implicit, phi);

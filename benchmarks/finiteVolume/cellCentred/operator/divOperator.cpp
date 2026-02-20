@@ -47,8 +47,7 @@ TEST_CASE("DivOperator::div", "[bench]")
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            const auto& sp = la::SparsityPattern::readOrCreate(mesh);
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar, NeoN::localIdx>(mesh, sp);
+            auto ls = la::createEmptyLinearSystem<NeoN::scalar>(mesh);
 
             auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
 
