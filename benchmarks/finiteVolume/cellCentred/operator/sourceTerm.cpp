@@ -11,7 +11,7 @@
 
 using Operator = NeoN::dsl::Operator;
 
-TEST_CASE("SourceTerm::sourceTerm", "[bench]")
+TEMPLATE_TEST_CASE("SourceTerm::sourceTerm", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -26,10 +26,10 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
     coeff.correctBoundaryConditions();
 
     // Create a vector field to hold the variable
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::Vec3>>(mesh);
-    fvcc::VolumeField<NeoN::Vec3> phi(exec, "sf", mesh, volumeBCs);
-    fill(phi.internalVector(), NeoN::one<NeoN::Vec3>());
-    fill(phi.boundaryData().value(), NeoN::zero<NeoN::Vec3>());
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "sf", mesh, volumeBCs);
+    fill(phi.internalVector(), NeoN::one<TestType>());
+    fill(phi.boundaryData().value(), NeoN::zero<TestType>());
     phi.correctBoundaryConditions();
 
     // capture the value of size as section name
@@ -37,9 +37,9 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
     {
         SECTION("Explicit")
         {
-            auto op = fvcc::SourceTerm<NeoN::Vec3>(Operator::Type::Explicit, coeff, phi);
+            auto op = fvcc::SourceTerm<TestType>(Operator::Type::Explicit, coeff, phi);
 
-            NeoN::Vector<NeoN::Vec3> source(exec, phi.size(), NeoN::zero<NeoN::Vec3>());
+            NeoN::Vector<TestType> source(exec, phi.size(), NeoN::zero<TestType>());
 
             BENCHMARK(std::string(execName) + "_explicit") { op.explicitOperation(source); };
         }
@@ -47,9 +47,9 @@ TEST_CASE("SourceTerm::sourceTerm", "[bench]")
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<NeoN::Vec3>(mesh);
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
-            auto op = fvcc::SourceTerm<NeoN::Vec3>(Operator::Type::Implicit, coeff, phi);
+            auto op = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
 
             BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
         }

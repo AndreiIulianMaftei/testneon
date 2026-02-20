@@ -9,7 +9,9 @@
 #include "benchmarks/catch_main.hpp"
 #include "test/catch2/executorGenerator.hpp"
 
-using Operator = NeoN::dsl::Operator;
+#include "NeoN/dsl/explicit.hpp"
+#include "NeoN/dsl/implicit.hpp"
+#include "NeoN/dsl/expression.hpp"
 
 template<typename ValueType>
 struct CreateVector
@@ -89,35 +91,49 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
 
     DYNAMIC_SECTION("" << size)
     {
-        NeoN::Input divInput = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
-        NeoN::Input lapInput = NeoN::TokenList(
-            {std::string("Gauss"), std::string("linear"), std::string("uncorrected")}
+        NeoN::Dictionary fvSchemes;
+        NeoN::Dictionary divSchemes;
+        divSchemes.insert(
+            "div(faceFlux,phi)", NeoN::TokenList({std::string("Gauss"), std::string("linear")})
         );
+        fvSchemes.insert("divSchemes", divSchemes);
+
+        NeoN::Dictionary lapSchemes;
+        lapSchemes.insert(
+            "laplacian(gamma,phi)",
+            NeoN::TokenList(
+                {std::string("Gauss"), std::string("linear"), std::string("uncorrected")}
+            )
+        );
+        fvSchemes.insert("laplacianSchemes", lapSchemes);
 
         SECTION("Explicit")
         {
             NeoN::Vector<TestType> rhs(exec, phi.size(), NeoN::zero<TestType>());
 
-            // Explicit operators
-            auto ddtOpExp = fvcc::DdtOperator(Operator::Type::Explicit, phi);
-            auto divOpExp = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, divInput);
-            auto lapOpExp =
-                fvcc::LaplacianOperator<TestType>(Operator::Type::Explicit, gamma, phi, lapInput);
-            auto srcOpExp = fvcc::SourceTerm<TestType>(Operator::Type::Explicit, coeff, phi);
+            // Build Explicit Expression
+            /* auto expr =
+                NeoN::dsl::exp::ddt(phi) + NeoN::dsl::exp::div(faceFlux, phi)
+                + NeoN::dsl::exp::laplacian(gamma, phi); // + NeoN::dsl::exp::source(coeff, phi);
+            */
+            auto expr =
+                NeoN::dsl::exp::ddt(phi)
+                + NeoN::dsl::exp::laplacian(gamma, phi); // + NeoN::dsl::exp::source(coeff, phi);
+
+            expr.read(fvSchemes);
 
             BENCHMARK(std::string(execName) + "_explicit_combined")
             {
-                // rhs += ddt(phi) + div(faceFlux, phi) + laplacian(gamma, phi) + source(coeff, phi)
-                ddtOpExp.explicitOperation(rhs, t, dt);
-                divOpExp.explicitOperation(rhs);
-                lapOpExp.explicitOperation(rhs);
-                srcOpExp.explicitOperation(rhs);
+                // rhs += ddt(phi)
+                expr.explicitOperation(rhs, t, dt);
+
+                // rhs += div(faceFlux, phi) + laplacian(gamma, phi) + source(coeff, phi)
+                expr.explicitOperation(rhs);
             };
         }
 
         SECTION("Implicit_Euler")
         {
-            NeoN::Dictionary fvSchemes;
             NeoN::Dictionary ddtSchemes;
             ddtSchemes.insert("ddt(phi)", std::string("BDF1"));
             fvSchemes.insert("ddtSchemes", ddtSchemes);
@@ -125,28 +141,18 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             // Build sparsity pattern and allocate linear system once - output goes to ls
             auto ls1 = la::createEmptyLinearSystem<TestType>(mesh);
 
-            // Implicit operators - First order
-            auto ddtOpImp1 = fvcc::DdtOperator(Operator::Type::Implicit, phi);
-            ddtOpImp1.read(fvSchemes);
+            // Build Implicit Expression - First order
+            auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
+                      + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
 
-            auto divOpImp1 = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, divInput);
-            auto lapOpImp1 =
-                fvcc::LaplacianOperator<TestType>(Operator::Type::Implicit, gamma, phi, lapInput);
-            auto srcOpImp1 = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
+            expr.read(fvSchemes);
 
-            BENCHMARK(std::string(execName) + "_implicit_Euler")
-            {
-                ddtOpImp1.implicitOperation(ls1, t, dt);
-                divOpImp1.implicitOperation(ls1);
-                lapOpImp1.implicitOperation(ls1);
-                srcOpImp1.implicitOperation(ls1);
-            };
+            BENCHMARK(std::string(execName) + "_implicit_Euler") { expr.assemble(t, dt, ls1); };
         }
 
         SECTION("Implicit_BDF2")
         {
             // Select implicit ddt scheme (example: BDF2).
-            NeoN::Dictionary fvSchemes;
             NeoN::Dictionary ddtSchemes;
             ddtSchemes.insert("ddt(phi)", std::string("BDF2"));
             fvSchemes.insert("ddtSchemes", ddtSchemes);
@@ -154,22 +160,13 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             // Build sparsity pattern and allocate linear system once - output goes to ls
             auto ls2 = la::createEmptyLinearSystem<TestType>(mesh);
 
-            // Implicit operators - Second order
-            auto ddtOpImp2 = fvcc::DdtOperator(Operator::Type::Implicit, phi);
-            ddtOpImp2.read(fvSchemes);
+            // Build Implicit Expression - Second order
+            auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
+                      + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
 
-            auto divOpImp2 = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, divInput);
-            auto lapOpImp2 =
-                fvcc::LaplacianOperator<TestType>(Operator::Type::Implicit, gamma, phi, lapInput);
-            auto srcOpImp2 = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
+            expr.read(fvSchemes);
 
-            BENCHMARK(std::string(execName) + "_implicit_BDF2")
-            {
-                ddtOpImp2.implicitOperation(ls2, t, dt);
-                divOpImp2.implicitOperation(ls2);
-                lapOpImp2.implicitOperation(ls2);
-                srcOpImp2.implicitOperation(ls2);
-            };
+            BENCHMARK(std::string(execName) + "_implicit_BDF2") { expr.assemble(t, dt, ls2); };
         }
     }
 }

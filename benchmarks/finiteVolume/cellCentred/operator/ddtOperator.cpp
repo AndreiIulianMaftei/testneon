@@ -41,7 +41,7 @@ struct CreateVector
     }
 };
 
-TEST_CASE("DdtOperator::ddt", "[bench]")
+TEMPLATE_TEST_CASE("DdtOperator::ddt", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -51,18 +51,17 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
     NeoN::Database db;
     fvcc::VectorCollection& fieldCollection =
         fvcc::VectorCollection::instance(db, "benchVectorCollection");
-    fvcc::VolumeField<NeoN::scalar>& phi =
-        fieldCollection.registerVector<fvcc::VolumeField<NeoN::scalar>>(
-            CreateVector<NeoN::scalar> {.name = "phi", .mesh = mesh, .timeIndex = 1}
-        );
+    fvcc::VolumeField<TestType>& phi = fieldCollection.registerVector<fvcc::VolumeField<TestType>>(
+        CreateVector<TestType> {.name = "phi", .mesh = mesh, .timeIndex = 1}
+    );
 
-    fill(phi.internalVector(), 1.0);
-    fill(phi.boundaryData().value(), 0.0);
+    fill(phi.internalVector(), NeoN::one<TestType>());
+    fill(phi.boundaryData().value(), NeoN::zero<TestType>());
     phi.correctBoundaryConditions();
 
     // Ensure old-time storage exists and is initialized
-    NeoN::fill(oldTime(phi).internalVector(), 0.5);           // phi^n
-    NeoN::fill(oldTime(oldTime(phi)).internalVector(), 0.25); // phi^{n-1}
+    NeoN::fill(oldTime(phi).internalVector(), 0.5 * NeoN::one<TestType>());           // phi^n
+    NeoN::fill(oldTime(oldTime(phi)).internalVector(), 0.25 * NeoN::one<TestType>()); // phi^{n-1}
 
     const NeoN::scalar t = 1.0;
     const NeoN::scalar dt = 0.5;
@@ -73,7 +72,7 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
         SECTION("Explicit")
         {
             // Create a scalar field to hold the div value - output field
-            NeoN::Vector<NeoN::scalar> source(exec, phi.size(), NeoN::zero<NeoN::scalar>());
+            NeoN::Vector<TestType> source(exec, phi.size(), NeoN::zero<TestType>());
 
             auto op = fvcc::DdtOperator(Operator::Type::Explicit, phi);
 
@@ -88,7 +87,7 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
             fvSchemes.insert("ddtSchemes", ddtSchemes);
 
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar>(mesh);
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
             auto op = fvcc::DdtOperator(Operator::Type::Implicit, phi);
             op.read(fvSchemes);
@@ -107,7 +106,7 @@ TEST_CASE("DdtOperator::ddt", "[bench]")
             fvSchemes.insert("ddtSchemes", ddtSchemes);
 
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar>(mesh);
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
             auto op = fvcc::DdtOperator(Operator::Type::Implicit, phi);
             op.read(fvSchemes);

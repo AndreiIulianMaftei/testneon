@@ -11,7 +11,7 @@
 
 using Operator = NeoN::dsl::Operator;
 
-TEST_CASE("LaplacianOperator::laplacian", "[bench]")
+TEMPLATE_TEST_CASE("LaplacianOperator::laplacian", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -24,9 +24,9 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
     NeoN::fill(gamma.internalVector(), 1.0);
 
     // Create a scalar field phi and initialise with 1.0
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
-    fvcc::VolumeField<NeoN::scalar> phi(exec, "phi", mesh, volumeBCs);
-    NeoN::fill(phi.internalVector(), 1.0);
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "phi", mesh, volumeBCs);
+    NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
@@ -38,11 +38,11 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
         SECTION("Explicit")
         {
             // Create a scalar field to hold the laplacian value - output field
-            fvcc::VolumeField<NeoN::scalar> lapPhi(exec, "lapPhi", mesh, volumeBCs);
-            NeoN::fill(lapPhi.internalVector(), 0.0);
+            fvcc::VolumeField<TestType> lapPhi(exec, "lapPhi", mesh, volumeBCs);
+            NeoN::fill(lapPhi.internalVector(), NeoN::zero<TestType>());
 
             auto op =
-                fvcc::LaplacianOperator<NeoN::scalar>(Operator::Type::Explicit, gamma, phi, input);
+                fvcc::LaplacianOperator<TestType>(Operator::Type::Explicit, gamma, phi, input);
 
             BENCHMARK(std::string(execName) + "_explicit")
             {
@@ -53,10 +53,10 @@ TEST_CASE("LaplacianOperator::laplacian", "[bench]")
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar>(mesh);
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
             auto op =
-                fvcc::LaplacianOperator<NeoN::scalar>(Operator::Type::Implicit, gamma, phi, input);
+                fvcc::LaplacianOperator<TestType>(Operator::Type::Implicit, gamma, phi, input);
 
             BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
         }
