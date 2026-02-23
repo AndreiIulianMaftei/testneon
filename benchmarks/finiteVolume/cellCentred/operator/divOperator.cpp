@@ -11,7 +11,7 @@
 
 using Operator = NeoN::dsl::Operator;
 
-TEST_CASE("DivOperator::div", "[bench]")
+TEMPLATE_TEST_CASE("DivOperator::div", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -21,9 +21,9 @@ TEST_CASE("DivOperator::div", "[bench]")
     fvcc::SurfaceField<NeoN::scalar> faceFlux(exec, "sf", mesh, surfaceBCs);
     NeoN::fill(faceFlux.internalVector(), 1.0);
 
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
-    fvcc::VolumeField<NeoN::scalar> phi(exec, "vf", mesh, volumeBCs);
-    NeoN::fill(phi.internalVector(), 1.0);
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "vf", mesh, volumeBCs);
+    NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
 
     // capture the value of size as section name
     DYNAMIC_SECTION("" << size)
@@ -33,8 +33,8 @@ TEST_CASE("DivOperator::div", "[bench]")
         SECTION("Explicit")
         {
             // Create a scalar field to hold the div value - output field
-            fvcc::VolumeField<NeoN::scalar> divPhi(exec, "vf", mesh, volumeBCs);
-            NeoN::fill(divPhi.internalVector(), 0.0);
+            fvcc::VolumeField<TestType> divPhi(exec, "vf", mesh, volumeBCs);
+            NeoN::fill(divPhi.internalVector(), NeoN::zero<TestType>());
 
             auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
 
@@ -47,7 +47,7 @@ TEST_CASE("DivOperator::div", "[bench]")
         SECTION("Implicit")
         {
             // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<NeoN::scalar>(mesh);
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
             auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
 
