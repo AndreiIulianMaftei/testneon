@@ -127,8 +127,8 @@ collect_system_info "${GPU_VENDOR}"
 # Current branch
 build_and_benchmark "$(git rev-parse --abbrev-ref HEAD)" "${RESULTS_DIR}"
 
-# Main branch
-build_and_benchmark "main" "${RESULTS_DIR}/main"
+# Develop branch
+build_and_benchmark "develop" "${RESULTS_DIR}/develop"
 
 # Push results
 push_results
