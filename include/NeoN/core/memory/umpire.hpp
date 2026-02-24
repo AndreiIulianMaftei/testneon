@@ -6,7 +6,7 @@
 
 #include "NeoN/core/memory/allocator.hpp"
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 #include "umpire/strategy/QuickPool.hpp"
 #include "umpire/ResourceManager.hpp"
 #endif
@@ -14,7 +14,7 @@
 namespace NeoN
 {
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 class UmpireMempoolHandler
 {
 private:

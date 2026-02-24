@@ -91,7 +91,7 @@ if(${NeoN_WITH_UMPIRE})
     NAME
     umpire
     GITHUB_REPOSITORY
-    llnl/umpire
+    greole/umpire
     GIT_TAG
     ${NeoN_UMPIRE_TAG}
     OPTIONS

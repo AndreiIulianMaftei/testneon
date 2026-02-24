@@ -59,7 +59,7 @@ TEST_CASE("Can use DefaultExecutor wo mempool")
     );
 }
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 
 TEST_CASE("Can use SerialExecutor with UmpireAllocator")
 {

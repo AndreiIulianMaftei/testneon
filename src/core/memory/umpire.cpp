@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 #include "umpire/Allocator.hpp"
 #include "umpire/strategy/QuickPool.hpp"
 #include "umpire/ResourceManager.hpp"
@@ -14,7 +14,7 @@
 namespace NeoN
 {
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 
 bool UmpireMempoolHandler::hasPool(MemorySpace memSpace)
 {

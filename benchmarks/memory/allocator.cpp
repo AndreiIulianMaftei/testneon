@@ -29,7 +29,7 @@ TEST_CASE("Vector<Vec3>::defaultAllocator", "[bench]")
     }
 }
 
-#ifdef NF_WITH_UMPIRE
+#if NF_WITH_UMPIRE
 
 TEST_CASE("Vector<Vec3>::umpireAllocator", "[bench]")
 {
