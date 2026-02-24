@@ -39,7 +39,8 @@ void UmpireMempoolHandler::setupUmpirePool(MemorySpace memSpace, size_t size)
     // do nothing if pool already exists
     if (hasPool(memSpace)) return;
 
-    switch (memSpace) {
+    switch (memSpace)
+    {
     case MemorySpace::GPU:
     {
         auto allocator = rm.getAllocator("DEVICE");
@@ -55,7 +56,7 @@ void UmpireMempoolHandler::setupUmpirePool(MemorySpace memSpace, size_t size)
     default:
         NF_ERROR_EXIT("Unknown memory space");
     }
-    }
+}
 
 void* UmpireAllocator::alloc(size_t size)
 {

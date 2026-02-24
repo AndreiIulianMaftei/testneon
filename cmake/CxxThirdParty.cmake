@@ -94,7 +94,8 @@ if(${NeoN_WITH_UMPIRE})
     "ENABLE_BENCHMARKS OFF"
     "ENABLE_EXAMPLES OFF"
     "ENABLE_TESTS OFF"
-    SYSTEM YES)
+    SYSTEM
+    YES)
 endif()
 
 if(${NeoN_WITH_ADIOS2})
