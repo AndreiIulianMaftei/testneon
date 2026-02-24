@@ -79,6 +79,13 @@ if(${NeoN_WITH_SPDLOG})
 endif()
 
 if(${NeoN_WITH_UMPIRE})
+  # BLT require CMAKE_CUDA_HOST_COMPILER to be set explicitly
+  if(${Kokkos_ENABLE_CUDA} AND "${CMAKE_CUDA_HOST_COMPILER}" STREQUAL "")
+    message(WARNING "Setting CMAKE_CUDA_HOST_COMPILER to ${CMAKE_CXX_COMPILER}"
+                    " use -DCMAKE_CUDA_HOST_COMPILER to override")
+    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+  endif()
+
   # https://umpire.readthedocs.io/en/develop/sphinx/advanced_configuration.html
   cpmaddpackage(
     NAME
