@@ -85,9 +85,6 @@ jobs:
           ninja --version
           cmake --version
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
@@ -96,15 +93,14 @@ jobs:
       - name: Install python package
         run: |
           # create virtual environment
-          #
-          uv venv
-          source .venv/bin/activate
-          pip install nanobind pytest
+          python -m venv venv
+          source venv/bin/activate
+          pip install nanobind pytest numpy
 
       - name: Build NeoN without Ginkgo
         if: ${{!contains(github.event.pull_request.labels.*.name, 'full-ci')}}
         run: |
-          source .venv/bin/activate
+          source venv/bin/activate
 
           CMAKE_FLAGS_ARR=(
             -DNeoN_BUILD_TESTS=ON
@@ -121,7 +117,7 @@ jobs:
 
       - name: Execute unit tests NeoN
         run: |
-          source .venv/bin/activate
+          source venv/bin/activate
           ctest --preset ${{matrix.preset}} -E bench
 
       - name: Install NeoN
