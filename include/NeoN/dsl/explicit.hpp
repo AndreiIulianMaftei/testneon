@@ -43,6 +43,11 @@ div(fvcc::SurfaceField<scalar>& faceFlux, fvcc::VolumeField<ValueType>& phi)
     );
 }
 
+SpatialOperator<NeoN::scalar> div(const fvcc::SurfaceField<NeoN::scalar>& flux)
+{
+    return SpatialOperator<NeoN::scalar>(fvcc::SurfaceIntegrate<NeoN::scalar>(flux));
+}
+
 template<typename ValueType>
 SpatialOperator<ValueType>
 laplacian(fvcc::SurfaceField<scalar>& gamma, fvcc::VolumeField<ValueType>& phi)
@@ -51,5 +56,13 @@ laplacian(fvcc::SurfaceField<scalar>& gamma, fvcc::VolumeField<ValueType>& phi)
         fvcc::LaplacianOperator<ValueType>(dsl::Operator::Type::Explicit, gamma, phi)
     );
 }
+
+SpatialOperator<NeoN::Vec3> grad(fvcc::VolumeField<NeoN::scalar>& phi)
+{
+    return SpatialOperator<NeoN::Vec3>(
+        fvcc::GradOperator<NeoN::Vec3>(dsl::Operator::Type::Explicit, phi)
+    );
+}
+
 
 } // namespace NeoN
