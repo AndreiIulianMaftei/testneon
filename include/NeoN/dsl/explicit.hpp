@@ -5,6 +5,7 @@
 #pragma once
 
 #include "NeoN/core/primitives/scalar.hpp"
+#include "NeoN/core/primitives/vec3.hpp"
 #include "NeoN/dsl/spatialOperator.hpp"
 #include "NeoN/dsl/temporalOperator.hpp"
 #include "NeoN/dsl/ddt.hpp"
@@ -15,11 +16,13 @@
 #include "NeoN/finiteVolume/cellCentred/operators/divOperator.hpp"
 #include "NeoN/finiteVolume/cellCentred/operators/laplacianOperator.hpp"
 #include "NeoN/finiteVolume/cellCentred/operators/sourceTerm.hpp"
-
-namespace fvcc = NeoN::finiteVolume::cellCentred;
+#include "NeoN/finiteVolume/cellCentred/operators/gradOperator.hpp"
+#include "NeoN/finiteVolume/cellCentred/operators/surfaceIntegrate.hpp"
 
 namespace NeoN::dsl::exp
 {
+
+namespace fvcc = NeoN::finiteVolume::cellCentred;
 
 template<typename ValueType>
 TemporalOperator<ValueType> ddt(fvcc::VolumeField<ValueType>& phi)
@@ -43,10 +46,7 @@ div(fvcc::SurfaceField<scalar>& faceFlux, fvcc::VolumeField<ValueType>& phi)
     );
 }
 
-SpatialOperator<NeoN::scalar> div(const fvcc::SurfaceField<NeoN::scalar>& flux)
-{
-    return SpatialOperator<NeoN::scalar>(fvcc::SurfaceIntegrate<NeoN::scalar>(flux));
-}
+SpatialOperator<scalar> div(const fvcc::SurfaceField<scalar>& flux);
 
 template<typename ValueType>
 SpatialOperator<ValueType>
@@ -57,12 +57,6 @@ laplacian(fvcc::SurfaceField<scalar>& gamma, fvcc::VolumeField<ValueType>& phi)
     );
 }
 
-SpatialOperator<NeoN::Vec3> grad(fvcc::VolumeField<NeoN::scalar>& phi)
-{
-    return SpatialOperator<NeoN::Vec3>(
-        fvcc::GradOperator<NeoN::Vec3>(dsl::Operator::Type::Explicit, phi)
-    );
-}
-
+SpatialOperator<Vec3> grad(fvcc::VolumeField<scalar>& phi);
 
 } // namespace NeoN
