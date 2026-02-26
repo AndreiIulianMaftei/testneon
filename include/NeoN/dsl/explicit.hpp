@@ -32,14 +32,14 @@ TemporalOperator<ValueType> ddt(fvcc::VolumeField<ValueType>& phi)
 
 template<typename ValueType>
 SpatialOperator<ValueType>
-source(fvcc::VolumeField<scalar>& coeff, fvcc::VolumeField<ValueType>& phi)
+source(const fvcc::VolumeField<scalar>& coeff, const fvcc::VolumeField<ValueType>& phi)
 {
     return SpatialOperator<ValueType>(fvcc::SourceTerm(dsl::Operator::Type::Explicit, coeff, phi));
 }
 
 template<typename ValueType>
 SpatialOperator<ValueType>
-div(fvcc::SurfaceField<scalar>& faceFlux, fvcc::VolumeField<ValueType>& phi)
+div(const fvcc::SurfaceField<scalar>& faceFlux, const fvcc::VolumeField<ValueType>& phi)
 {
     return SpatialOperator<ValueType>(
         fvcc::DivOperator(dsl::Operator::Type::Explicit, faceFlux, phi)
@@ -50,13 +50,13 @@ SpatialOperator<scalar> div(const fvcc::SurfaceField<scalar>& flux);
 
 template<typename ValueType>
 SpatialOperator<ValueType>
-laplacian(fvcc::SurfaceField<scalar>& gamma, fvcc::VolumeField<ValueType>& phi)
+laplacian(const fvcc::SurfaceField<scalar>& gamma, fvcc::VolumeField<ValueType>& phi)
 {
     return SpatialOperator<ValueType>(
         fvcc::LaplacianOperator<ValueType>(dsl::Operator::Type::Explicit, gamma, phi)
     );
 }
 
-SpatialOperator<Vec3> grad(fvcc::VolumeField<scalar>& phi);
+SpatialOperator<Vec3> grad(const fvcc::VolumeField<scalar>& phi);
 
 } // namespace NeoN
