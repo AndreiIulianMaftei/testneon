@@ -27,6 +27,7 @@ target_sources(
           "core/tokenList.cpp"
           "core/logging.cpp"
           "dsl/coeff.cpp"
+          "dsl/explicit.cpp"
           "dsl/spatialOperator.cpp"
           "dsl/temporalOperator.cpp"
           "executor/CPUExecutor.cpp"
