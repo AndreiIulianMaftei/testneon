@@ -26,6 +26,17 @@ void registerInputs(nb::module_& m)
     nb::class_<NeoN::TokenList>(m, "TokenList", "A list of tokens storing values of any type")
         .def(nb::init<>(), "Create an empty TokenList")
         .def(nb::init<const NeoN::TokenList&>(), "Copy constructor")
+        .def(
+            "__init__",
+            [](NeoN::TokenList& self, const std::vector<std::string>& strings)
+            {
+                new (&self) NeoN::TokenList();
+                for (const auto& s : strings)
+                    self.insert(std::any(s));
+            },
+            "strings"_a,
+            "Create a TokenList from a Python list of strings (e.g. TokenList(['linear']))"
+        )
         .def("empty", &NeoN::TokenList::empty, "Check if the token list is empty")
         .def("size", &NeoN::TokenList::size, "Get the size of the token list")
         .def("remove", &NeoN::TokenList::remove, "index"_a, "Remove value at specified index")
@@ -165,6 +176,34 @@ void registerInputs(nb::module_& m)
             "__repr__",
             [](const NeoN::Dictionary& self)
             { return "<Dictionary size=" + std::to_string(self.keys().size()) + ">"; }
+        )
+        .def(
+            "__contains__",
+            [](const NeoN::Dictionary& self, const std::string& key) { return self.contains(key); },
+            "key"_a
+        )
+        .def(
+            "subDict",
+            [](NeoN::Dictionary& self, const std::string& key) -> NeoN::Dictionary&
+            {
+                if (!self.contains(key))
+                    throw nb::key_error(("Key '" + key + "' not found in Dictionary").c_str());
+                if (!self.isDict(key))
+                    throw nb::type_error(
+                        ("Value for key '" + key + "' is not a sub-dictionary").c_str()
+                    );
+                return self.subDict(key);
+            },
+            "key"_a,
+            nb::rv_policy::reference_internal
+        )
+        .def(
+            "insert_dict",
+            [](NeoN::Dictionary& self, const std::string& key, const NeoN::Dictionary& value)
+            { self.insert(key, std::any(value)); },
+            "key"_a,
+            "value"_a,
+            "Insert a sub-dictionary value"
         );
 }
 
