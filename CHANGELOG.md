@@ -1,4 +1,4 @@
-# Version 0.3.0
+# Version 0.3.0 (unreleased)
 
 ### Misc
 - Bump Ginkgo to 1.11 and Kokkos 4.7.01 [#409](https://github.com/exasim-project/NeoN/pull/409)
