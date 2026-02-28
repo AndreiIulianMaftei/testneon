@@ -73,4 +73,3 @@ if __name__ == "__main__":
     test_database_creation()
     test_database_contains()
     test_document_unique_ids()
-    print("All database tests passed!")
