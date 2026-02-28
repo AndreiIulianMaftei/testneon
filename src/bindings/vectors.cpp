@@ -145,7 +145,7 @@ void registerVectors(nb::module_& m)
     // for heterogeneous computing via executors.
 
     // Vector<scalar> - for scalar fields
-    auto nb_scalar_vector = declare_vector<NeoN::scalar>(
+    declare_vector<NeoN::scalar>(
         m, "ScalarVector", "A vector of scalar values with executor support"
     );
 

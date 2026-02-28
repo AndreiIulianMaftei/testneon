@@ -19,8 +19,6 @@ def test_container_imports():
     assert hasattr(neon, 'fill_range')
     assert hasattr(neon, 'equal')
 
-    print("✓ All container free function imports successful")
-
 
 # ============================================================================
 # fill tests for ScalarVector
@@ -53,7 +51,7 @@ def test_fill_range_scalar_vector():
     v = neon.ScalarVector(exec, 10, 0.0)  # Initialize with zeros
 
     # Fill a range with a value
-    assert neon.equal(v, 0.0)  # Not all elements are 0.0 anymore
+    assert neon.equal(v, 0.0)  # All elements should be 0.0
     neon.fill_range(v, 5.0, 2, 7)
     assert not neon.equal(v, 0.0)
 
