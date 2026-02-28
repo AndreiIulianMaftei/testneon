@@ -33,13 +33,14 @@ void registerLinearAlgebra(nb::module_& m)
         .def("rows", &la::SparsityPattern<localIdx>::rows)
         .def("nnz", &la::SparsityPattern<localIdx>::nnz);
 
+    nb::class_<la::SolverStats>(m, "SolverStats").def_rw("entries", &la::SolverStats::entries);
+
     nb::class_<la::SolverStatsEntry>(m, "SolverStatsEntry")
         .def_rw("num_iter", &la::SolverStatsEntry::numIter)
         .def_rw("initial_residual", &la::SolverStatsEntry::initResNorm)
         .def_rw("final_residual", &la::SolverStatsEntry::finalResNorm)
         .def_rw("time", &la::SolverStatsEntry::solveTime);
 
-    nb::class_<la::SolverStats>(m, "SolverStats").def_rw("entries", &la::SolverStats::entries);
 
     declare_linear_system<scalar>(m, "Scalar");
     declare_linear_system<Vec3>(m, "Vector");
