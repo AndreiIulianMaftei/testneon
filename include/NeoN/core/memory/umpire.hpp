@@ -34,6 +34,12 @@ public:
         }
         return rm.getAllocator("HOST_POOL");
     }
+
+    static void destroyUmpirePool(MemorySpace memSpace)
+    {
+        auto pool = getUmpirePool(memSpace);
+        pool.release();
+    }
 };
 #endif
 

@@ -93,6 +93,8 @@ TEST_CASE("Can use SerialExecutor with UmpirePoolAllocator")
     int numElems {5};
     int* ptr = exec.template alloc<int>(numElems);
     exec.free(ptr);
+
+    NeoN::UmpireMempoolHandler::destroyUmpirePool(NeoN::MemorySpace::CPU);
 }
 
 
@@ -110,6 +112,8 @@ TEST_CASE("Can use DefaultExecutor with UmpirePoolAllocator")
         },
         exec
     );
+
+    NeoN::UmpireMempoolHandler::destroyUmpirePool(NeoN::memorySpace(exec));
 }
 
 #endif

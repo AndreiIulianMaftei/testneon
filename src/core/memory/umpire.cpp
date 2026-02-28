@@ -58,6 +58,7 @@ void UmpireMempoolHandler::setupUmpirePool(MemorySpace memSpace, size_t size)
     }
 }
 
+
 void* UmpireAllocator::alloc(size_t size)
 {
     auto& rm = umpire::ResourceManager::getInstance();
