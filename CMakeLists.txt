@@ -41,6 +41,7 @@ option(NeoN_DEVEL_TOOLS "Add development tools to the build system" OFF)
 option(NeoN_BUILD_TESTS "Build the unit tests" OFF)
 option(NeoN_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(NeoN_BUILD_DOC "Build documentation" OFF)
+option(NeoN_BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 
 # Third party dependencies
 option(NeoN_WITH_KOKKOS "Enable using Kokkos as platform portability layer." ON)
@@ -92,6 +93,23 @@ endif()
 if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
   message(STATUS "Enabling generation of compilation database.")
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+# Detect if building with scikit-build-core
+if(DEFINED SKBUILD)
+  message(STATUS "Building with scikit-build-core")
+  set(NeoN_BUILD_PYTHON_BINDINGS
+      ON
+      CACHE BOOL "" FORCE)
+  set(BUILD_SHARED_LIBS
+      ON
+      CACHE BOOL "" FORCE)
+  # Configure RPATH for Python extension modules
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  # Set RPATH so _neon.so can find libNeoN.so at ../lib/
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif()
 
 include(cmake/CxxThirdParty.cmake)

@@ -220,9 +220,35 @@ if(${NeoN_WITH_GINKGO})
       "GINKGO_BUILD_OMP ${NeoN_WITH_OMP}"
       "GINKGO_ENABLE_HALF OFF"
       "GINKGO_BUILD_MPI OFF"
+      "GINKGO_BUILD_PAPI_SDE OFF"
       "GINKGO_BUILD_CUDA ${Kokkos_ENABLE_CUDA}"
       "GINKGO_BUILD_HIP ${Kokkos_ENABLE_HIP}")
   endif()
+endif()
+
+if(${NeoN_BUILD_PYTHON_BINDINGS})
+  if(CMAKE_VERSION VERSION_LESS 3.18)
+    set(DEV_MODULE Development)
+  else()
+    set(DEV_MODULE Development.Module)
+  endif()
+
+  if(DEFINED ENV{VIRTUAL_ENV})
+    set(Python_ROOT_DIR "$ENV{VIRTUAL_ENV}")
+  endif()
+  find_package(
+    Python
+    COMPONENTS Interpreter ${DEV_MODULE}
+    REQUIRED)
+  cpmaddpackage(
+    NAME
+    nanobind
+    GITHUB_REPOSITORY
+    wjakob/nanobind
+    VERSION
+    ${NeoN_NANOBIND_VERSION}
+    SYSTEM
+    YES)
 endif()
 
 if(NeoN_BUILD_TESTS OR NeoN_BUILD_BENCHMARKS)
