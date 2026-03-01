@@ -248,7 +248,7 @@ if(nlohmann_json_POPULATED)
   install(EXPORT nlohmannTargets NAMESPACE nlohmann_json::)
 endif()
 
-# install internal cpptrace version
+# install internal umpire version
 if(umpire_POPULATED)
   install(
     TARGETS umpire

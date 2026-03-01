@@ -36,12 +36,20 @@ public:
     template<typename T>
     T* alloc(size_t elements) const
     {
+        if (!allocContext_)
+        {
+            NF_ERROR_EXIT("No allocator set");
+        }
         return allocContext_->alloc<T>(elements);
     }
 
     template<typename T>
     T* realloc(void* ptr, size_t elements) const
     {
+        if (!allocContext_)
+        {
+            NF_ERROR_EXIT("No allocator set");
+        }
         return allocContext_->realloc<T>(ptr, elements);
     }
 

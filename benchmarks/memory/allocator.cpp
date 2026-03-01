@@ -34,7 +34,7 @@ TEST_CASE("Vector<Vec3>::defaultAllocator", "[bench]")
 TEST_CASE("Vector<Vec3>::umpireAllocator", "[bench]")
 {
     auto size = GENERATE(1 << 14, 1 << 15, 1 << 16, 1 << 17, 1 << 18);
-    auto exec = NeoN::GPUExecutor(std::make_unique<NeoN::UmpireAllocator>());
+    auto exec = NeoN::createDefaultExecutor();
     auto execName = executorName(exec);
 
     DYNAMIC_SECTION("" << size)
@@ -54,9 +54,9 @@ TEST_CASE("Vector<Vec3>::umpireAllocator", "[bench]")
 TEST_CASE("Vector<Vec3>::umpirePoolAllocator", "[bench]")
 {
     auto size = GENERATE(1 << 14, 1 << 15, 1 << 16, 1 << 17, 1 << 18);
-    auto exec = NeoN::GPUExecutor(std::make_unique<NeoN::UmpirePoolAllocator>());
+    auto exec = NeoN::createDefaultExecutor(std::make_unique<NeoN::UmpireAllocator>());
     auto execName = executorName(exec);
-    NeoN::UmpireMempoolHandler::setupUmpirePool(NeoN::MemorySpace::GPU, 1024 * 1024 * 1024);
+    NeoN::UmpireMempoolHandler::setupUmpirePool(NeoN::memorySpace(exec), 1024 * 1024 * 1024);
 
     DYNAMIC_SECTION("" << size)
     {
@@ -70,6 +70,7 @@ TEST_CASE("Vector<Vec3>::umpirePoolAllocator", "[bench]")
             NeoN::fill(cpuC, 0.0);
         };
     }
+    NeoN::UmpireMempoolHandler::destroyUmpirePool(NeoN::memorySpace(exec));
 }
 
 #endif

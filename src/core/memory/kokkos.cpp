@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <Kokkos_Core.hpp>
-
 #include "NeoN/core/memory/kokkos.hpp"
 
 namespace NeoN
@@ -11,16 +9,19 @@ namespace NeoN
 
 void* KokkosAllocator::alloc(size_t size)
 {
-    if (memSpace_ == MemorySpace::GPU)
+    switch (memSpace_)
+    {
+    case MemorySpace::GPU:
     {
         return Kokkos::kokkos_malloc<GPUMemSpace>("Vector", size);
     }
-    else if (memSpace_ == MemorySpace::CPU)
+    case MemorySpace::CPU:
     {
         return Kokkos::kokkos_malloc<CPUMemSpace>("Vector", size);
     }
-    // this shouldnt be reached
-    return Kokkos::kokkos_malloc<GPUMemSpace>("Vector", size);
+    default:
+        NF_ERROR_EXIT("Unknown memory space");
+    }
 }
 
 void* KokkosAllocator::realloc(void* ptr, size_t size)
@@ -35,6 +36,8 @@ void* KokkosAllocator::realloc(void* ptr, size_t size)
     {
         return Kokkos::kokkos_realloc<CPUMemSpace>(ptr, size);
     }
+    default:
+        NF_ERROR_EXIT("Unknown memory space");
     }
 }
 
@@ -52,6 +55,8 @@ void KokkosAllocator::free(void* ptr)
         Kokkos::kokkos_free<CPUMemSpace>(ptr);
         break;
     }
+    default:
+        NF_ERROR_EXIT("Unknown memory space");
     }
 }
 

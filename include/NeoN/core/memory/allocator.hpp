@@ -6,6 +6,8 @@
 
 #include "NeoN/core/error.hpp"
 
+#include <memory>
+
 
 namespace NeoN
 {
@@ -23,7 +25,8 @@ class AllocatorStrategy
 
 protected:
 
-    MemorySpace memSpace_;
+    // TODO check if enforcing via Ctor is an option
+    MemorySpace memSpace_ = MemorySpace::CPU;
 
 public:
 
@@ -50,9 +53,9 @@ class AllocatorContext
 
 public:
 
-    void setStrategy(std::unique_ptr<AllocatorStrategy> strategy_)
+    void setStrategy(std::unique_ptr<AllocatorStrategy> strategyIn)
     {
-        strategy = std::move(strategy_);
+        strategy = std::move(strategyIn);
     }
 
     /**@brief allocate a space for n elements of type T  */

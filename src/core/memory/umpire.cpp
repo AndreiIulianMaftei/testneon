@@ -125,11 +125,13 @@ void UmpirePoolAllocator::free(void* ptr)
 void* UmpireAllocator::alloc(size_t size)
 {
     NF_ERROR_EXIT("Not implemented. Build NeoN with -DNeoN_WITH_UMPIRE");
+    return nullptr;
 }
 
 void* UmpireAllocator::realloc(void* ptr, size_t size)
 {
     NF_ERROR_EXIT("Not implemented. Build NeoN with -DNeoN_WITH_UMPIRE");
+    return nullptr;
 }
 
 void UmpireAllocator::free(void* ptr)
@@ -145,6 +147,7 @@ void* UmpirePoolAllocator::alloc(size_t size)
 void* UmpirePoolAllocator::realloc(void* ptr, size_t size)
 {
     NF_ERROR_EXIT("Not implemented. Build NeoN with -DNeoN_WITH_UMPIRE");
+    return nullptr;
 }
 
 void UmpirePoolAllocator::free(void* ptr)
