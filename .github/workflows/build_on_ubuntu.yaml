@@ -115,4 +115,4 @@ jobs:
       - name: Execute unit tests NeoN
         run: |
           source .venv/bin/activate
-          ctest --preset ${{matrix.preset}}
+          ctest --preset ${{matrix.preset}} -E bench

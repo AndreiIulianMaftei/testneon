@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <Kokkos_Core.hpp>
-
 #include "NeoN/core/error.hpp"
 #include "NeoN/core/executor/executor.hpp"
 #include "NeoN/core/primitives/label.hpp"

@@ -45,8 +45,9 @@ option(NeoN_BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 
 # Third party dependencies
 option(NeoN_WITH_KOKKOS "Enable using Kokkos as platform portability layer." ON)
+option(NeoN_WITH_UMPIRE "Enable using Umpire as memory manager [Experimental]." ON)
 option(NeoN_WITH_ADIOS2 "Build NeoN with ADIOS2 support" OFF)
-option(NeoN_WITH_SUNDIALS "Build NeoN with Sundials support [currently required]" OFF)
+option(NeoN_WITH_SUNDIALS "Build NeoN with Sundials support." OFF)
 option(NeoN_WITH_GINKGO "Enable using Ginkgo as linear algebra backend." ON)
 option(NeoN_WITH_PETSC "Enable using Petsc as linear algebra backend." OFF)
 option(NeoN_WITH_OMP "Prefer OMP over Kokkos Threads" OFF)
@@ -245,6 +246,16 @@ if(nlohmann_json_POPULATED)
     INCLUDES
     DESTINATION include)
   install(EXPORT nlohmannTargets NAMESPACE nlohmann_json::)
+endif()
+
+# install internal umpire version
+if(umpire_POPULATED)
+  install(
+    TARGETS umpire
+    EXPORT UmpireTargets
+    INCLUDES
+    DESTINATION include)
+  install(EXPORT UmpireTargets)
 endif()
 
 # install internal cpptrace version

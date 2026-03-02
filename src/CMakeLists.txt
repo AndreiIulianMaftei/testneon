@@ -22,6 +22,8 @@ target_sources(
           "core/database/document.cpp"
           "core/database/fieldCollection.cpp"
           "core/database/oldTimeCollection.cpp"
+          "core/memory/umpire.cpp"
+          "core/memory/kokkos.cpp"
           "core/dictionary.cpp"
           "core/demangle.cpp"
           "core/tokenList.cpp"
