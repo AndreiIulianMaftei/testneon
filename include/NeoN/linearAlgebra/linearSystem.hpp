@@ -9,6 +9,7 @@
 #include "NeoN/linearAlgebra/matrix.hpp"
 #include "NeoN/linearAlgebra/cooSparsityPattern.hpp"
 #include "NeoN/linearAlgebra/csrSparsityPattern.hpp"
+#include "NeoN/linearAlgebra/meshIterationStrategies.hpp"
 #include "NeoN/linearAlgebra/faceToMatrixAddress.hpp"
 
 #include <string>
@@ -64,11 +65,13 @@ class LinearSystem
     {
         NF_ASSERT(matrix_.exec() == rhs_.exec(), "Executors are not the same");
         NF_ASSERT(matrix_.nRows() == rhs_.size(), "Matrix and RHS size mismatch");
+        NF_ASSERT(meshIteratorContext_ != nullptr, "");
         // NF_ASSERT(
         //     boundaryMatrix_.nRows() == boundaryRhs_.size(), "BMatrix.nRows() !=
         //     boundaryRHS.size()"
         // );
     }
+
 
 public:
 
@@ -78,17 +81,22 @@ public:
         const SystemMatrixType& matrix,
         const Vector<ValueType>& rhs,
         const BoundaryMatrixType& boundaryMatrix,
-        const Vector<ValueType>& boundaryRhs
+        const Vector<ValueType>& boundaryRhs,
+        std::shared_ptr<MeshIterationStrategy> strategy = std::make_shared<FaceBasedIterator>()
     )
-        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs)
+        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs),
+          meshIteratorContext_(std::make_shared<MeshIteratorContext>())
     {
+        meshIteratorContext_->setStrategy(strategy);
         validate();
     }
 
     LinearSystem(const LinearSystem& ls)
         : matrix_(ls.matrix_), rhs_(ls.rhs_), boundaryMatrix_(ls.boundaryMatrix_),
-          boundaryRhs_(ls.boundaryRhs_)
-    {}
+          boundaryRhs_(ls.boundaryRhs_), meshIteratorContext_(ls.meshIteratorContext_)
+    {
+        validate();
+    }
 
     ~LinearSystem() = default;
 
@@ -161,6 +169,8 @@ public:
         return {matrix_.view(), rhs_.view(), boundaryMatrix_.view(), boundaryRhs_.view()};
     }
 
+    std::shared_ptr<MeshIteratorContext> getMeshIterator() { return meshIteratorContext_; }
+
     const Executor& exec() const { return matrix_.exec(); }
 
 private:
@@ -176,6 +186,8 @@ private:
     Vector<ValueType> boundaryRhs_;
 
     Dictionary auxiliaryCoefficients_;
+
+    std::shared_ptr<MeshIteratorContext> meshIteratorContext_ = nullptr;
 };
 
 /*@brief helper function that creates a zero initialised linear system based on a given mesh
@@ -184,21 +196,22 @@ template<
     typename ValueType,
     typename SystemMatrixType = CSRMatrix<ValueType, localIdx>,
     typename BoundaryMatrixType = COOMatrix<ValueType, localIdx>>
-LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType>
-createEmptyLinearSystem(const UnstructuredMesh& mesh)
+LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType> createEmptyLinearSystem(
+    const UnstructuredMesh& mesh,
+    std::shared_ptr<MeshIterationStrategy> strategy = std::make_shared<FaceBasedIterator>()
+)
 {
-    auto [systemSp, ftma] =
+    auto [sp, mi] =
         createSparsityPatternFaceToMatrixAddress<typename SystemMatrixType::MatrixSparsityType>(mesh
         );
     auto bSp =
-        createBoundarySparsityPattern<typename BoundaryMatrixType::MatrixSparsityType>(mesh, *ftma);
+        createBoundarySparsityPattern<typename BoundaryMatrixType::MatrixSparsityType>(mesh, *mi);
     return {
-        SystemMatrixType(
-            Vector<ValueType>(systemSp->exec(), systemSp->nnz(), zero<ValueType>()), systemSp, ftma
-        ),
-        Vector<ValueType>(systemSp->exec(), systemSp->rows(), zero<ValueType>()),
+        SystemMatrixType(Vector<ValueType>(sp->exec(), sp->nnz(), zero<ValueType>()), sp, mi),
+        Vector<ValueType>(sp->exec(), sp->rows(), zero<ValueType>()),
         BoundaryMatrixType(Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()), bSp),
-        Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>())
+        Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()),
+        strategy
     };
 }
 
