@@ -112,13 +112,8 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             NeoN::Vector<TestType> rhs(exec, phi.size(), NeoN::zero<TestType>());
 
             // Build Explicit Expression
-            /* auto expr =
-                NeoN::dsl::exp::ddt(phi) + NeoN::dsl::exp::div(faceFlux, phi)
-                + NeoN::dsl::exp::laplacian(gamma, phi); // + NeoN::dsl::exp::source(coeff, phi);
-            */
-            auto expr =
-                NeoN::dsl::exp::ddt(phi)
-                + NeoN::dsl::exp::laplacian(gamma, phi); // + NeoN::dsl::exp::source(coeff, phi);
+            auto expr = NeoN::dsl::exp::ddt(phi) + NeoN::dsl::exp::div(faceFlux, phi)
+                      + NeoN::dsl::exp::laplacian(gamma, phi) + NeoN::dsl::exp::source(coeff, phi);
 
             expr.read(fvSchemes);
 
