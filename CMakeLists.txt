@@ -273,6 +273,14 @@ if(spdlog_ADDED)
     NAMESPACE spdlog::)
 endif()
 
+if(fmt_ADDED)
+  install(
+    TARGETS fmt-header-only
+    EXPORT NeoNTargets
+    INCLUDES
+    DESTINATION include)
+endif()
+
 # install internal sundials version if(sundials_POPULATED) install( TARGETS cvode nvec arkode
 # sundials_core_shared EXPORT SundialsTargets INCLUDES DESTINATION include) install(EXPORT
 # SundialsTargets NAMESPACE SUNDIALS::) endif()

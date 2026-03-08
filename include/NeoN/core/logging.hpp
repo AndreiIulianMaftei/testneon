@@ -6,11 +6,12 @@
 
 #include <chrono>
 #include <source_location>
-#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
 
+#include <fmt/core.h>
+#include <fmt/chrono.h>
 
 namespace NeoN::Logging
 {
@@ -61,14 +62,14 @@ public:
             std::chrono::steady_clock::now() - creationTS
         );
 
-        return std::format(
+        return fmt::format(
             "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
             "\"{}\",\n\"duration\": \"{}\"\n}}{}",
             message,
             location.file_name(),
             location.line(),
-            creationTS.time_since_epoch(),
-            duration,
+            "", // creationTS.time_since_epoch(),
+            "", // duration,
             delim
         );
     }

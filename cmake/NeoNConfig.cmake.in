@@ -17,6 +17,7 @@ set(NeoN_WITH_UMPIRE @NeoN_WITH_UMPIRE@)
 find_dependency(Kokkos REQUIRED)
 find_dependency(cpptrace REQUIRED)
 find_dependency(nlohmann_json REQUIRED)
+find_dependency(fmt REQUIRED)
 
 if(${NeoN_WITH_SPDLOG})
 find_dependency(spdlog REQUIRED)

@@ -64,8 +64,21 @@ cpmaddpackage(
   ${NeoN_CPPTRACE_VERSION}
   SYSTEM)
 
+cmake_policy(SET CMP0077 NEW)
+cpmaddpackage(
+  NAME
+  fmt
+  GITHUB_REPOSITORY
+  fmtlib/fmt
+  GIT_TAG
+  ${NeoN_FMT_VERSION}
+  OPTIONS
+  "FMT_INSTALL OFF"
+  SYSTEM
+  YES)
+
 if(${NeoN_WITH_SPDLOG})
-  set(SPDLOG_OPTIONS "SPDLOG_FMT_EXTERNAL OFF")
+  set(SPDLOG_OPTIONS "SPDLOG_FMT_EXTERNAL ON")
   cpmaddpackage(
     NAME
     spdlog
@@ -101,6 +114,7 @@ if(${NeoN_WITH_UMPIRE})
     "ENABLE_BENCHMARKS OFF"
     "ENABLE_EXAMPLES OFF"
     "ENABLE_TESTS OFF"
+    "fmt_DIR foo/bar"
     SYSTEM
     YES)
 endif()
