@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: Unlicense
 
+include(GNUInstallDirs)
+
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 
 # has to be first since it adds the main target
@@ -24,7 +26,7 @@ function(NeoN_unit_test TEST)
     set(NeoN_WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests)
   endif()
   if(NOT DEFINED "NeoN_COMMAND")
-    set(NeoN_COMMAND nn_${TEST})
+    set(NeoN_COMMAND neon_test_${TEST})
   endif()
 
   add_executable(${NeoN_COMMAND} "${TEST}.cpp")
@@ -39,7 +41,6 @@ function(NeoN_unit_test TEST)
     link_directories(${PETSc_LIBRARY_DIRS})
   endif()
   target_include_directories(${NeoN_COMMAND} PRIVATE "${TEST_CATCH2_DIR}")
-  set_target_properties(${NeoN_COMMAND} PROPERTIES OUTPUT_NAME ${TEST})
 
   target_link_libraries(${NeoN_COMMAND} PRIVATE NeoN_warnings NeoN_options NeoN cpptrace::cpptrace)
   if(NOT NeoN_MPI_SIZE)

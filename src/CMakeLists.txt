@@ -5,8 +5,6 @@
 add_library(NeoN ${NeoN_LIB_TYPE})
 add_library(NeoN::NeoN ALIAS NeoN) # dummy target
 
-include(GNUInstallDirs)
-
 if(NeoN_ENABLE_CUDA)
   set_source_files_properties(${NeoN_SRCS} PROPERTIES LANGUAGE CUDA)
 endif()

@@ -62,6 +62,7 @@ public:
             std::chrono::steady_clock::now() - creationTS
         );
 
+        // FIXME
         return fmt::format(
             "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
             "\"{}\",\n\"duration\": \"{}\"\n}}{}",
