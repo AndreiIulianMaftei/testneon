@@ -48,7 +48,7 @@ TEST_CASE("Can use CPUExecutor wo mempool")
 TEST_CASE("Can use DefaultExecutor wo mempool")
 {
     auto exec = NeoN::createDefaultExecutor();
-    int numElems {5};
+    size_t numElems {5};
     std::visit(
         [=](auto concreteExec)
         {

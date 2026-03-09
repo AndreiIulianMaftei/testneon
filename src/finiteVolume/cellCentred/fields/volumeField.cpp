@@ -13,12 +13,12 @@ namespace NeoN::finiteVolume::cellCentred
 template<typename ValueType>
 VolumeField<ValueType>::VolumeField(
     const Executor& exec,
-    std::string name,
+    std::string nameIn,
     const UnstructuredMesh& mesh,
     const std::vector<VolumeBoundary<ValueType>>& boundaryConditions
 )
     : DomainMixin<ValueType>(
-        exec, name, mesh, Field<ValueType>(exec, mesh.nCells(), mesh.boundaryMesh().offset())
+        exec, nameIn, mesh, Field<ValueType>(exec, mesh.nCells(), mesh.boundaryMesh().offset())
     ),
       FieldDatabaseMixin(), boundaryConditions_(boundaryConditions)
 {}
@@ -26,13 +26,13 @@ VolumeField<ValueType>::VolumeField(
 template<typename ValueType>
 VolumeField<ValueType>::VolumeField(
     const Executor& exec,
-    std::string name,
+    std::string nameIn,
     const UnstructuredMesh& mesh,
     const Vector<ValueType>& internalVector,
     const std::vector<VolumeBoundary<ValueType>>& boundaryConditions
 )
     : DomainMixin<ValueType>(
-        exec, name, mesh, Field<ValueType>(exec, internalVector, mesh.boundaryMesh().offset())
+        exec, nameIn, mesh, Field<ValueType>(exec, internalVector, mesh.boundaryMesh().offset())
     ),
       FieldDatabaseMixin(), boundaryConditions_(boundaryConditions)
 {}
@@ -40,13 +40,13 @@ VolumeField<ValueType>::VolumeField(
 template<typename ValueType>
 VolumeField<ValueType>::VolumeField(
     const Executor& exec,
-    std::string name,
+    std::string nameIn,
     const UnstructuredMesh& mesh,
     const Vector<ValueType>& internalVector,
     const BoundaryData<ValueType>& boundaryVectors,
     const std::vector<VolumeBoundary<ValueType>>& boundaryConditions
 )
-    : DomainMixin<ValueType>(exec, name, mesh, internalVector, boundaryVectors),
+    : DomainMixin<ValueType>(exec, nameIn, mesh, internalVector, boundaryVectors),
       FieldDatabaseMixin(), boundaryConditions_(boundaryConditions)
 {}
 
