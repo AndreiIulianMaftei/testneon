@@ -118,4 +118,4 @@ jobs:
           ctest --preset ${{matrix.preset}} -E bench
 
       - name: Install NeoN
-        run: cmake --install build/${{matrix.preset}}
+        run: sudo cmake --install build/${{matrix.preset}}

@@ -65,7 +65,7 @@ public:
         // FIXME
         return fmt::format(
             "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
-            "\"{}\",\n\"duration\": \"{}\"\n}}{}",
+            "\"{}\",\n\"duration\": \"{:m}ms\"\n}}{}",
             message,
             location.file_name(),
             location.line(),
@@ -86,14 +86,14 @@ void logImpl(
 template<typename... Args>
 void info(std::string formatString, Args... args)
 {
-    logImpl(std::vformat(formatString, std::make_format_args(args...)), Level::Info);
+    logImpl(fmt::format(formatString, std::make_format_args(args...)), Level::Info);
 }
 
 /*@brief convenience function to call spdlogs warn with std::format */
 template<typename... Args>
 void warn(std::string formatString, Args... args)
 {
-    logImpl(std::vformat(formatString, std::make_format_args(args...)), Level::Warning);
+    logImpl(fmt::format(formatString, std::make_format_args(args...)), Level::Warning);
 }
 
 
