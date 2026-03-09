@@ -8,8 +8,6 @@ install(
   INCLUDES
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-set_target_properties(NeoN INSTALL_RPATH)
-
 # Add Imported packages via CPM (FetchContent) to export set of neon
 
 if(ginkgo_POPULATED)

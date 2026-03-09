@@ -114,7 +114,6 @@ if(${NeoN_WITH_UMPIRE})
     "ENABLE_BENCHMARKS OFF"
     "ENABLE_EXAMPLES OFF"
     "ENABLE_TESTS OFF"
-    "fmt_DIR foo/bar"
     SYSTEM
     YES)
 endif()

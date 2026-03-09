@@ -58,19 +58,20 @@ public:
     /* @brief convert event to a json string */
     std::string toJson(std::string_view delim)
     {
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - creationTS
         );
 
-        // FIXME
         return fmt::format(
-            "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
-            "\"{}\",\n\"duration\": \"{:m}ms\"\n}}{}",
+            fmt::runtime(
+                "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
+                "\"{}\",\n\"duration\": \"{:m}ms\"\n}}{}"
+            ),
             message,
             location.file_name(),
             location.line(),
-            "", // creationTS.time_since_epoch(),
-            "", // duration,
+            creationTS.time_since_epoch(),
+            duration,
             delim
         );
     }
@@ -86,14 +87,14 @@ void logImpl(
 template<typename... Args>
 void info(std::string formatString, Args... args)
 {
-    logImpl(fmt::format(formatString, std::make_format_args(args...)), Level::Info);
+    logImpl(fmt::format(fmt::runtime(formatString), args...), Level::Info);
 }
 
 /*@brief convenience function to call spdlogs warn with std::format */
 template<typename... Args>
 void warn(std::string formatString, Args... args)
 {
-    logImpl(fmt::format(formatString, std::make_format_args(args...)), Level::Warning);
+    logImpl(fmt::format(fmt::runtime(formatString), args...), Level::Info);
 }
 
 

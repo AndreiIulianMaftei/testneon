@@ -118,4 +118,6 @@ jobs:
           ctest --preset ${{matrix.preset}} -E bench
 
       - name: Install NeoN
-        run: sudo cmake --install build/${{matrix.preset}}
+        run:  |
+          sudo cmake --install build/${{matrix.preset}}
+          neon_test_vector
