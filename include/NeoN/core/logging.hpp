@@ -6,11 +6,12 @@
 
 #include <chrono>
 #include <source_location>
-#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
 
+#include <fmt/core.h>
+#include <fmt/chrono.h>
 
 namespace NeoN::Logging
 {
@@ -57,13 +58,15 @@ public:
     /* @brief convert event to a json string */
     std::string toJson(std::string_view delim)
     {
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - creationTS
         );
 
-        return std::format(
-            "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
-            "\"{}\",\n\"duration\": \"{}\"\n}}{}",
+        return fmt::format(
+            fmt::runtime(
+                "{{\n\"message\": \"{}\",\n\"sourceLocation\": \"{}:{}\",\n\"timeStarted\": "
+                "\"{}\",\n\"duration\": \"{:m}ms\"\n}}{}"
+            ),
             message,
             location.file_name(),
             location.line(),
@@ -84,14 +87,14 @@ void logImpl(
 template<typename... Args>
 void info(std::string formatString, Args... args)
 {
-    logImpl(std::vformat(formatString, std::make_format_args(args...)), Level::Info);
+    logImpl(fmt::format(fmt::runtime(formatString), args...), Level::Info);
 }
 
 /*@brief convenience function to call spdlogs warn with std::format */
 template<typename... Args>
 void warn(std::string formatString, Args... args)
 {
-    logImpl(std::vformat(formatString, std::make_format_args(args...)), Level::Warning);
+    logImpl(fmt::format(fmt::runtime(formatString), args...), Level::Info);
 }
 
 

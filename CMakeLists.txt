@@ -12,6 +12,10 @@ project(
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 20)
+if(APPLE)
+  set(CMAKE_MACOSX_RPATH 1)
+endif()
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 # Add the cmake folder so the find_package command finds custom packages
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -271,6 +275,14 @@ if(spdlog_ADDED)
     EXPORT SpdlogTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/spdlog
     NAMESPACE spdlog::)
+endif()
+
+if(fmt_ADDED)
+  install(
+    TARGETS fmt-header-only
+    EXPORT NeoNTargets
+    INCLUDES
+    DESTINATION include)
 endif()
 
 # install internal sundials version if(sundials_POPULATED) install( TARGETS cvode nvec arkode

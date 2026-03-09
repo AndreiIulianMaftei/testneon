@@ -53,7 +53,7 @@ inline Executor createDefaultExecutor(
 inline std::string executorName(const Executor& exec)
 {
     return std::visit(
-        []<typename Exec>(const Exec& exec) { return exec.name(); }
+        []<typename Exec>(const Exec& concExec) { return concExec.name(); }
 
         ,
         exec
@@ -62,7 +62,9 @@ inline std::string executorName(const Executor& exec)
 
 inline MemorySpace memorySpace(const Executor& exec)
 {
-    return std::visit([]<typename Exec>(const Exec& exec) { return exec.memorySpace(); }, exec);
+    return std::visit(
+        []<typename Exec>(const Exec& concExec) { return concExec.memorySpace(); }, exec
+    );
 }
 
 /*@brief convenience function to get access to associated logger */

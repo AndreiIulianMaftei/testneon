@@ -63,6 +63,7 @@ else()
 endif()
 
 target_link_libraries(NeoN_public_api INTERFACE cpptrace::cpptrace)
+target_link_libraries(NeoN_public_api INTERFACE fmt::fmt-header-only)
 
 if(NeoN_WITH_PETSC)
   add_definitions(${PETSc_DEFINITIONS})
