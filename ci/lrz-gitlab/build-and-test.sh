@@ -56,9 +56,7 @@ elif [ "$GPU_VENDOR" == "amd" ]; then
     ctest --preset develop -E bench --output-on-failure
 
 elif [ "$GPU_VENDOR" == "intel" ]; then
-    if ! sycl-ls --ignore-device-selectors 2>/dev/null | grep -qi intel; then
-        echo "No Intel GPU found or Level Zero runtime not available"
-    fi
+    SYCL_UR_TRACE=1 sycl-ls
 
     # Compiler info (non-fatal)
     icpx --version 2>/dev/null | head -1 || echo "icpx not found"
@@ -68,11 +66,11 @@ elif [ "$GPU_VENDOR" == "intel" ]; then
         -DCMAKE_CXX_COMPILER=icpx \
         -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-sycl-2020-compat" \
         -DKokkos_ENABLE_SYCL=ON \
+        -DKokkos_ARCH_INTEL_PVC=ON \
         -DNeoN_WITH_THREADS=OFF \
         -DNeoN_BUILD_BENCHMARKS=ON \
         -DCMAKE_BUILD_TYPE="release"
     cmake --build --preset develop
-    export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
     ctest --preset develop -E bench --output-on-failure
 
 else

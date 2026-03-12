@@ -34,6 +34,8 @@ collect_system_info() {
             nvidia-smi
         elif [[ "$1" == "amd" ]]; then
             rocm-smi --showproductname --showvbios
+        elif [[ "$1" == "intel" ]]; then
+            SYCL_UR_TRACE=1 sycl-ls
         else
             echo "No GPU selected"
         fi
@@ -47,7 +49,7 @@ collect_system_info() {
         g++ --version || clang++ --version || echo "No C++ compiler found"
         echo ""
         echo "CUDA/ROCm compiler:"
-        nvcc --version 2>/dev/null || hipcc --version 2>/dev/null || echo "No GPU compiler available"
+        nvcc --version 2>/dev/null || hipcc --version 2>/dev/null || icpx --version 2>/dev/null  || echo "No GPU compiler available"
     } > "${RESULTS_DIR}/system-info.log"
 }
 
@@ -74,12 +76,11 @@ build_and_benchmark() {
             -DKokkos_ARCH_AMD_GFX90A=ON \
             -DNeoN_WITH_THREADS=OFF
     elif [[ "$GPU_VENDOR" == "intel" ]]; then
-        export ONEAPI_DEVICE_SELECTOR=level_zero:gpu
-
         cmake --preset $PRESET \
             -DCMAKE_CXX_COMPILER=icpx \
             -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-sycl-2020-compat" \
             -DKokkos_ENABLE_SYCL=ON \
+            -DKokkos_ARCH_INTEL_PVC=ON \
             -DNeoN_WITH_THREADS=OFF \
             -DNeoN_BUILD_BENCHMARKS=ON \
             -DCMAKE_BUILD_TYPE="release"
