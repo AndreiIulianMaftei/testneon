@@ -44,7 +44,7 @@ target_sources(
           "linearAlgebra/sparsityPattern.cpp"
           "mesh/unstructured/boundaryMesh.cpp"
           "mesh/unstructured/unstructuredMesh.cpp"
-          "mesh/unstructured/uniformGridHelpers.cpp"
+          "mesh/unstructured/uniformMeshGenerator.cpp"
           "finiteVolume/cellCentred/stencil/geometryScheme.cpp"
           "finiteVolume/cellCentred/stencil/basicGeometryScheme.cpp"
           "finiteVolume/cellCentred/stencil/cellToFaceStencil.cpp"
