@@ -441,12 +441,12 @@ void storeFaceNodesInStencilDB(
     auto faceNodesPtr = std::make_shared<SegmentedVector<localIdx, localIdx>>(
         Vector<localIdx>(serial, fnValues), Vector<localIdx>(serial, fnOffsets)
     );
-    mesh.stencilDB().insert(std::string(io::stencilFaceNodes), faceNodesPtr);
+    mesh.stencilDB().insert(std::string("stencilFaceNodes"), faceNodesPtr);
 
     auto patchNames = std::make_shared<std::vector<std::string>>(
         std::vector<std::string> {"xmin", "xmax", "ymin", "ymax", "zmin", "zmax"}
     );
-    mesh.stencilDB().insert(std::string(io::stencilPatchNames), patchNames);
+    mesh.stencilDB().insert(std::string("stencilPatchNames"), patchNames);
 }
 
 } // namespace NeoN::detail
