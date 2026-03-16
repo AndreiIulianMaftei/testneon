@@ -56,7 +56,8 @@ elif [ "$GPU_VENDOR" == "amd" ]; then
     ctest --preset develop -E bench --output-on-failure
 
 elif [ "$GPU_VENDOR" == "intel" ]; then
-    SYCL_UR_TRACE=1 sycl-ls
+    SYCL_PI_TRACE=1
+    sycl-ls
 
     # Compiler info (non-fatal)
     icpx --version 2>/dev/null | head -1 || echo "icpx not found"
@@ -68,8 +69,8 @@ elif [ "$GPU_VENDOR" == "intel" ]; then
         -DKokkos_ENABLE_SYCL=ON \
         -DKokkos_ARCH_INTEL_PVC=ON \
         -DNeoN_WITH_THREADS=OFF \
-        -DNeoN_BUILD_BENCHMARKS=ON \
-        -DCMAKE_BUILD_TYPE="release"
+        -DCMAKE_BUILD_TYPE="release" \
+        -DNeoN_BUILD_BENCHMARKS=ON
     cmake --build --preset develop
     ctest --preset develop -E bench --output-on-failure
 
