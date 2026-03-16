@@ -4,8 +4,6 @@
 
 #include "NeoN/mesh/unstructured/uniformGridHelpers.hpp"
 
-#include "NeoN/mesh/unstructured/io/meshConverter.hpp"
-
 #include <memory>
 
 namespace NeoN::detail

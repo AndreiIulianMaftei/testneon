@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
+#include "NeoN/mesh/unstructured/uniformGridHelpers.hpp"
 
 #include "NeoN/core/primitives/vec3.hpp" // for Vec3
 
