@@ -192,20 +192,21 @@ UnstructuredMesh createUniform3DMesh(
         Lz
     };
 
-    auto pts = detail::generatePoints(p);
-    auto [vols, centres] = detail::generateCellData(p);
+    auto points = detail::generatePoints(p);
+    auto [cellVolumes, cellCentres] = detail::generateCellData(p);
     auto faces = detail::generateInternalFaces(p);
-    auto [boundaryMesh, nBoundary] = detail::generateBoundaryData(exec, p, centres, faces);
+    auto [boundaryMesh, nBoundary] = detail::generateBoundaryData(exec, p, cellCentres, faces);
 
+    // Note: With localIdx, the safer limit is ~700 million cells
     const localIdx nCells = nx * ny * nz;
     const localIdx nFaces = faces.nInternal + nBoundary;
 
     auto faceNodesVec = detail::buildFaceNodes(p, nFaces);
 
     UnstructuredMesh mesh(
-        vectorVector(exec, pts),
-        scalarVector(exec, vols),
-        vectorVector(exec, centres),
+        vectorVector(exec, points),
+        scalarVector(exec, cellVolumes),
+        vectorVector(exec, cellCentres),
         {exec, faces.areas},
         {exec, faces.centres},
         {exec, faces.magnitudes},
