@@ -14,7 +14,7 @@
 namespace NeoN::detail
 {
 
-struct GridParams
+struct MeshParams
 {
     localIdx nx, ny, nz;
     scalar dx, dy, dz;
@@ -50,17 +50,17 @@ struct BoundaryData
     localIdx nBoundary;
 };
 
-std::vector<Vec3> generatePoints(const GridParams& p);
+std::vector<Vec3> generatePoints(const MeshParams& p);
 
-CellData generateCellData(const GridParams& p);
+CellData generateCellData(const MeshParams& p);
 
-FaceData generateInternalFaces(const GridParams& p);
+FaceData generateInternalFaces(const MeshParams& p);
 
 BoundaryData generateBoundaryData(
-    const Executor exec, const GridParams& p, const std::vector<Vec3>& centres, FaceData& faces
+    const Executor exec, const MeshParams& p, const std::vector<Vec3>& centres, FaceData& faces
 );
 
-std::vector<std::vector<localIdx>> buildFaceNodes(const GridParams& p, localIdx nFaces);
+std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces);
 
 void storeFaceNodesInStencilDB(
     UnstructuredMesh& mesh, const std::vector<std::vector<localIdx>>& faceNodesVec

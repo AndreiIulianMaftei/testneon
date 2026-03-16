@@ -32,7 +32,7 @@ TEST_CASE("Unstructured Mesh")
 
         NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, nCells);
 
-        // 1D mesh now delegates to createUniform3DGrid(exec, 4, 1, 1)
+        // 1D mesh now delegates to createUniform3DMesh(exec, 4, 1, 1)
         // → hex slab topology with 6 patches
         // nInternalFaces: x:(4-1)*1*1=3, y:0, z:0 → 3
         // nBoundaryFaces: left(1)+right(1)+bottom(4)+top(4)+front(4)+back(4) = 18
@@ -114,13 +114,13 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
     }
 
-    SECTION("Can create a uniform 2D grid (OpenFOAM-style hex slab) " + execName)
+    SECTION("Can create a uniform 2D mesh (OpenFOAM-style hex slab) " + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DGrid(exec, nx, ny);
+        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
 
-        // Topology: 2x2 grid, one cell thick in z (hex cells)
+        // Topology: 2x2 mesh, one cell thick in z (hex cells)
         // - 4 hex cells
         // - 18 points = (2+1)*(2+1)*2  (two z-planes)
         // - 4 internal faces (quad): 2 vertical + 2 horizontal
@@ -164,11 +164,11 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostBndDelta.view()[0][1] == Catch::Approx(0.0));
     }
 
-    SECTION("Uniform 2D grid stores face node connectivity in stencilDB " + execName)
+    SECTION("Uniform 2D mesh stores face node connectivity in stencilDB " + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DGrid(exec, nx, ny);
+        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
 
         // stencilDB must contain std::string("stencilFaceNodes")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
@@ -192,7 +192,7 @@ TEST_CASE("Unstructured Mesh")
         }
 
         // Verify specific face nodes for first vertical internal face (between cell 0 and cell 1)
-        // In a 2x2 grid on [0,1]x[0,1]x[0,1], points are indexed as:
+        // In a 2x2 mesh on [0,1]x[0,1]x[0,1], points are indexed as:
         // Bottom z-plane (k=0): pt(i,j,0) = j*(nx+1) + i
         //   6--7--8      (row j=2)
         //   |  |  |
@@ -218,11 +218,11 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(sorted[3] == 13);
     }
 
-    SECTION("Uniform 2D grid stores patch names in stencilDB " + execName)
+    SECTION("Uniform 2D mesh stores patch names in stencilDB " + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DGrid(exec, nx, ny);
+        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
 
         // stencilDB must contain std::string("stencilPatchNames")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
@@ -244,15 +244,15 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(patchNames[5] == "zmax");
     }
 
-    SECTION("Can create a uniform 2D grid with non-unit domain " + execName)
+    SECTION("Can create a uniform 2D mesh with non-unit domain " + execName)
     {
         NeoN::localIdx nx = 3;
         NeoN::localIdx ny = 2;
         NeoN::scalar Lx = 3.0;
         NeoN::scalar Ly = 2.0;
-        auto mesh = NeoN::createUniform2DGrid(exec, nx, ny, Lx, Ly);
+        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny, Lx, Ly);
 
-        // 3x2 grid: 6 hex cells, (3-1)*2 + 3*(2-1) = 4+3 = 7 internal faces
+        // 3x2 mesh: 6 hex cells, (3-1)*2 + 3*(2-1) = 4+3 = 7 internal faces
         // boundary: left(2) + right(2) + bottom(3) + top(3) + front(6) + back(6) = 22
         REQUIRE(mesh.nCells() == 6);
         REQUIRE(mesh.nInternalFaces() == 7);
@@ -266,7 +266,7 @@ TEST_CASE("Unstructured Mesh")
             REQUIRE(hostVols.view()[c] == Catch::Approx(1.0));
     }
 
-    SECTION("2D grid patch face centres lie on correct planes (3x2) " + execName)
+    SECTION("2D mesh patch face centres lie on correct planes (3x2) " + execName)
     {
         // Domain: [xmin, xmax] x [ymin, ymax] x [zmin, zmax] (one cell thick in z)
         // Boundary patches and the planes they must lie on:
@@ -284,7 +284,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar ymax = 2.0;
         NeoN::scalar zmin = 0.0;
         NeoN::scalar zmax = 1.0; // fixed slab thickness
-        auto mesh = NeoN::createUniform2DGrid(exec, nx, ny, xmax, ymax);
+        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny, xmax, ymax);
 
         auto& bm = mesh.boundaryMesh();
         auto& offset = bm.offset();
@@ -323,14 +323,14 @@ TEST_CASE("Unstructured Mesh")
             REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
     }
 
-    SECTION("Can create a uniform 3D grid (2x2x2) " + execName)
+    SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
         NeoN::localIdx nz = 2;
-        auto mesh = NeoN::createUniform3DGrid(exec, nx, ny, nz);
+        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz);
 
-        // Topology: 2x2x2 grid
+        // Topology: 2x2x2 mesh
         // - 8 hex cells
         // - internal faces: x:(2-1)*2*2=4, y:2*(2-1)*2=4, z:2*2*(2-1)=4 → 12 total
         // - boundary faces: left(4)+right(4)+bottom(4)+top(4)+front(4)+back(4) = 24
@@ -369,7 +369,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostBndDelta.view()[0][2] == Catch::Approx(0.0));
     }
 
-    SECTION("Can create a uniform 3D grid with non-unit domain " + execName)
+    SECTION("Can create a uniform 3D mesh with non-unit domain " + execName)
     {
         NeoN::localIdx nx = 3;
         NeoN::localIdx ny = 2;
@@ -377,7 +377,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar Lx = 3.0;
         NeoN::scalar Ly = 2.0;
         NeoN::scalar Lz = 2.0;
-        auto mesh = NeoN::createUniform3DGrid(exec, nx, ny, nz, Lx, Ly, Lz);
+        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz, Lx, Ly, Lz);
 
         // 3x2x2: 12 cells
         // internal: x:(3-1)*2*2=8, y:3*(2-1)*2=6, z:3*2*(2-1)=6 → 20
@@ -394,7 +394,7 @@ TEST_CASE("Unstructured Mesh")
             REQUIRE(hostVols.view()[c] == Catch::Approx(1.0));
     }
 
-    SECTION("3D grid patch face centres lie on correct planes (3x2x4) " + execName)
+    SECTION("3D mesh patch face centres lie on correct planes (3x2x4) " + execName)
     {
         // Domain: [xmin, xmax] x [ymin, ymax] x [zmin, zmax]
         // Boundary patches and the planes they must lie on:
@@ -413,7 +413,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar ymax = 2.0;
         NeoN::scalar zmin = 0.0;
         NeoN::scalar zmax = 4.0;
-        auto mesh = NeoN::createUniform3DGrid(exec, nx, ny, nz, xmax, ymax, zmax);
+        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz, xmax, ymax, zmax);
 
         auto& bm = mesh.boundaryMesh();
         auto& offset = bm.offset();
@@ -452,12 +452,12 @@ TEST_CASE("Unstructured Mesh")
             REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
     }
 
-    SECTION("Uniform 3D grid stores face node connectivity in stencilDB " + execName)
+    SECTION("Uniform 3D mesh stores face node connectivity in stencilDB " + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
         NeoN::localIdx nz = 2;
-        auto mesh = NeoN::createUniform3DGrid(exec, nx, ny, nz);
+        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz);
 
         REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
 

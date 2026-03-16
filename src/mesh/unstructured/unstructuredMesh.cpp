@@ -164,20 +164,20 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
 
 UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
 {
-    return createUniform3DGrid(exec, nCells, 1, 1);
+    return createUniform3DMesh(exec, nCells, 1, 1);
 }
 
 UnstructuredMesh
-createUniform2DGrid(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
+createUniform2DMesh(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
 {
-    return createUniform3DGrid(exec, nx, ny, 1, Lx, Ly, 1.0);
+    return createUniform3DMesh(exec, nx, ny, 1, Lx, Ly, 1.0);
 }
 
-UnstructuredMesh createUniform3DGrid(
+UnstructuredMesh createUniform3DMesh(
     const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar Lx, scalar Ly, scalar Lz
 )
 {
-    detail::GridParams p {
+    detail::MeshParams p {
         nx,
         ny,
         nz,

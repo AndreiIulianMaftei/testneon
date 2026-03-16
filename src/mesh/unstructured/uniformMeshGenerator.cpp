@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "NeoN/mesh/unstructured/uniformGridHelpers.hpp"
+#include "NeoN/mesh/unstructured/uniformMeshGenerator.hpp"
 
 #include <memory>
 
 namespace NeoN::detail
 {
 
-std::vector<Vec3> generatePoints(const GridParams& p)
+std::vector<Vec3> generatePoints(const MeshParams& p)
 {
     const localIdx nPts = (p.nx + 1) * (p.ny + 1) * (p.nz + 1);
     std::vector<Vec3> pts(static_cast<size_t>(nPts));
@@ -24,7 +24,7 @@ std::vector<Vec3> generatePoints(const GridParams& p)
     return pts;
 }
 
-CellData generateCellData(const GridParams& p)
+CellData generateCellData(const MeshParams& p)
 {
     const localIdx nCells = p.nx * p.ny * p.nz;
     const scalar cellVol = p.dx * p.dy * p.dz;
@@ -41,7 +41,7 @@ CellData generateCellData(const GridParams& p)
     return {std::move(vols), std::move(centres)};
 }
 
-FaceData generateInternalFaces(const GridParams& p)
+FaceData generateInternalFaces(const MeshParams& p)
 {
     const localIdx nXInternal = (p.nx - 1) * p.ny * p.nz;
     const localIdx nYInternal = p.nx * (p.ny - 1) * p.nz;
@@ -133,7 +133,7 @@ FaceData generateInternalFaces(const GridParams& p)
 }
 
 BoundaryData generateBoundaryData(
-    const Executor exec, const GridParams& p, const std::vector<Vec3>& centres, FaceData& faces
+    const Executor exec, const MeshParams& p, const std::vector<Vec3>& centres, FaceData& faces
 )
 {
     const localIdx nBndLeft = p.ny * p.nz;
@@ -296,7 +296,7 @@ BoundaryData generateBoundaryData(
     return {std::move(boundaryMesh), nBoundary};
 }
 
-std::vector<std::vector<localIdx>> buildFaceNodes(const GridParams& p, localIdx nFaces)
+std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces)
 {
     std::vector<std::vector<localIdx>> faceNodesVec(static_cast<size_t>(nFaces));
     localIdx fnId = 0;

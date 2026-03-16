@@ -341,7 +341,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
  * Six boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly),
  * front (z=0), back (z=1).
  */
-UnstructuredMesh createUniform2DGrid(
+UnstructuredMesh createUniform2DMesh(
     const Executor exec, localIdx nx, localIdx ny, scalar Lx = 1.0, scalar Ly = 1.0
 );
 
@@ -351,7 +351,7 @@ UnstructuredMesh createUniform2DGrid(
  * Six boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly),
  * front (z=0), back (z=Lz).
  */
-UnstructuredMesh createUniform3DGrid(
+UnstructuredMesh createUniform3DMesh(
     const Executor exec,
     localIdx nx,
     localIdx ny,
