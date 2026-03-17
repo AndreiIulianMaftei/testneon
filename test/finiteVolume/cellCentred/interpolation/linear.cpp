@@ -15,9 +15,6 @@ using NeoN::finiteVolume::cellCentred::SurfaceField;
 namespace NeoN
 {
 
-template<typename T>
-using I = std::initializer_list<T>;
-
 TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -27,13 +24,17 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
     auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
     std::vector<fvcc::VolumeBoundary<TestType>> vbcs {};
     std::vector<fvcc::SurfaceBoundary<TestType>> sbcs {};
-    for (auto patchi : I<NeoN::localIdx> {0, 1})
+
+    auto nPatches = mesh.boundaryMesh().offset().size() - 1;
+
+    for (NeoN::localIdx patchi = 0; patchi < nPatches; ++patchi)
     {
         Dictionary dict;
         dict.insert("type", std::string("fixedValue"));
         dict.insert("fixedValue", one<TestType>());
-        sbcs.push_back(fvcc::SurfaceBoundary<TestType>(mesh, dict, patchi));
-        vbcs.push_back(fvcc::VolumeBoundary<TestType>(mesh, dict, patchi));
+
+        sbcs.emplace_back(mesh, dict, patchi);
+        vbcs.emplace_back(mesh, dict, patchi);
     }
 
     auto in = VolumeField<TestType>(exec, "in", mesh, vbcs);
