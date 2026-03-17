@@ -26,7 +26,6 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
     std::vector<fvcc::SurfaceBoundary<TestType>> sbcs {};
 
     auto nPatches = mesh.boundaryMesh().offset().size() - 1;
-
     for (NeoN::localIdx patchi = 0; patchi < nPatches; ++patchi)
     {
         Dictionary dict;
