@@ -17,8 +17,12 @@ namespace NeoN::detail
 struct MeshParams
 {
     localIdx nx, ny, nz;
-    scalar dx, dy, dz;
     scalar Lx, Ly, Lz;
+
+    // Derived spacings
+    scalar dx() const { return Lx / static_cast<scalar>(nx); }
+    scalar dy() const { return Ly / static_cast<scalar>(ny); }
+    scalar dz() const { return Lz / static_cast<scalar>(nz); }
 
     localIdx cellIdx(localIdx i, localIdx j, localIdx k) const { return k * nx * ny + j * nx + i; }
 
