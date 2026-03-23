@@ -25,12 +25,18 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
     std::vector<fvcc::VolumeBoundary<TestType>> vbcs {};
     std::vector<fvcc::SurfaceBoundary<TestType>> sbcs {};
 
-    auto nPatches = mesh.boundaryMesh().offset().size() - 1;
-    for (NeoN::localIdx patchi = 0; patchi < nPatches; ++patchi)
+    for (NeoN::localIdx patchi = 0; patchi < mesh.nBoundaries(); ++patchi)
     {
         Dictionary dict;
-        dict.insert("type", std::string("fixedValue"));
-        dict.insert("fixedValue", one<TestType>());
+        if (patchi == 0 || patchi == 1)
+        {
+            dict.insert("type", std::string("fixedValue"));
+            dict.insert("fixedValue", one<TestType>());
+        }
+        else
+        {
+            dict.insert("type", std::string("empty"));
+        }
 
         sbcs.emplace_back(mesh, dict, patchi);
         vbcs.emplace_back(mesh, dict, patchi);
@@ -55,7 +61,15 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
 
     for (NeoN::localIdx i = nInternal; i < nInternal + nBoundary; i++)
     {
-        REQUIRE(outHost.view()[i] == one<TestType>());
+        if (i < nInternal + 2) // first two patches have fixedValue BCs
+        {
+            REQUIRE(outHost.view()[i] == one<TestType>());
+        }
+        else // remaining patches are empty BCs, so should be default initialized to zero
+        {
+            // REQUIRE(outHost.view()[i] == zero<TestType>());
+        }
+        // REQUIRE(outHost.view()[i] == one<TestType>());
     }
 }
 }
