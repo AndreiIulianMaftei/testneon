@@ -1,0 +1,146 @@
+
+@article{weller1998,
+	title = {A tensorial approach to computational continuum mechanics using object-oriented techniques},
+	volume = {12},
+	doi = {10.1063/1.168744},
+	number = {6},
+	journal = {Computers in Physics},
+	author = {Weller, H. G. and Tabor, G. and Jasak, H. and Fureby, C.},
+	year = {1998},
+	pages = {620--631},
+}
+
+@article{archambeau2004,
+	title = {Code {Saturne}: {A} {Finite} {Volume} {Code} for the computation of turbulent incompressible flows - {Industrial} {Applications}},
+	author = {Archambeau, Fr{\'e}d{\'e}ric and M{\'e}chitoua, Namane and Sakiz, Marc},
+    journal = {{International Journal on Finite Volumes}},
+    publisher = {{Institut de Math{\'e}matiques de Marseille, AMU}},
+    volume = {1},
+    number = {1},
+    year = {2004},
+}
+
+@article{olenik2024,
+	title = {Towards a platform-portable linear algebra backend for {OpenFOAM}},
+	volume = {60},
+	doi = {10.1007/s11012-024-01806-1},
+	number = {6},
+	urldate = {2026-02-13},
+	journal = {Meccanica},
+	author = {Olenik, Gregor and Koch, Marcel and Boutanios, Ziad and Anzt, Hartwig},
+	year = {2024},
+	pages = {1659--1672},
+}
+
+@article{trott2022,
+	title = {Kokkos 3: {Programming} {Model} {Extensions} for the {Exascale} {Era}},
+	volume = {33},
+	doi = {10.1109/TPDS.2021.3097283},
+	number = {4},
+	journal = {IEEE Transactions on Parallel and Distributed Systems},
+	author = {Trott, Christian R. and Lebrun-Grandie, Damien and Arndt, Daniel and Ciesko, Jan and Dang, Vinh and Ellingwood, Nathan and Gayatri, Rahulkumar and Harvey, Evan and Hollman, Daisy S. and Ibanez, Dan and Liber, Nevin and Madsen, Jonathan and Miles, Jeff and Poliakoff, David and Powell, Amy and Rajamanickam, Sivasankaran and Simberg, Mikael and Sunderland, Dan and Turcksin, Bruno and Wilke, Jeremiah},
+	year = {2022},
+	pages = {805--817},
+}
+
+@misc{neofoam,
+	title = {{NeoFOAM}},
+	url = {https://github.com/exasim-project/NeoFOAM},
+}
+
+@inproceedings{prudhomme2007,
+	address = {Berlin, Heidelberg},
+	title = {Life: {Overview} of a {Unified} {C}++ {Implementation} of the {Finite} and {Spectral} {Element} {Methods} in {1D}, {2D} and {3D}},
+	isbn = {978-3-540-75755-9},
+	abstract = {This article presents an overview of a unified framework for finite element and spectral element methods in 1D, 2D and 3D in C++ called Life. The objectives of this framework are quite ambitious and could be expressed in various ways: (i) the creation of a versatile mathematical kernel allowing for easily solving problems using different techniques thus allowing testing and comparing methods, e.g. cG versus dG, (ii) the creation of a small and manageable library which shall nevertheless encompass a wide range of numerical methods and techniques, and (iii) build mathematical software that follows closely the mathematical abstractions associated with the partial differential equations to be solved.},
+	booktitle = {Applied {Parallel} {Computing}. {State} of the {Art} in {Scientific} {Computing}},
+	publisher = {Springer Berlin Heidelberg},
+	author = {Prud'homme, Christophe},
+	editor = {Kågström, Bo and Elmroth, Erik and Dongarra, Jack and Waśniewski, Jerzy},
+	year = {2007},
+	pages = {712--721},
+}
+
+@article{kuckuk2016,
+	title = {Automatic {Generation} of {Massively} {Parallel} {Codes} from {ExaSlang}},
+	volume = {4},
+	doi = {10.3390/computation4030027},
+	number = {3},
+	urldate = {2026-02-10},
+	journal = {Computation},
+	author = {Kuckuk, Sebastian and Köstler, Harald},
+	year = {2016},
+	pages = {27},
+}
+
+@incollection{lengauer2014,
+	title = {{ExaStencils}: {Advanced} {Stencil}-{Code} {Engineering}},
+	volume = {8806},
+	doi = {10.1007/978-3-319-14313-2_47},
+	booktitle = {Euro-{Par} 2014: {Parallel} {Processing} {Workshops}},
+	publisher = {Springer International Publishing},
+	author = {Lengauer, Christian and Apel, Sven and Bolten, Matthias and Größlinger, Armin and Hannig, Frank and Köstler, Harald and Rüde, Ulrich and Teich, Jürgen and Grebhahn, Alexander and Kronawitter, Stefan and Kuckuk, Sebastian and Rittich, Hannah and Schmitt, Christian},
+	year = {2014},
+	note = {Series Title: Lecture Notes in Computer Science},
+	pages = {553--564}
+}
+
+@article{osuna2020,
+	title = {Dawn: a {High}-level {Domain}-{Specific} {Language} {Compiler} {Toolchain} for {Weather} and {Climate} {Applications}},
+	volume = {7},
+	doi = {10.14529/jsfi200205},
+	number = {2},
+	journal = {Supercomputing Frontiers and Innovations},
+	author = {Osuna, Carlos and Wicky, Tobias and Thuering, Fabian and Hoefler, Torsten and Fuhrer, Oliver},
+	year = {2020},
+	pages = {79--97}
+}
+
+@article{kuckuk2017,
+	title = {Towards generating efficient flow solvers with the {ExaStencils} approach},
+	volume = {29},
+	doi = {10.1002/cpe.4062},
+	abstract = {ExaStencils aims at providing intuitive interfaces for the specification of numerical problems and resulting solvers, particularly those from the class of (geometric) multigrid methods. It envisions a multi-layered domain-specific language and a sophisticated code generation framework ultimately emitting source code in a chosen target language. We present our recent advances in fully generating solvers applied to 3D fluid mechanics for nonisothermal/non-Newtonian flows. In detail, a system of time-dependent, nonlinear partial differential equations is discretized on a cubic, nonuniform, and staggered grid using finite volumes. We examine the contained problem of coupled Navier-Stokes and temperature equations, which are linearized and solved using the SIMPLE algorithm and geometric multigrid solvers, as well as the incorporation of non-Newtonian properties. Furthermore, we provide details on necessary extensions to our domain-specific language and code generation framework, in particular, those concerning the handling of boundary conditions, support for nonequidistant staggered grids, and supplying specialized functions to express operations reoccurring in the scope of finite volume discretizations. Many of these enhancements are generalizable and thus suitable for utilization in similar projects. Lastly, we demonstrate the applicability of our code generation approach by providing convincing performance results for fully generated and automatically parallelized solvers.},
+	number = {17},
+	journal = {Concurrency and Computation: Practice and Experience},
+	author = {Kuckuk, Sebastian and Haase, Gundolf and Vasco, Diego A. and Köstler, Harald},
+	year = {2017},
+}
+
+@inproceedings{heisler2022,
+	title = {Finch: {Domain} {Specific} {Language} and {Code} {Generation} for {Finite} {Element} and {Finite} {Volume} in {Julia}},
+	isbn = {978-3-031-08751-6},
+	abstract = {We introduce Finch, a Julia-based domain specific language (DSL) for solving partial differential equations in a discretization agnostic way, currently including finite element and finite volume methods. A key focus is code generation for various internal or external software targets. Internal targets use a modular set of tools in Julia providing a direct solution within the framework. In contrast, external code generation produces a set of code files to be compiled and run with external libraries or frameworks. Examples include a matlab target, for smaller problems or prototyping, or C++/MPI based targets for larger problems needing scalability. This allows us to take advantage of their capabilities without needlessly duplicating them, and provides options tailored to the needs of the domain scientist. The modular design of Finch allows ongoing development of these target modules resulting in a more extensible framework and a broader set of applications. The support for multiple discretizations, including finite element and finite volume methods, also contributes to this goal. Another focus of this project is complex systems containing a large set of coupled PDEs that could be challenging to efficiently code and optimize by hand, but that are relatively simple to specify using the DSL. In this paper we present the key features of Finch that set it apart from many other DSL options, and demonstrate the basic usage and current capabilities through examples.},
+	booktitle = {Computational {Science} – {ICCS} 2022},
+	publisher = {Springer International Publishing},
+	author = {Heisler, Eric and Deshmukh, Aadesh and Sundar, Hari},
+	editor = {Groen, Derek and de Mulatier, Clélia and Paszynski, Maciej and Krzhizhanovskaya, Valeria V. and Dongarra, Jack J. and Sloot, Peter M. A.},
+	year = {2022},
+	pages = {118--132},
+}
+
+@inproceedings{mankad2024,
+	title = {A {Performance}-{Portable} {MultiGPU} {Implementation} of {3D} {Euler} {Equations} using {ProtoX} and {IRIS}},
+	doi = {10.1109/SCW63240.2024.00215},
+	booktitle = {{SC24}-{W}: {Workshops} of the {International} {Conference} for {High} {Performance} {Computing}, {Networking}, {Storage} and {Analysis}},
+	publisher = {IEEE},
+	author = {Mankad, Het and Haque Monil, Mohammad Alaul and Rao, Sanil and Colella, Phillip and Van Straalen, Brian and Franchetti, Franz and Vetter, Jeffrey S.},
+	year = {2024},
+	pages = {1723--1731},
+}
+
+@article{anzt2022,
+	title = {{\textless}span style="font-variant:small-caps;"{\textgreater}{Ginkgo}{\textless}/span{\textgreater} : {A} {Modern} {Linear} {Operator} {Algebra} {Framework} for {High} {Performance} {Computing}},
+	volume = {48},
+	doi = {10.1145/3480935},
+	number = {1},
+	journal = {ACM Transactions on Mathematical Software},
+	author = {Anzt, Hartwig and Cojean, Terry and Flegar, Goran and Göbel, Fritz and Grützmacher, Thomas and Nayak, Pratik and Ribizel, Tobias and Tsai, Yuhsiang Mike and Quintana-Ortí, Enrique S.},
+	year = {2022},
+	pages = {1--33}
+}
+
+@misc{ginkgo,
+	title = {Ginkgo},
+	url = {https://github.com/ginkgo-project/ginkgo.git},
+}
