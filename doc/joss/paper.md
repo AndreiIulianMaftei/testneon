@@ -8,20 +8,20 @@ tags:
   - modern-c++
 
 authors:
-  - name: Bevan Jones 
+  - name: Bevan Jones
     orcid: 0000-0000-0000-0000
   - name: Chih-Ta Wang
     orcid: 0000-0000-0000-0000
-    affiliation: 1 
+    affiliation: 1
   - name: Dheeraj Raghunathan
     orcid: 0009-0003-4854-6328
-    affiliation: 1 
+    affiliation: 1
   - name: Gregor Olenik
     orcid: 0000-0002-0128-3933
-    affiliation: 1 
+    affiliation: 1
   - name: Gregor Weiss
     orcid: 0000-0000-0000-0000
-    affiliation: 3 
+    affiliation: 3
   - name: Hartwig Anzt
     orcid: 0000-0003-2177-952X
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
@@ -29,14 +29,14 @@ authors:
   - name: Marcel Koch
     orcid: 0009-0004-8333-9313
     affiliation: 4
-  - name: Yu-Hsiang Tsai 
+  - name: Yu-Hsiang Tsai
     orcid: 0000-0001-5229-3739
-    affiliation: 1 
+    affiliation: 1
 
 affiliations:
  - name: Technical University of Munich
    index: 1
- - name: Innovative Computing Laboratory, University of Tennessee, Knoxville 
+ - name: Innovative Computing Laboratory, University of Tennessee, Knoxville
    index: 2
  - name: High-Performance Computing Center Stuttgart (HLRS)
    index: 3
@@ -59,13 +59,13 @@ NeoN targets this gap by providing a versatile performance-portable CFD core tha
 
 # State of the field
 Over the past two decades, significant efforts have been devoted to developing an abstraction mechanism and domain-specific representations for FVM approaches. Early CFD frameworks, such as OpenFOAM, introduced object-oriented tensorial abstractions [1] in C++, enabling finite-volume discretisations to be expressed in a compact and expressive form that has seen widespread industrial adoption. Despite their success, these abstractions are typically integrated within solver-specific infrastructures, making it difficult to reuse finite-volume components or achieve interoperability between independently developed CFD frameworks.
-Embedded DSLs like Life [@prudhomme2007] demonstrate improved expressiveness of numerical formulations, yet struggle with solver-agnostic semantics and performance portability. In contrast, external DSLs and code-generation frameworks - such as ExaSlang [@kuckuk2016], ExaStencils [@lengauer2014] and Dawn [@osuna2020] have enabled aggressive optimisation of stencil-based operators [@kuckuk2017]. However, they are restricted to structured discretisations and predefined numerical patterns, and are not designed to support the unstructured FV methods prevalent in general-purpose and industrial CFD. Recent efforts, such as Finch [@heisler2022] and ProtoX [@mankad2024], offer high performance portability, although they remain closely tied to specific solver frameworks, grid structures, or code-generation pipelines. 
+Embedded DSLs like Life [@prudhomme2007] demonstrate improved expressiveness of numerical formulations, yet struggle with solver-agnostic semantics and performance portability. In contrast, external DSLs and code-generation frameworks - such as ExaSlang [@kuckuk2016], ExaStencils [@lengauer2014] and Dawn [@osuna2020] have enabled aggressive optimisation of stencil-based operators [@kuckuk2017]. However, they are restricted to structured discretisations and predefined numerical patterns, and are not designed to support the unstructured FV methods prevalent in general-purpose and industrial CFD. Recent efforts, such as Finch [@heisler2022] and ProtoX [@mankad2024], offer high performance portability, although they remain closely tied to specific solver frameworks, grid structures, or code-generation pipelines.
 The existing works demonstrate that core finite-volume concepts - such as flux evaluation, control-volume integration, and discrete operators - can be expressed at a high level and optimised effectively when decoupled. Yet, a persistent gap remains: the lack of a modular CFD core that integrates high-level finite-volume abstractions with performance-portable execution on heterogeneous CPU-GPU architectures. NeoN aims to address this gap by combining the usability of embedded DSLs with the optimisation potential of external DSL approaches through a high-level finite-volume operator interface with lazy evaluation and performance-portable execution on heterogeneous architectures.
 
 # Software design
 ![Figure 1: Design overview of the NeoN software architecture.\label{fig:1}](figures/neon_schematic.png){width=100%}
 
-NeoN is built around a layered, modular architecture as illustrated in Figure 1. Its design cleanly separates the distinct stages: application control, DSL-based equation representation, discretisation, linear algebra assembly, and hardware execution. This separation allows each layer to evolve independently, making the framework highly extensible and maintainable. 
+NeoN is built around a layered, modular architecture as illustrated in Figure 1. Its design cleanly separates the distinct stages: application control, DSL-based equation representation, discretisation, linear algebra assembly, and hardware execution. This separation allows each layer to evolve independently, making the framework highly extensible and maintainable.
 At the heart of NeoN is a C++ embedded DSL that allows users to express finite-volume equations in a form close to their mathematical intent. Differential operators like ddt, div, laplacian, or grad can be composed directly into equation expressions, for example:
 
 ```cpp
@@ -74,7 +74,7 @@ auto expr = dsl::imp::ddt(U) + dsl::imp::div(phi, U) - dsl::imp::laplacian(nu, U
 **Listing 1:** Example expression with multiple differential operators.
 
 Rather than evaluating the operators of the expressions eagerly, NeoN employs lazy evaluation to build an intermediate representation that is later interpreted by the discretisation engine. This approach avoids unnecessary temporary allocations and reduces memory traffic. Thus, the expression shown in Lst. 1 is only fully assembled when an operation like solve(expr, …) requires the assembly.
-The discretisation engine then applies selected temporal and spatial schemes to generate local stencil contributions for the finite-volume formulation. The core data model encapsulates mesh topology, geometric metrics, and scalar or vector fields in performance-portable memory abstractions. These contributions are then forwarded to an assembly engine that constructs sparse linear systems using standard formats such as CSR and COO, rather than solver-specific representations. This design choice improves interoperability with external solver libraries. NeoN integrates Ginkgo [@anzt2022; @ginkgo] to solve the resulting sparse linear systems, providing access to portable and scalable iterative solvers and preconditioners. 
+The discretisation engine then applies selected temporal and spatial schemes to generate local stencil contributions for the finite-volume formulation. The core data model encapsulates mesh topology, geometric metrics, and scalar or vector fields in performance-portable memory abstractions. These contributions are then forwarded to an assembly engine that constructs sparse linear systems using standard formats such as CSR and COO, rather than solver-specific representations. This design choice improves interoperability with external solver libraries. NeoN integrates Ginkgo [@anzt2022; @ginkgo] to solve the resulting sparse linear systems, providing access to portable and scalable iterative solvers and preconditioners.
 High-level workflow concerns such as time loops, solver control, and I/O are intentionally handled outside the core library by external applications. The NeoFOAM demonstrator illustrates how NeoN can integrate into OpenFOAM-style workflows. In addition, a language-binding layer enables the use of NeoN’s DSL from languages such as Python.
 
 # Performance Evaluation
