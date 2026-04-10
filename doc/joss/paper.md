@@ -2,46 +2,51 @@
 title: 'NeoN: A domain specific language for computational fluid dynamics'
 
 tags:
-  - cfd
-  - kokkos
-  - dsl
-  - modern-c++
+  - CFD
+  - Kokkos
+  - DSL
+  - Modern C++
 
 authors:
-  - name: Bevan Jones
-    orcid: 0000-0000-0000-0000
-  - name: Chih-Ta Wang
-    orcid: 0000-0000-0000-0000
-    affiliation: 1
   - name: Dheeraj Raghunathan
     orcid: 0009-0003-4854-6328
+    corresponding: true
     affiliation: 1
-  - name: Gregor Olenik
-    orcid: 0000-0002-0128-3933
+  - name: Chih-Ta Wang
     affiliation: 1
-  - name: Gregor Weiss
-    orcid: 0000-0000-0000-0000
+  - name: Hendrik Hetmann
+    affiliation: 2
+  - name: Bevan Jones
     affiliation: 3
-  - name: Hartwig Anzt
-    orcid: 0000-0003-2177-952X
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Henning Scheufler
-  - name: Marcel Koch
-    orcid: 0009-0004-8333-9313
+  - name: Gregor Weiss
     affiliation: 4
+  - name: Marcel Koch
+    affiliation: 5
   - name: Yu-Hsiang Tsai
     orcid: 0000-0001-5229-3739
     affiliation: 1
+  - name: Henning Scheufler
+    affiliation: 3
+  - name: Gregor Olenik
+    orcid: 0000-0002-0128-3933
+    affiliation: 1
+  - name: Hartwig Anzt
+    orcid: 0000-0003-2177-952X
+    affiliation: "1, 2"
 
 affiliations:
- - name: Technical University of Munich
+ - name: Technical University of Munich, Germany
    index: 1
- - name: Innovative Computing Laboratory, University of Tennessee, Knoxville
+ - name: Upstream CFD GmbH, Germany
    index: 2
- - name: High-Performance Computing Center Stuttgart (HLRS)
+ - name: Independent Researcher, Germany
    index: 3
- - name: Karlsruhe Institute of Technology
+ - name: High-Performance Computing Center Stuttgart (HLRS), Germany
    index: 4
+ - name: Karlsruhe Institute of Technology, Germany
+   index: 5
+ - name: Innovative Computing Laboratory, University of Tennessee, United States
+   index: 6
 
 date: 09th April, 2026.
 
