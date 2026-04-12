@@ -187,14 +187,12 @@ TEMPLATE_TEST_CASE("Matrix", "[template]", NeoN::scalar)
     {
         // Sparse
         NeoN::Vector<NeoN::scalar> checkSparse(exec, 4);
-        auto checkSparseView = checkSparse.view();
         auto csrView = sparseMatrixConst.view();
         checkSparse.apply(NEON_LAMBDA(const NeoN::localIdx i) { return csrView.entry(i); });
         REQUIRE_THAT(I({1.0, 5.0, 6.0, 8.0}), IsEqualTo(checkSparse));
 
         // Dense
         NeoN::Vector<NeoN::scalar> checkDense(exec, 9);
-        auto checkDenseView = checkDense.view();
         auto denseView = denseMatrixConst.view();
         checkDense.apply(NEON_LAMBDA(const NeoN::localIdx i) { return denseView.entry(i); });
         REQUIRE_THAT(I({1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}), IsEqualTo(checkDense));
