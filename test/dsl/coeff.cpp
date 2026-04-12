@@ -54,7 +54,7 @@ TEST_CASE("Coeff")
         {
             Coeff c = fieldB; // is a view with uniform value 1.0
             NeoN::parallelFor(
-                fieldA, NEON_LAMBDA(const auto i) { return c[i] + 2.0; }
+                fieldA, NEON_LAMBDA(const size_t i) { return c[i] + 2.0; }
             );
             auto resAexp = std::vector<NeoN::scalar> {3.0, 3.0, 3.0};
             REQUIRE_THAT(resAexp, IsEqualTo(fieldA));
@@ -64,7 +64,7 @@ TEST_CASE("Coeff")
         {
             Coeff c = Coeff(2.0);
             NeoN::parallelFor(
-                fieldA, NEON_LAMBDA(const auto i) { return c[i] + 2.0; }
+                fieldA, NEON_LAMBDA(const size_t i) { return c[i] + 2.0; }
             );
             auto resAexp = std::vector<NeoN::scalar> {4.0, 4.0, 4.0};
             REQUIRE_THAT(resAexp, IsEqualTo(fieldA));
@@ -74,7 +74,7 @@ TEST_CASE("Coeff")
         {
             Coeff c {-5.0, fieldB};
             NeoN::parallelFor(
-                fieldA, NEON_LAMBDA(const auto i) { return c[i] + 2.0; }
+                fieldA, NEON_LAMBDA(const size_t i) { return c[i] + 2.0; }
             );
             auto resAexp = std::vector<NeoN::scalar> {-3.0, -3.0, -3.0};
             REQUIRE_THAT(resAexp, IsEqualTo(fieldA));

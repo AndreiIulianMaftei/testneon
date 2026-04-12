@@ -67,7 +67,7 @@ jobs:
           sudo apt update
           sudo apt install \
             ninja-build \
-            clang-16 \
+            clang-18 \
             gcc-10 \
             libomp-16-dev \
             build-essential \
@@ -76,8 +76,8 @@ jobs:
           sudo apt remove clang-14
           sudo rm /usr/bin/clang
           sudo rm /usr/bin/clang++
-          sudo ln -s /usr/bin/clang-16 /usr/bin/clang
-          sudo ln -s /usr/bin/clang++-16 /usr/bin/clang++
+          sudo ln -s /usr/bin/clang-18 /usr/bin/clang
+          sudo ln -s /usr/bin/clang++-18 /usr/bin/clang++
 
       - name: Get versions
         run: |
@@ -99,18 +99,15 @@ jobs:
           uv venv
           uv sync --no-install-project --all-extras -v
           source .venv/bin/activate
-          CMAKE_FLAGS_ARR=(
-            -DNeoN_BUILD_TESTS=ON
-            -DNeoN_BUILD_PYTHON_BINDINGS=ON
-            -DNeoN_DEVEL_TOOLS=OFF
-            -DNeoN_WITH_GINKGO=OFF
-            -DNeoN_ENABLE_MPI_WITH_THREAD_SUPPORT=OFF
-          )
 
-          CC=${{matrix.compiler.CC}}
-          CXX=${{matrix.compiler.CXX}}
-          cmake --preset ${{matrix.preset}} "${CMAKE_FLAGS_ARR[@]}"
-          cmake --build  --preset ${{matrix.preset}}
+          cmake --preset ${{matrix.preset}} \
+            -DNeoN_BUILD_TESTS=ON \
+            -DNeoN_BUILD_PYTHON_BINDINGS=ON \
+            -DNeoN_DEVEL_TOOLS=OFF \
+            -DNeoN_WITH_GINKGO=OFF \
+            -DCMAKE_CXX_COMPILER=${{matrix.compiler.CXX}} \
+            -DNeoN_ENABLE_MPI_WITH_THREAD_SUPPORT=OFF 
+          cmake --build --preset ${{matrix.preset}}
 
       - name: Execute unit tests NeoN
         run: |

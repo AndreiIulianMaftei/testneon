@@ -14,6 +14,10 @@
 #include "executorGenerator.hpp"
 
 
+/** @brief a shortcut for  std::initializer_list */
+template<typename T>
+using I = std::initializer_list<T>;
+
 /**
  * @brief Conditionally enters a Catch2 SECTION if the given condition is true.
  * @param COND The boolean condition to evaluate.
@@ -76,7 +80,7 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
      * @param range The device field to compare against.
      * @param pred  The predicate used for element-wise comparison.
      */
-    EqualsRangeMatcher(const Range range, Predicate pred) : range {range.copyToHost()}, pred(pred)
+    EqualsRangeMatcher(const Range range, Predicate pred) : range {range.copyToHost()}, pred_(pred)
     {}
 
     /** @brief Performs the element-wise comparison against @p other.
@@ -85,11 +89,11 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
      * @return @c true if all elements compare equal under the stored predicate.
      */
     template<typename ValueType>
-    bool match(const std::vector<ValueType> other) const
+    bool match(const ValueType other) const
     {
         using std::begin;
         using std::end;
-        return std::equal(begin(range.view()), end(range.view()), begin(other), end(other), pred);
+        return std::equal(begin(range.view()), end(range.view()), begin(other), end(other), pred_);
     }
 
     /** @brief Returns a human-readable description of the matcher for Catch2 failure
@@ -98,8 +102,8 @@ struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
 
 private:
 
-    const Range range;    ///< Host copy of the device field.
-    const Predicate pred; ///< Predicate used for element-wise comparison.
+    const Range range;     ///< Host copy of the device field.
+    const Predicate pred_; ///< Predicate used for element-wise comparison.
 };
 
 /**
