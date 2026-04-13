@@ -32,14 +32,13 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
         {
             dict.insert("type", std::string("fixedValue"));
             dict.insert("fixedValue", one<TestType>());
+            sbcs.emplace_back(mesh, dict, patchi);
+            vbcs.emplace_back(mesh, dict, patchi);
         }
         else
         {
             dict.insert("type", std::string("empty"));
         }
-
-        sbcs.emplace_back(mesh, dict, patchi);
-        vbcs.emplace_back(mesh, dict, patchi);
     }
 
     auto in = VolumeField<TestType>(exec, "in", mesh, vbcs);
@@ -65,11 +64,6 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
         {
             REQUIRE(outHost.view()[i] == one<TestType>());
         }
-        else // remaining patches are empty BCs, so should be default initialized to zero
-        {
-            // REQUIRE(outHost.view()[i] == zero<TestType>());
-        }
-        // REQUIRE(outHost.view()[i] == one<TestType>());
     }
 }
 }
