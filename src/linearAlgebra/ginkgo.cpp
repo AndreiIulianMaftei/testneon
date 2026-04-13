@@ -141,11 +141,11 @@ std::shared_ptr<gko::Executor> NeoN::la::ginkgo::getGkoExecutor(NeoN::Executor e
                     Kokkos::device_id(), gko::ReferenceExecutor::create()
                 );
 #endif
-                throw std::runtime_error("No valid GPU executor mapping available");
+                throw std::runtime_error {"No valid GPU executor mapping available"};
             }
             else
             {
-                throw std::runtime_error("Unsupported executor type");
+                throw std::runtime_error {"Unsupported executor type"};
             }
             return gko::ReferenceExecutor::create();
         },
