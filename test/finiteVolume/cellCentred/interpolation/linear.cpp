@@ -35,10 +35,6 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
             sbcs.emplace_back(mesh, dict, patchi);
             vbcs.emplace_back(mesh, dict, patchi);
         }
-        else
-        {
-            dict.insert("type", std::string("empty"));
-        }
     }
 
     auto in = VolumeField<TestType>(exec, "in", mesh, vbcs);
