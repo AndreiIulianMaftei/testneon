@@ -24,6 +24,12 @@ struct MeshParams
     scalar dy() const { return Ly / static_cast<scalar>(ny); }
     scalar dz() const { return Lz / static_cast<scalar>(nz); }
 
+    // Layout of cells in memory: go through x first, then y, then z.
+    // So cell indices in the first layer are ordered as:
+    // (0,0,0), (1,0,0), ..., (nx-1,0,0),
+    // (0,1,0), (1,1,0), ..., (nx-1,1,0),
+    // ...,
+    // (0,ny-1,0), (1,ny-1,0), ..., (nx-1,ny-1,0)
     localIdx cellIdx(localIdx i, localIdx j, localIdx k) const { return k * nx * ny + j * nx + i; }
 
     localIdx ptIdx(localIdx i, localIdx j, localIdx k) const

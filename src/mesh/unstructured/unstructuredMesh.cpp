@@ -304,9 +304,11 @@ UnstructuredMesh createUniform3DMesh(
     const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar Lx, scalar Ly, scalar Lz
 )
 {
+    // Validate input parameters
     NF_ASSERT(nx > 0 && ny > 0 && nz > 0, "Number of cells in each direction must be positive");
     NF_ASSERT(Lx > 0 && Ly > 0 && Lz > 0, "Domain lengths must be positive");
 
+    // Hold the mesh parameters
     detail::MeshParams p {nx, ny, nz, Lx, Ly, Lz};
 
     const auto points = detail::generatePoints(p);

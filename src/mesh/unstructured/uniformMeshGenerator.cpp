@@ -71,7 +71,8 @@ FaceData generateInternalFaces(const MeshParams& p)
 
     localIdx faceId = 0;
 
-    // X-normal internal faces, area = dy * dz
+    // Internal faces are ordered with x-normal faces first, then y-normal faces, then z-normal
+    // faces. X-normal internal faces, area = dy * dz
     const scalar dx = p.dx();
     const scalar dy = p.dy();
     const scalar dz = p.dz();
