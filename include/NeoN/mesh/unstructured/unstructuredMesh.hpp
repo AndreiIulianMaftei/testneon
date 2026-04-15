@@ -78,8 +78,8 @@ public:
      * @param faceAreas The field of area face normals.
      * @param faceCentres The field of face centres.
      * @param magFaceAreas The field of magnitudes of face areas.
-     * @param faceOwner The field of face owner cells.
-     * @param faceNeighbour The field of face neighbour cells.
+     * @param faceOwner The list of face owner cells.
+     * @param faceNeighbour The list of face neighbour cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
      * @param nBoundaryFaces The number of boundary faces in the mesh.
