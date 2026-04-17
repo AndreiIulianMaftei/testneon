@@ -32,7 +32,7 @@ authors:
     affiliation: 1
   - name: Hartwig Anzt
     orcid: 0000-0003-2177-952X
-    affiliation: "1, 2"
+    affiliation: "1, 6"
 
 affiliations:
  - name: Technical University of Munich, Germany
