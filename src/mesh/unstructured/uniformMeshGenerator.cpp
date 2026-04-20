@@ -47,27 +47,28 @@ CellData generateCellData(const MeshParams& p)
     return {std::move(vols), std::move(centres)};
 }
 
-FaceData generateInternalFaces(const MeshParams& p)
+FaceData
+generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const localIdx nFaces)
 {
-    const localIdx nXInternal = (p.nx - 1) * p.ny * p.nz;
-    const localIdx nYInternal = p.nx * (p.ny - 1) * p.nz;
-    const localIdx nZInternal = p.nx * p.ny * (p.nz - 1);
-    const localIdx nInternal = nXInternal + nYInternal + nZInternal;
+    // const localIdx nXInternal = (p.nx - 1) * p.ny * p.nz;
+    // const localIdx nYInternal = p.nx * (p.ny - 1) * p.nz;
+    // const localIdx nZInternal = p.nx * p.ny * (p.nz - 1);
+    // const localIdx nInternal = nXInternal + nYInternal + nZInternal;
 
-    const localIdx nBndLeft = p.ny * p.nz;
-    const localIdx nBndRight = p.ny * p.nz;
-    const localIdx nBndBottom = p.nx * p.nz;
-    const localIdx nBndTop = p.nx * p.nz;
-    const localIdx nBndFront = p.nx * p.ny;
-    const localIdx nBndBack = p.nx * p.ny;
-    const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack;
-    const localIdx nFaces = nInternal + nBoundary;
+    // const localIdx nBndLeft = p.ny * p.nz;
+    // const localIdx nBndRight = p.ny * p.nz;
+    // const localIdx nBndBottom = p.nx * p.nz;
+    // const localIdx nBndTop = p.nx * p.nz;
+    // const localIdx nBndFront = p.nx * p.ny;
+    // const localIdx nBndBack = p.nx * p.ny;
+    // const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
+    // nBndBack; const localIdx nFaces = nInternal + nBoundary;
 
     std::vector<Vec3> fAreas(static_cast<size_t>(nFaces));
     std::vector<Vec3> fCentres(static_cast<size_t>(nFaces));
     std::vector<scalar> fMag(static_cast<size_t>(nFaces));
     std::vector<label> fOwner(static_cast<size_t>(nFaces));
-    std::vector<label> fNeighbour(static_cast<size_t>(nInternal));
+    std::vector<label> fNeighbour(static_cast<size_t>(nInternalFaces));
 
     localIdx faceId = 0;
 
@@ -137,13 +138,19 @@ FaceData generateInternalFaces(const MeshParams& p)
         std::move(fCentres),
         std::move(fMag),
         std::move(fOwner),
-        std::move(fNeighbour),
-        nInternal
+        std::move(fNeighbour)
+        // nInternal
     };
 }
 
 BoundaryData generateBoundaryData(
-    const Executor exec, const MeshParams& p, const std::vector<Vec3>& centres, FaceData& faces
+    const Executor exec,
+    const int dim,
+    const MeshParams& p,
+    const std::vector<Vec3>& centres,
+    FaceData& faces,
+    const localIdx nInternal,
+    const localIdx nBoundary
 )
 {
     const localIdx nBndLeft = p.ny * p.nz;
@@ -152,7 +159,23 @@ BoundaryData generateBoundaryData(
     const localIdx nBndTop = p.nx * p.nz;
     const localIdx nBndFront = p.nx * p.ny;
     const localIdx nBndBack = p.nx * p.ny;
-    const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack;
+
+    // To Do:
+    // If it's 1D, nBoundary = nBndLeft + nBndRight
+    // if it's 2D, nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop
+    // If it's 3D, nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack
+
+    // localIdx nBoundary = nBndLeft + nBndRight;
+    // if (dim != 1)
+    // {
+    //     nBoundary += nBndBottom + nBndTop;
+    // }
+    // if (dim != 2)
+    // {
+    //     nBoundary += nBndFront + nBndBack;
+    // }
+    // const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
+    // nBndBack;
 
     std::vector<label> bndFaceCells(static_cast<size_t>(nBoundary));
     std::vector<Vec3> bndCf(static_cast<size_t>(nBoundary));
@@ -164,7 +187,8 @@ BoundaryData generateBoundaryData(
     std::vector<scalar> bndWeights(static_cast<size_t>(nBoundary), 1.0);
     std::vector<scalar> bndDeltaCoeffs(static_cast<size_t>(nBoundary));
 
-    localIdx faceId = faces.nInternal;
+    // localIdx faceId = faces.nInternal;
+    localIdx faceId = nInternal;
 
     auto addBndFace = [&](localIdx bndId, localIdx ci, Vec3 area, Vec3 faceCentre)
     {
@@ -198,6 +222,11 @@ BoundaryData generateBoundaryData(
     const scalar xArea = dy * dz;
     const scalar yArea = dx * dz;
     const scalar zArea = dx * dy;
+
+    // To Do:
+    // If it's 1D, only generate left and right boundaries
+    // If it's 2D, only generate left, right, bottom and top boundaries
+    // If it's 3D, generate all six boundaries
 
     // Left boundary (x=0)
     for (localIdx k = 0; k < p.nz; ++k)
@@ -283,6 +312,8 @@ BoundaryData generateBoundaryData(
             ++faceId;
         }
 
+    // To Do:
+    // Construct offset incrementally
     std::vector<localIdx> offset = {
         0,
         nBndLeft,
@@ -307,7 +338,8 @@ BoundaryData generateBoundaryData(
         offset
     );
 
-    return {std::move(boundaryMesh), nBoundary};
+    // return {std::move(boundaryMesh), nBoundary};
+    return {std::move(boundaryMesh)};
 }
 
 std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces)
