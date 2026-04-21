@@ -140,12 +140,12 @@ BoundaryData generateBoundaryData(
     const std::vector<localIdx> offset
 )
 {
-    const localIdx nBndLeft = p.ny * p.nz;
-    const localIdx nBndRight = p.ny * p.nz;
-    const localIdx nBndBottom = p.nx * p.nz;
-    const localIdx nBndTop = p.nx * p.nz;
-    const localIdx nBndFront = p.nx * p.ny;
-    const localIdx nBndBack = p.nx * p.ny;
+    // const localIdx nBndLeft = p.ny * p.nz;
+    // const localIdx nBndRight = p.ny * p.nz;
+    // const localIdx nBndBottom = p.nx * p.nz;
+    // const localIdx nBndTop = p.nx * p.nz;
+    // const localIdx nBndFront = p.nx * p.ny;
+    // const localIdx nBndBack = p.nx * p.ny;
 
     std::vector<label> bndFaceCells(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndCf(static_cast<size_t>(nBoundaryFaces));
@@ -220,7 +220,7 @@ BoundaryData generateBoundaryData(
             ++faceId;
         }
 
-    if (dim != 1)
+    if (dim > 1)
     {
         // Bottom boundary (y=0)
         for (localIdx k = 0; k < p.nz; ++k)
@@ -255,7 +255,7 @@ BoundaryData generateBoundaryData(
         }
     }
 
-    if (dim != 2)
+    if (dim > 2)
     {
         // Front boundary (z=0)
         for (localIdx j = 0; j < p.ny; ++j)

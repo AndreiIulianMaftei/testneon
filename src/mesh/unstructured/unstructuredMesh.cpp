@@ -340,8 +340,8 @@ UnstructuredMesh createUniform3DMesh(
 
     std::vector<localIdx> offset = {0, nBndLeft, nBndLeft + nBndRight};
 
-    // If it is not 1D, there are bottom and top boundary faces
-    if (dim != 1)
+    // If the mesh is more than 1D, there are bottom and top boundary faces
+    if (dim > 1)
     {
         const localIdx nBndBottom = p.nx * p.nz;
         const localIdx nBndTop = p.nx * p.nz;
@@ -349,8 +349,8 @@ UnstructuredMesh createUniform3DMesh(
         offset.push_back(offset.back() + nBndTop);
     }
 
-    // If it is not 2D, there are front and back boundary faces
-    if (dim != 2)
+    // If the mesh is more than 2D, there are front and back boundary faces
+    if (dim > 2)
     {
         const localIdx nBndFront = p.nx * p.ny;
         const localIdx nBndBack = p.nx * p.ny;
@@ -362,16 +362,12 @@ UnstructuredMesh createUniform3DMesh(
     const localIdx nFaces = nInternalFaces + nBoundaryFaces;
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
-    // const auto [boundaryMesh, nBoundaryFaces] =
     const auto [boundaryMesh] = detail::generateBoundaryData(
         exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces, offset
     );
 
     // Note: With localIdx, the safer limit is ~700 million cells
     const localIdx nCells = nx * ny * nz;
-    // const localIdx nFaces = faces.nInternalFaces + nBoundaryFaces;
-
-    // const auto faceNodesVec = detail::buildFaceNodes(p, nFaces);
 
     UnstructuredMesh mesh(
         vectorVector(exec, points),
@@ -389,8 +385,6 @@ UnstructuredMesh createUniform3DMesh(
         nFaces,
         boundaryMesh
     );
-
-    // detail::storeFaceNodesInStencilDB(mesh, faceNodesVec);
 
     return mesh;
 }
