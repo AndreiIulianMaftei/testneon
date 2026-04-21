@@ -355,7 +355,7 @@ UnstructuredMesh createUniform3DMesh(
     const localIdx nCells = nx * ny * nz;
     // const localIdx nFaces = faces.nInternalFaces + nBoundaryFaces;
 
-    const auto faceNodesVec = detail::buildFaceNodes(p, nFaces);
+    // const auto faceNodesVec = detail::buildFaceNodes(p, nFaces);
 
     UnstructuredMesh mesh(
         vectorVector(exec, points),
@@ -374,7 +374,7 @@ UnstructuredMesh createUniform3DMesh(
         boundaryMesh
     );
 
-    detail::storeFaceNodesInStencilDB(mesh, faceNodesVec);
+    // detail::storeFaceNodesInStencilDB(mesh, faceNodesVec);
 
     return mesh;
 }
