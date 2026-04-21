@@ -308,6 +308,12 @@ UnstructuredMesh createUniform3DMesh(
     NF_ASSERT(nx > 0 && ny > 0 && nz > 0, "Number of cells in each direction must be positive");
     NF_ASSERT(Lx > 0 && Ly > 0 && Lz > 0, "Domain lengths must be positive");
 
+    // Hold the mesh parameters
+    detail::MeshParams p {nx, ny, nz, Lx, Ly, Lz};
+
+    const auto points = detail::generatePoints(p);
+    const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
+
     // Judge the dimension based on the input parameters
     int dim = 0;
     if (ny == 1 && nz == 1)
@@ -323,12 +329,6 @@ UnstructuredMesh createUniform3DMesh(
         dim = 3;
     }
 
-    // Hold the mesh parameters
-    detail::MeshParams p {nx, ny, nz, Lx, Ly, Lz};
-
-    const auto points = detail::generatePoints(p);
-    const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
-
     // Compute the number of internal faces and boundary faces based on the mesh parameters
     const localIdx nXInternalFaces = (p.nx - 1) * p.ny * p.nz;
     const localIdx nYInternalFaces = p.nx * (p.ny - 1) * p.nz;
@@ -337,18 +337,34 @@ UnstructuredMesh createUniform3DMesh(
 
     const localIdx nBndLeft = p.ny * p.nz;
     const localIdx nBndRight = p.ny * p.nz;
-    const localIdx nBndBottom = p.nx * p.nz;
-    const localIdx nBndTop = p.nx * p.nz;
-    const localIdx nBndFront = p.nx * p.ny;
-    const localIdx nBndBack = p.nx * p.ny;
-    const localIdx nBoundaryFaces =
-        nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack;
+
+    std::vector<localIdx> offset = {0, nBndLeft, nBndLeft + nBndRight};
+
+    // If it is not 1D, there are bottom and top boundary faces
+    if (dim != 1)
+    {
+        const localIdx nBndBottom = p.nx * p.nz;
+        const localIdx nBndTop = p.nx * p.nz;
+        offset.push_back(offset.back() + nBndBottom);
+        offset.push_back(offset.back() + nBndTop);
+    }
+
+    // If it is not 2D, there are front and back boundary faces
+    if (dim != 2)
+    {
+        const localIdx nBndFront = p.nx * p.ny;
+        const localIdx nBndBack = p.nx * p.ny;
+        offset.push_back(offset.back() + nBndFront);
+        offset.push_back(offset.back() + nBndBack);
+    }
+
+    const localIdx nBoundaryFaces = offset.back();
     const localIdx nFaces = nInternalFaces + nBoundaryFaces;
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
     // const auto [boundaryMesh, nBoundaryFaces] =
     const auto [boundaryMesh] = detail::generateBoundaryData(
-        exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces
+        exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces, offset
     );
 
     // Note: With localIdx, the safer limit is ~700 million cells

@@ -74,7 +74,8 @@ BoundaryData generateBoundaryData(
     const std::vector<Vec3>& centres,
     FaceData& faces,
     const localIdx nInternalFaces,
-    const localIdx nBoundaryFaces
+    const localIdx nBoundaryFaces,
+    const std::vector<localIdx> offset
 );
 
 // std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces);
