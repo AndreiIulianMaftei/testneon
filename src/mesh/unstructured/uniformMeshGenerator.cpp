@@ -129,7 +129,7 @@ generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const 
     };
 }
 
-BoundaryData generateBoundaryData(
+BoundaryMesh generateBoundaryData(
     const Executor exec,
     const int dim,
     const MeshParams& p,
@@ -140,13 +140,6 @@ BoundaryData generateBoundaryData(
     const std::vector<localIdx> offset
 )
 {
-    // const localIdx nBndLeft = p.ny * p.nz;
-    // const localIdx nBndRight = p.ny * p.nz;
-    // const localIdx nBndBottom = p.nx * p.nz;
-    // const localIdx nBndTop = p.nx * p.nz;
-    // const localIdx nBndFront = p.nx * p.ny;
-    // const localIdx nBndBack = p.nx * p.ny;
-
     std::vector<label> bndFaceCells(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndCf(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndCn(static_cast<size_t>(nBoundaryFaces));

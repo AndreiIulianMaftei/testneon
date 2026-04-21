@@ -54,12 +54,6 @@ struct FaceData
     // localIdx nInternalFaces;
 };
 
-struct BoundaryData
-{
-    BoundaryMesh mesh;
-    // localIdx nBoundaryFaces;
-};
-
 std::vector<Vec3> generatePoints(const MeshParams& p);
 
 CellData generateCellData(const MeshParams& p);
@@ -67,7 +61,7 @@ CellData generateCellData(const MeshParams& p);
 FaceData
 generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const localIdx nFaces);
 
-BoundaryData generateBoundaryData(
+BoundaryMesh generateBoundaryData(
     const Executor exec,
     const int dim,
     const MeshParams& p,
