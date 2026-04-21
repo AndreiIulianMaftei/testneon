@@ -10,10 +10,6 @@
 
 namespace fvcc = NeoN::finiteVolume::cellCentred;
 
-using NeoN::finiteVolume::cellCentred::VolumeField;
-using NeoN::finiteVolume::cellCentred::SurfaceField;
-using NeoN::finiteVolume::cellCentred::FaceNormalGradient;
-
 namespace NeoN
 {
 
@@ -26,44 +22,19 @@ TEMPLATE_TEST_CASE("uncorrected", "[template]", NeoN::scalar, NeoN::Vec3)
 
     const NeoN::localIdx nCells = 10;
     auto mesh = create1DUniformMesh(exec, nCells);
-
-    // --- create BCs (Volume only!) ---
-    std::vector<fvcc::VolumeBoundary<TestType>> vbcs;
-
-    auto nPatches = mesh.boundaryMesh().offset().size() - 1;
-
-    for (NeoN::localIdx patchi = 0; patchi < nPatches; ++patchi)
-    {
-        Dictionary dict;
-        dict.insert("type", std::string("fixedValue"));
-
-        if (patchi == 0) // left boundary
-        {
-            dict.insert("fixedValue", 0.5 * one<TestType>());
-        }
-        else if (patchi == 1) // right boundary
-        {
-            dict.insert("fixedValue", 10.5 * one<TestType>());
-        }
-        else // unused in 1D, but keep robust
-        {
-            dict.insert("fixedValue", 0.0 * one<TestType>());
-        }
-
-        vbcs.emplace_back(mesh, dict, patchi);
-    }
-
-    auto phi = VolumeField<TestType>(exec, "phi", mesh, vbcs);
-    NeoN::parallelFor(
-        phi.internalVector(),
-        NEON_LAMBDA(const NeoN::localIdx i) { return scalar(i + 1) * one<TestType>(); }
-    );
-    phi.correctBoundaryConditions();
-
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
 
     fvcc::SurfaceField<TestType> phif(exec, "phif", mesh, surfaceBCs);
     fill(phif.internalVector(), zero<TestType>());
+
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "phi", mesh, volumeBCs);
+    NeoN::parallelFor(
+        phi.internalVector(),
+        NEON_LAMBDA(const NeoN::localIdx i) { return scalar(i + 1) * one<TestType>(); }
+    );
+    phi.boundaryData().value() =
+        NeoN::Vector<TestType>(exec, {0.5 * one<TestType>(), 10.5 * one<TestType>()});
 
     SECTION("Construct from Token" + execName)
     {

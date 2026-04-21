@@ -15,6 +15,9 @@ using NeoN::finiteVolume::cellCentred::SurfaceField;
 namespace NeoN
 {
 
+template<typename T>
+using I = std::initializer_list<T>;
+
 TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -24,17 +27,13 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
     auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
     std::vector<fvcc::VolumeBoundary<TestType>> vbcs {};
     std::vector<fvcc::SurfaceBoundary<TestType>> sbcs {};
-
-    for (NeoN::localIdx patchi = 0; patchi < mesh.nBoundaries(); ++patchi)
+    for (auto patchi : I<NeoN::localIdx> {0, 1})
     {
         Dictionary dict;
-        if (patchi == 0 || patchi == 1)
-        {
-            dict.insert("type", std::string("fixedValue"));
-            dict.insert("fixedValue", one<TestType>());
-            sbcs.emplace_back(mesh, dict, patchi);
-            vbcs.emplace_back(mesh, dict, patchi);
-        }
+        dict.insert("type", std::string("fixedValue"));
+        dict.insert("fixedValue", one<TestType>());
+        sbcs.push_back(fvcc::SurfaceBoundary<TestType>(mesh, dict, patchi));
+        vbcs.push_back(fvcc::VolumeBoundary<TestType>(mesh, dict, patchi));
     }
 
     auto in = VolumeField<TestType>(exec, "in", mesh, vbcs);
@@ -56,10 +55,7 @@ TEMPLATE_TEST_CASE("linear", "", NeoN::scalar, NeoN::Vec3)
 
     for (NeoN::localIdx i = nInternal; i < nInternal + nBoundary; i++)
     {
-        if (i < nInternal + 2) // first two patches have fixedValue BCs
-        {
-            REQUIRE(outHost.view()[i] == one<TestType>());
-        }
+        REQUIRE(outHost.view()[i] == one<TestType>());
     }
 }
 }

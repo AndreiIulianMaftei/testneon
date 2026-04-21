@@ -26,67 +26,49 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
     const NeoN::localIdx nCells = 10;
     auto mesh = create1DUniformMesh(exec, nCells);
 
-    // Define diffusion coefficient field gamma
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<scalar>>(mesh);
     fvcc::SurfaceField<scalar> gamma(exec, "gamma", mesh, surfaceBCs);
     fill(gamma.internalVector(), 2.0);
 
     auto [boundaryType, firstValue, lastValue] = GENERATE(
-        std::tuple<std::string, scalar, scalar> {"fixedValue", 0.5, 10.5},   // Dirichlet BCs
-        std::tuple<std::string, scalar, scalar> {"fixedGradient", -10.0, 10} // Neumann BCs
+        std::tuple<std::string, scalar, scalar> {"fixedValue", 0.5, 10.5},
+        std::tuple<std::string, scalar, scalar> {"fixedGradient", -10.0, 10}
     );
 
     SECTION(boundaryType)
     {
-        std::vector<fvcc::VolumeBoundary<TestType>> vbcs;
-        // vbcs.push_back(fvcc::VolumeBoundary<TestType>(
-        //     mesh,
-        //     Dictionary(
-        //         {{"type", std::string(boundaryType)}, {boundaryType, firstValue *
-        //         one<TestType>()}}
-        //     ),
-        //     0
-        // ));
-        // vbcs.push_back(fvcc::VolumeBoundary<TestType>(
-        //     mesh,
-        //     Dictionary(
-        //         {{"type", std::string(boundaryType)}, {boundaryType, lastValue *
-        //         one<TestType>()}}
-        //     ),
-        //     1
-        // ));
-        for (NeoN::localIdx patchi = 0; patchi < mesh.nBoundaries(); ++patchi)
-        {
-            Dictionary dict;
-            if (patchi == 0)
-            {
-                dict.insert("type", std::string("fixedValue"));
-                dict.insert("fixedValue", 0.5 * one<TestType>());
-                vbcs.emplace_back(mesh, dict, patchi);
-            }
-            else if (patchi == 1)
-            {
-                dict.insert("type", std::string("fixedValue"));
-                dict.insert("fixedValue", 10.5 * one<TestType>());
-                vbcs.emplace_back(mesh, dict, patchi);
-            }
-            else
-            {
-                dict.insert("type", std::string("empty"));
-            }
-        }
+        std::vector<fvcc::VolumeBoundary<TestType>> bcs;
+        bcs.push_back(fvcc::VolumeBoundary<TestType>(
+            mesh,
+            Dictionary(
+                {{"type", std::string(boundaryType)}, {boundaryType, firstValue * one<TestType>()}}
+            ),
+            0
+        ));
+        bcs.push_back(fvcc::VolumeBoundary<TestType>(
+            mesh,
+            Dictionary(
+                {{"type", std::string(boundaryType)}, {boundaryType, lastValue * one<TestType>()}}
+            ),
+            1
+        ));
 
-        // Define the field phi: [1, 2, ..., nCells]
-        auto phi = fvcc::VolumeField<TestType>(exec, "phi", mesh, vbcs);
+        auto phi = fvcc::VolumeField<TestType>(exec, "phi", mesh, bcs);
         parallelFor(
             phi.internalVector(),
             NEON_LAMBDA(const localIdx i) { return scalar(i + 1) * one<TestType>(); }
         );
         phi.correctBoundaryConditions();
 
-        // Define the Laplacian scheme
         Input input =
             TokenList({std::string("Gauss"), std::string("linear"), std::string("uncorrected")});
+
+        SECTION("Construct from Token" + execName)
+        {
+            fvcc::LaplacianOperator<TestType> lapOp(
+                dsl::Operator::Type::Implicit, gamma, phi, input
+            );
+        }
 
         SECTION("explicit laplacian operator for constant field on " + execName)
         {
@@ -96,20 +78,11 @@ TEMPLATE_TEST_CASE("laplacianOperator fixedValue", "[template]", scalar, Vec3)
             lapOp.explicitOperation(source);
             auto sourceHost = source.copyToHost();
             auto sourceV = sourceHost.view();
-            std::cout << "Executor: " << execName << std::endl;
             for (NeoN::localIdx i = 0; i < nCells; i++)
             {
                 // the laplacian of a linear function is 0
-                // std::cout << "sourceV[" << i << "] = " << sourceV[i] << std::endl;
                 REQUIRE(mag(sourceV[i]) == Catch::Approx(0.0).margin(1e-8));
             }
-        }
-
-        SECTION("Construct from Token" + execName)
-        {
-            fvcc::LaplacianOperator<TestType> lapOp(
-                dsl::Operator::Type::Implicit, gamma, phi, input
-            );
         }
 
         auto ls = NeoN::la::createEmptyLinearSystem<TestType>(mesh);
