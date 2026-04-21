@@ -61,8 +61,8 @@ generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const 
     // const localIdx nBndTop = p.nx * p.nz;
     // const localIdx nBndFront = p.nx * p.ny;
     // const localIdx nBndBack = p.nx * p.ny;
-    // const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
-    // nBndBack; const localIdx nFaces = nInternal + nBoundary;
+    // const localIdx nBoundaryFaces = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
+    // nBndBack; const localIdx nFaces = nInternal + nBoundaryFaces;
 
     std::vector<Vec3> fAreas(static_cast<size_t>(nFaces));
     std::vector<Vec3> fCentres(static_cast<size_t>(nFaces));
@@ -139,7 +139,7 @@ generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const 
         std::move(fMag),
         std::move(fOwner),
         std::move(fNeighbour)
-        // nInternal
+        // nInternalFaces
     };
 }
 
@@ -149,8 +149,8 @@ BoundaryData generateBoundaryData(
     const MeshParams& p,
     const std::vector<Vec3>& centres,
     FaceData& faces,
-    const localIdx nInternal,
-    const localIdx nBoundary
+    const localIdx nInternalFaces,
+    const localIdx nBoundaryFaces
 )
 {
     const localIdx nBndLeft = p.ny * p.nz;
@@ -161,34 +161,35 @@ BoundaryData generateBoundaryData(
     const localIdx nBndBack = p.nx * p.ny;
 
     // To Do:
-    // If it's 1D, nBoundary = nBndLeft + nBndRight
-    // if it's 2D, nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop
-    // If it's 3D, nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack
+    // If it's 1D, nBoundaryFaces = nBndLeft + nBndRight
+    // if it's 2D, nBoundaryFaces = nBndLeft + nBndRight + nBndBottom + nBndTop
+    // If it's 3D, nBoundaryFaces = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
+    // nBndBack
 
-    // localIdx nBoundary = nBndLeft + nBndRight;
+    // localIdx nBoundaryFaces = nBndLeft + nBndRight;
     // if (dim != 1)
     // {
-    //     nBoundary += nBndBottom + nBndTop;
+    //     nBoundaryFaces += nBndBottom + nBndTop;
     // }
     // if (dim != 2)
     // {
-    //     nBoundary += nBndFront + nBndBack;
+    //     nBoundaryFaces += nBndFront + nBndBack;
     // }
-    // const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
+    // const localIdx nBoundaryFaces = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront +
     // nBndBack;
 
-    std::vector<label> bndFaceCells(static_cast<size_t>(nBoundary));
-    std::vector<Vec3> bndCf(static_cast<size_t>(nBoundary));
-    std::vector<Vec3> bndCn(static_cast<size_t>(nBoundary));
-    std::vector<Vec3> bndSf(static_cast<size_t>(nBoundary));
-    std::vector<scalar> bndMagSf(static_cast<size_t>(nBoundary));
-    std::vector<Vec3> bndNf(static_cast<size_t>(nBoundary));
-    std::vector<Vec3> bndDelta(static_cast<size_t>(nBoundary));
-    std::vector<scalar> bndWeights(static_cast<size_t>(nBoundary), 1.0);
-    std::vector<scalar> bndDeltaCoeffs(static_cast<size_t>(nBoundary));
+    std::vector<label> bndFaceCells(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndCf(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndCn(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndSf(static_cast<size_t>(nBoundaryFaces));
+    std::vector<scalar> bndMagSf(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndNf(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndDelta(static_cast<size_t>(nBoundaryFaces));
+    std::vector<scalar> bndWeights(static_cast<size_t>(nBoundaryFaces), 1.0);
+    std::vector<scalar> bndDeltaCoeffs(static_cast<size_t>(nBoundaryFaces));
 
     // localIdx faceId = faces.nInternal;
-    localIdx faceId = nInternal;
+    localIdx faceId = nInternalFaces;
 
     auto addBndFace = [&](localIdx bndId, localIdx ci, Vec3 area, Vec3 faceCentre)
     {
@@ -321,7 +322,7 @@ BoundaryData generateBoundaryData(
         nBndLeft + nBndRight + nBndBottom,
         nBndLeft + nBndRight + nBndBottom + nBndTop,
         nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront,
-        nBoundary
+        nBoundaryFaces
     };
 
     BoundaryMesh boundaryMesh(
@@ -338,7 +339,7 @@ BoundaryData generateBoundaryData(
         offset
     );
 
-    // return {std::move(boundaryMesh), nBoundary};
+    // return {std::move(boundaryMesh), nBoundaryFaces};
     return {std::move(boundaryMesh)};
 }
 

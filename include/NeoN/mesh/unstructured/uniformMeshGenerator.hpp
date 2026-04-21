@@ -51,13 +51,13 @@ struct FaceData
     std::vector<scalar> magnitudes;
     std::vector<label> owner;
     std::vector<label> neighbour;
-    // localIdx nInternal;
+    // localIdx nInternalFaces;
 };
 
 struct BoundaryData
 {
     BoundaryMesh mesh;
-    // localIdx nBoundary;
+    // localIdx nBoundaryFaces;
 };
 
 std::vector<Vec3> generatePoints(const MeshParams& p);
@@ -65,7 +65,7 @@ std::vector<Vec3> generatePoints(const MeshParams& p);
 CellData generateCellData(const MeshParams& p);
 
 FaceData
-generateInternalFaces(const MeshParams& p, const localIdx nInternal, const localIdx nFaces);
+generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const localIdx nFaces);
 
 BoundaryData generateBoundaryData(
     const Executor exec,
@@ -73,8 +73,8 @@ BoundaryData generateBoundaryData(
     const MeshParams& p,
     const std::vector<Vec3>& centres,
     FaceData& faces,
-    const localIdx nInternal,
-    const localIdx nBoundary
+    const localIdx nInternalFaces,
+    const localIdx nBoundaryFaces
 );
 
 std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces);

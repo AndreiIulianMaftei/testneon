@@ -330,10 +330,10 @@ UnstructuredMesh createUniform3DMesh(
     const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
 
     // Compute the number of internal faces and boundary faces based on the mesh parameters
-    const localIdx nXInternal = (p.nx - 1) * p.ny * p.nz;
-    const localIdx nYInternal = p.nx * (p.ny - 1) * p.nz;
-    const localIdx nZInternal = p.nx * p.ny * (p.nz - 1);
-    const localIdx nInternal = nXInternal + nYInternal + nZInternal;
+    const localIdx nXInternalFaces = (p.nx - 1) * p.ny * p.nz;
+    const localIdx nYInternalFaces = p.nx * (p.ny - 1) * p.nz;
+    const localIdx nZInternalFaces = p.nx * p.ny * (p.nz - 1);
+    const localIdx nInternalFaces = nXInternalFaces + nYInternalFaces + nZInternalFaces;
 
     const localIdx nBndLeft = p.ny * p.nz;
     const localIdx nBndRight = p.ny * p.nz;
@@ -341,17 +341,19 @@ UnstructuredMesh createUniform3DMesh(
     const localIdx nBndTop = p.nx * p.nz;
     const localIdx nBndFront = p.nx * p.ny;
     const localIdx nBndBack = p.nx * p.ny;
-    const localIdx nBoundary = nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack;
-    const localIdx nFaces = nInternal + nBoundary;
+    const localIdx nBoundaryFaces =
+        nBndLeft + nBndRight + nBndBottom + nBndTop + nBndFront + nBndBack;
+    const localIdx nFaces = nInternalFaces + nBoundaryFaces;
 
-    auto faces = detail::generateInternalFaces(p, nInternal, nFaces);
-    // const auto [boundaryMesh, nBoundary] =
-    const auto [boundaryMesh] =
-        detail::generateBoundaryData(exec, dim, p, cellCentres, faces, nInternal, nBoundary);
+    auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
+    // const auto [boundaryMesh, nBoundaryFaces] =
+    const auto [boundaryMesh] = detail::generateBoundaryData(
+        exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces
+    );
 
     // Note: With localIdx, the safer limit is ~700 million cells
     const localIdx nCells = nx * ny * nz;
-    // const localIdx nFaces = faces.nInternal + nBoundary;
+    // const localIdx nFaces = faces.nInternalFaces + nBoundaryFaces;
 
     const auto faceNodesVec = detail::buildFaceNodes(p, nFaces);
 
@@ -365,8 +367,8 @@ UnstructuredMesh createUniform3DMesh(
         {exec, faces.owner},
         labelVector(exec, faces.neighbour),
         nCells,
-        nInternal,
-        nBoundary,
+        nInternalFaces,
+        nBoundaryFaces,
         6,
         nFaces,
         boundaryMesh
