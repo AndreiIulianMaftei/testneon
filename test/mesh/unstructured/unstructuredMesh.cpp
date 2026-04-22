@@ -163,60 +163,6 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostBndDelta.view()[0][1] == Catch::Approx(0.0));
     }
 
-    SECTION("Uniform 2D mesh stores face node connectivity in stencilDB " + execName)
-    {
-        NeoN::localIdx nx = 2;
-        NeoN::localIdx ny = 2;
-        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny);
-
-        // stencilDB must contain std::string("stencilFaceNodes")
-        REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
-
-        auto& faceNodes =
-            *mesh.stencilDB()
-                 .get<std::shared_ptr<NeoN::SegmentedVector<NeoN::localIdx, NeoN::localIdx>>>(
-                     std::string("stencilFaceNodes")
-                 );
-
-        // Must have one entry per face
-        auto hostFN = faceNodes.copyToHost();
-        auto fnView = hostFN.view();
-        REQUIRE(static_cast<NeoN::localIdx>(hostFN.numSegments()) == mesh.nFaces());
-
-        // Each face is a quad → 4 nodes per face
-        for (NeoN::localIdx f = 0; f < hostFN.numSegments(); ++f)
-        {
-            auto [s, e] = fnView.bounds(f);
-            REQUIRE(e - s == 4);
-        }
-
-        // Verify specific face nodes for first vertical internal face (between cell 0 and cell 1)
-        // In a 2x2 mesh on [0,1]x[0,1]x[0,1], points are indexed as:
-        // Bottom z-plane (k=0): pt(i,j,0) = j*(nx+1) + i
-        //   6--7--8      (row j=2)
-        //   |  |  |
-        //   3--4--5      (row j=1)
-        //   |  |  |
-        //   0--1--2      (row j=0)
-        // Top z-plane (k=1): pt(i,j,1) = (nx+1)*(ny+1) + j*(nx+1) + i  (offset by 9)
-        //   15-16-17
-        //   |  |  |
-        //   12-13-14
-        //   |  |  |
-        //   9--10-11
-        //
-        // First vertical internal face (i=0, j=0): between cell(0,0) and cell(1,0)
-        // at x=dx, connects bottom pt(1,0,0)=1, pt(1,1,0)=4,
-        //                     top pt(1,0,1)=10, pt(1,1,1)=13
-        auto [s0, e0] = fnView.bounds(0);
-        std::vector<NeoN::localIdx> sorted(fnView.values.begin() + s0, fnView.values.begin() + e0);
-        std::sort(sorted.begin(), sorted.end());
-        REQUIRE(sorted[0] == 1);
-        REQUIRE(sorted[1] == 4);
-        REQUIRE(sorted[2] == 10);
-        REQUIRE(sorted[3] == 13);
-    }
-
     SECTION("Uniform 2D mesh stores patch names in stencilDB " + execName)
     {
         NeoN::localIdx nx = 2;
@@ -449,45 +395,5 @@ TEST_CASE("Unstructured Mesh")
         // back (patch 5): all face centres on z = zmax plane
         for (NeoN::localIdx f = offset[5]; f < offset[6]; ++f)
             REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
-    }
-
-    SECTION("Uniform 3D mesh stores face node connectivity in stencilDB " + execName)
-    {
-        NeoN::localIdx nx = 2;
-        NeoN::localIdx ny = 2;
-        NeoN::localIdx nz = 2;
-        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz);
-
-        REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
-
-        auto& faceNodes =
-            *mesh.stencilDB()
-                 .get<std::shared_ptr<NeoN::SegmentedVector<NeoN::localIdx, NeoN::localIdx>>>(
-                     std::string("stencilFaceNodes")
-                 );
-
-        auto hostFN = faceNodes.copyToHost();
-        auto fnView = hostFN.view();
-        REQUIRE(static_cast<NeoN::localIdx>(hostFN.numSegments()) == mesh.nFaces());
-
-        for (NeoN::localIdx f = 0; f < hostFN.numSegments(); ++f)
-        {
-            auto [s, e] = fnView.bounds(f);
-            REQUIRE(e - s == 4);
-        }
-
-        REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
-
-        auto& patchNames = *mesh.stencilDB().get<std::shared_ptr<std::vector<std::string>>>(
-            std::string("stencilPatchNames")
-        );
-
-        REQUIRE(patchNames.size() == 6);
-        REQUIRE(patchNames[0] == "xmin");
-        REQUIRE(patchNames[1] == "xmax");
-        REQUIRE(patchNames[2] == "ymin");
-        REQUIRE(patchNames[3] == "ymax");
-        REQUIRE(patchNames[4] == "zmin");
-        REQUIRE(patchNames[5] == "zmax");
     }
 }

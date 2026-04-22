@@ -71,11 +71,4 @@ BoundaryMesh generateBoundaryData(
     const localIdx nBoundaryFaces,
     const std::vector<localIdx> offset
 );
-
-// std::vector<std::vector<localIdx>> buildFaceNodes(const MeshParams& p, localIdx nFaces);
-
-// void storeFaceNodesInStencilDB(
-//     UnstructuredMesh& mesh, const std::vector<std::vector<localIdx>>& faceNodesVec
-// );
-
 } // namespace NeoN::detail
