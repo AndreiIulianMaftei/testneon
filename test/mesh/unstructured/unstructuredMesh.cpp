@@ -33,14 +33,14 @@ TEST_CASE("Unstructured Mesh")
         NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, nCells);
 
         // 1D mesh now delegates to create3DUniformMesh(exec, 4, 1, 1)
-        // → hex slab topology with 6 patches
+        // → hex slab topology with 2 patches
         // nInternalFaces: x:(4-1)*1*1=3, y:0, z:0 → 3
-        // nBoundaryFaces: left(1)+right(1)+bottom(4)+top(4)+front(4)+back(4) = 18
+        // nBoundaryFaces: left(1)+right(1) = 2
         REQUIRE(mesh.nCells() == 4);
         REQUIRE(mesh.nInternalFaces() == 3);
-        REQUIRE(mesh.nBoundaryFaces() == 18);
-        REQUIRE(mesh.nBoundaries() == 6);
-        REQUIRE(mesh.nFaces() == 21);
+        REQUIRE(mesh.nBoundaryFaces() == 2);
+        REQUIRE(mesh.nBoundaries() == 2);
+        REQUIRE(mesh.nFaces() == 5);
 
         // Verify mesh points
         // bc  [   internal  ]  bc

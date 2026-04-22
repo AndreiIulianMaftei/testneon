@@ -381,7 +381,7 @@ UnstructuredMesh create3DUniformMesh(
         nCells,
         nInternalFaces,
         nBoundaryFaces,
-        6,
+        offset.size() - 1, // nBoundaries
         nFaces,
         boundaryMesh
     );
