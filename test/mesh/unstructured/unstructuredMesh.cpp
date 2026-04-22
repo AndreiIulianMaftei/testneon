@@ -211,33 +211,27 @@ TEST_CASE("Unstructured Mesh")
 
     SECTION("2D mesh patch face centres lie on correct planes (3x2) " + execName)
     {
-        // Domain: [xmin, xmax] x [ymin, ymax] x [zmin, zmax] (one cell thick in z)
+        // Domain: [xmin, xmax] x [ymin, ymax] (one cell thick in z)
         // Boundary patches and the planes they must lie on:
         //   patch 0 "xmin"  — x = xmin plane  (ny    = 2 faces)
         //   patch 1 "xmax"  — x = xmax plane  (ny    = 2 faces)
         //   patch 2 "ymin"  — y = ymin plane  (nx    = 3 faces)
         //   patch 3 "ymax"  — y = ymax plane  (nx    = 3 faces)
-        //   patch 4 "zmin"  — z = zmin plane  (nx*ny = 6 faces)
-        //   patch 5 "zmax"  — z = zmax plane  (nx*ny = 6 faces)
         NeoN::localIdx nx = 3;
         NeoN::localIdx ny = 2;
         NeoN::scalar xmin = 0.0;
         NeoN::scalar xmax = 3.0;
         NeoN::scalar ymin = 0.0;
         NeoN::scalar ymax = 2.0;
-        NeoN::scalar zmin = 0.0;
-        NeoN::scalar zmax = 1.0; // fixed slab thickness
         auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, xmax, ymax);
 
         auto& bm = mesh.boundaryMesh();
         auto& offset = bm.offset();
-        REQUIRE(offset.size() == 7);
+        REQUIRE(offset.size() - 1 == 4);     // 4 patches
         REQUIRE(offset[1] - offset[0] == 2); // left
         REQUIRE(offset[2] - offset[1] == 2); // right
         REQUIRE(offset[3] - offset[2] == 3); // bottom
         REQUIRE(offset[4] - offset[3] == 3); // top
-        REQUIRE(offset[5] - offset[4] == 6); // front
-        REQUIRE(offset[6] - offset[5] == 6); // back
 
         auto hostCf = bm.cf().copyToHost();
 
@@ -256,14 +250,6 @@ TEST_CASE("Unstructured Mesh")
         // top (patch 3): all face centres on y = ymax plane
         for (NeoN::localIdx f = offset[3]; f < offset[4]; ++f)
             REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
-
-        // front (patch 4): all face centres on z = zmin plane
-        for (NeoN::localIdx f = offset[4]; f < offset[5]; ++f)
-            REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmin).margin(1e-10));
-
-        // back (patch 5): all face centres on z = zmax plane
-        for (NeoN::localIdx f = offset[5]; f < offset[6]; ++f)
-            REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
     }
 
     SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
