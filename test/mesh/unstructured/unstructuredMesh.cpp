@@ -113,7 +113,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
     }
 
-    SECTION("Can create a uniform 2D mesh (OpenFOAM-style hex slab) " + execName)
+    SECTION("Can create a uniform 2D mesh" + execName)
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
@@ -123,14 +123,14 @@ TEST_CASE("Unstructured Mesh")
         // - 4 hex cells
         // - 18 points = (2+1)*(2+1)*2  (two z-planes)
         // - 4 internal faces (quad): 2 vertical + 2 horizontal
-        // - 16 boundary faces: left(2) + right(2) + bottom(2) + top(2) + front(4) + back(4)
-        // - 6 boundaries: left, right, bottom, top, front, back
-        // - 20 total faces
+        // - 8 boundary faces: left(2) + right(2) + bottom(2) + top(2)
+        // - 4 boundaries: left, right, bottom, top
+        // - 12 total faces
         REQUIRE(mesh.nCells() == 4);
         REQUIRE(mesh.nInternalFaces() == 4);
-        REQUIRE(mesh.nBoundaryFaces() == 16);
-        REQUIRE(mesh.nBoundaries() == 6);
-        REQUIRE(mesh.nFaces() == 20);
+        REQUIRE(mesh.nBoundaryFaces() == 8);
+        REQUIRE(mesh.nBoundaries() == 4);
+        REQUIRE(mesh.nFaces() == 12);
 
         // Verify point count: two z-planes
         auto hostPoints = mesh.points().copyToHost();
@@ -151,10 +151,10 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostCC.view()[3][0] == Catch::Approx(0.75));
         REQUIRE(hostCC.view()[3][1] == Catch::Approx(0.75));
 
-        // Verify boundary face count per patch via boundary mesh offset
-        // 6 patches: left(2), right(2), bottom(2), top(2), front(4), back(4)
+        // Verify the number of neighbouring cells for boundary faces
+        // 4 patches: left(2), right(2), bottom(2), top(2)
         auto& bm = mesh.boundaryMesh();
-        REQUIRE(bm.faceCells().size() == 16);
+        REQUIRE(bm.faceCells().size() == 8);
 
         // Verify boundary delta vectors
         // Left boundary: delta.x should be negative (face at x=0, cell centre at x=0.25)
