@@ -291,16 +291,16 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
 
 UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
 {
-    return createUniform3DMesh(exec, nCells, 1, 1);
+    return create3DUniformMesh(exec, nCells, 1, 1);
 }
 
 UnstructuredMesh
-createUniform2DMesh(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
+create2DUniformMesh(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
 {
-    return createUniform3DMesh(exec, nx, ny, 1, Lx, Ly, 1.0);
+    return create3DUniformMesh(exec, nx, ny, 1, Lx, Ly, 1.0);
 }
 
-UnstructuredMesh createUniform3DMesh(
+UnstructuredMesh create3DUniformMesh(
     const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar Lx, scalar Ly, scalar Lz
 )
 {

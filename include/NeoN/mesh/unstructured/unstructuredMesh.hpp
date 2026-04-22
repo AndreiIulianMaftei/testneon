@@ -341,7 +341,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
  * Six boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly),
  * front (z=0), back (z=1).
  */
-UnstructuredMesh createUniform2DMesh(
+UnstructuredMesh create2DUniformMesh(
     const Executor exec, localIdx nx, localIdx ny, scalar Lx = 1.0, scalar Ly = 1.0
 );
 
@@ -351,7 +351,7 @@ UnstructuredMesh createUniform2DMesh(
  * Six boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly),
  * front (z=0), back (z=Lz).
  */
-UnstructuredMesh createUniform3DMesh(
+UnstructuredMesh create3DUniformMesh(
     const Executor exec,
     localIdx nx,
     localIdx ny,

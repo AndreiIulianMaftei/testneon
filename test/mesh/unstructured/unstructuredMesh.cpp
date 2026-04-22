@@ -32,7 +32,7 @@ TEST_CASE("Unstructured Mesh")
 
         NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, nCells);
 
-        // 1D mesh now delegates to createUniform3DMesh(exec, 4, 1, 1)
+        // 1D mesh now delegates to create3DUniformMesh(exec, 4, 1, 1)
         // → hex slab topology with 6 patches
         // nInternalFaces: x:(4-1)*1*1=3, y:0, z:0 → 3
         // nBoundaryFaces: left(1)+right(1)+bottom(4)+top(4)+front(4)+back(4) = 18
@@ -118,7 +118,7 @@ TEST_CASE("Unstructured Mesh")
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny);
 
         // Topology: 2x2 mesh, one cell thick in z (hex cells)
         // - 4 hex cells
@@ -168,7 +168,7 @@ TEST_CASE("Unstructured Mesh")
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny);
 
         // stencilDB must contain std::string("stencilFaceNodes")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
@@ -222,7 +222,7 @@ TEST_CASE("Unstructured Mesh")
     {
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
-        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny);
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny);
 
         // stencilDB must contain std::string("stencilPatchNames")
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
@@ -250,7 +250,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::localIdx ny = 2;
         NeoN::scalar Lx = 3.0;
         NeoN::scalar Ly = 2.0;
-        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny, Lx, Ly);
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, Lx, Ly);
 
         // 3x2 mesh: 6 hex cells, (3-1)*2 + 3*(2-1) = 4+3 = 7 internal faces
         // boundary: left(2) + right(2) + bottom(3) + top(3) + front(6) + back(6) = 22
@@ -284,7 +284,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar ymax = 2.0;
         NeoN::scalar zmin = 0.0;
         NeoN::scalar zmax = 1.0; // fixed slab thickness
-        auto mesh = NeoN::createUniform2DMesh(exec, nx, ny, xmax, ymax);
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, xmax, ymax);
 
         auto& bm = mesh.boundaryMesh();
         auto& offset = bm.offset();
@@ -328,7 +328,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
         NeoN::localIdx nz = 2;
-        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz);
+        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz);
 
         // Topology: 2x2x2 mesh
         // - 8 hex cells
@@ -377,7 +377,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar Lx = 3.0;
         NeoN::scalar Ly = 2.0;
         NeoN::scalar Lz = 2.0;
-        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz, Lx, Ly, Lz);
+        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz, Lx, Ly, Lz);
 
         // 3x2x2: 12 cells
         // internal: x:(3-1)*2*2=8, y:3*(2-1)*2=6, z:3*2*(2-1)=6 → 20
@@ -413,7 +413,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::scalar ymax = 2.0;
         NeoN::scalar zmin = 0.0;
         NeoN::scalar zmax = 4.0;
-        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz, xmax, ymax, zmax);
+        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz, xmax, ymax, zmax);
 
         auto& bm = mesh.boundaryMesh();
         auto& offset = bm.offset();
@@ -457,7 +457,7 @@ TEST_CASE("Unstructured Mesh")
         NeoN::localIdx nx = 2;
         NeoN::localIdx ny = 2;
         NeoN::localIdx nz = 2;
-        auto mesh = NeoN::createUniform3DMesh(exec, nx, ny, nz);
+        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz);
 
         REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
 
