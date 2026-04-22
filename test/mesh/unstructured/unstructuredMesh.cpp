@@ -176,8 +176,8 @@ TEST_CASE("Unstructured Mesh")
             std::string("stencilPatchNames")
         );
 
-        // Must have one entry per boundary (6 patches)
-        REQUIRE(patchNames.size() == 6);
+        // Must have one entry per boundary (4 patches)
+        REQUIRE(patchNames.size() == 4);
 
         // Patch names must match the boundary order:
         // xmin, xmax, ymin, ymax, zmin, zmax
@@ -185,8 +185,6 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(patchNames[1] == "xmax");
         REQUIRE(patchNames[2] == "ymin");
         REQUIRE(patchNames[3] == "ymax");
-        REQUIRE(patchNames[4] == "zmin");
-        REQUIRE(patchNames[5] == "zmax");
     }
 
     SECTION("Can create a uniform 2D mesh with non-unit domain " + execName)

@@ -339,7 +339,9 @@ UnstructuredMesh create3DUniformMesh(
     const localIdx nBndRight = p.ny * p.nz;
 
     std::vector<localIdx> offset = {0, nBndLeft, nBndLeft + nBndRight};
-    std::vector<std::string> patchNames = {"xmin", "xmax"};
+    // std::vector<std::string> patchNames = {"xmin", "xmax"};
+    auto patchNames =
+        std::make_shared<std::vector<std::string>>(std::vector<std::string> {"xmin", "xmax"});
 
     // If the mesh is more than 1D, there are bottom and top boundary faces
     if (dim > 1)
@@ -348,8 +350,8 @@ UnstructuredMesh create3DUniformMesh(
         const localIdx nBndTop = p.nx * p.nz;
         offset.push_back(offset.back() + nBndBottom);
         offset.push_back(offset.back() + nBndTop);
-        patchNames.push_back("ymin");
-        patchNames.push_back("ymax");
+        patchNames->push_back("ymin");
+        patchNames->push_back("ymax");
     }
 
     // If the mesh is more than 2D, there are front and back boundary faces
@@ -359,8 +361,8 @@ UnstructuredMesh create3DUniformMesh(
         const localIdx nBndBack = p.nx * p.ny;
         offset.push_back(offset.back() + nBndFront);
         offset.push_back(offset.back() + nBndBack);
-        patchNames.push_back("zmin");
-        patchNames.push_back("zmax");
+        patchNames->push_back("zmin");
+        patchNames->push_back("zmax");
     }
 
     const localIdx nBoundaryFaces = offset.back();
