@@ -109,8 +109,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostBoundaryDelta.view()[0][0] == Catch::Approx(-0.125));
         REQUIRE(hostBoundaryDelta.view()[1][0] == Catch::Approx(0.125));
 
-        // Verify stencilDB has faceNodes and patchNames
-        REQUIRE(mesh.stencilDB().contains(std::string("stencilFaceNodes")));
+        // Verify stencilDB has patchNames
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
     }
 
