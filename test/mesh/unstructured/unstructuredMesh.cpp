@@ -196,12 +196,12 @@ TEST_CASE("Unstructured Mesh")
         auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, Lx, Ly);
 
         // 3x2 mesh: 6 hex cells, (3-1)*2 + 3*(2-1) = 4+3 = 7 internal faces
-        // boundary: left(2) + right(2) + bottom(3) + top(3) + front(6) + back(6) = 22
+        // boundary: left(2) + right(2) + bottom(3) + top(3) = 10
         REQUIRE(mesh.nCells() == 6);
         REQUIRE(mesh.nInternalFaces() == 7);
-        REQUIRE(mesh.nBoundaryFaces() == 22);
-        REQUIRE(mesh.nBoundaries() == 6);
-        REQUIRE(mesh.nFaces() == 29);
+        REQUIRE(mesh.nBoundaryFaces() == 10);
+        REQUIRE(mesh.nBoundaries() == 4);
+        REQUIRE(mesh.nFaces() == 17);
 
         // Cell volume = (3/3) * (2/2) * 1.0 = 1.0
         auto hostVols = mesh.cellVolumes().copyToHost();
