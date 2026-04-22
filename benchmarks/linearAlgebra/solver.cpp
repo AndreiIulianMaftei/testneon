@@ -1,0 +1,81 @@
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
+//
+// SPDX-License-Identifier: MIT
+
+#define CATCH_CONFIG_RUNNER // Define this before including catch.hpp to create
+                            // a custom main
+
+#include "NeoN/NeoN.hpp"
+#include "benchmarks/catch_main.hpp"
+#include "test/catch2/executorGenerator.hpp"
+
+using Operator = NeoN::dsl::Operator;
+
+// Assemble a diagonally-dominant linear system from a 1D laplacian.
+// The laplacian implicit operation produces a valid CSR matrix with non-zero
+// diagonals, making it suitable for both the diagonal solver and iterative solvers.
+
+template<typename ValueType>
+la::LinearSystem<ValueType>
+assembleLS(const NeoN::Executor& exec, const NeoN::UnstructuredMesh& mesh)
+{
+    auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<NeoN::scalar>>(mesh);
+    fvcc::SurfaceField<NeoN::scalar> gamma(exec, "gamma", mesh, surfaceBCs);
+    NeoN::fill(gamma.internalVector(), 1.0);
+
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<ValueType>>(mesh);
+    fvcc::VolumeField<ValueType> phi(exec, "phi", mesh, volumeBCs);
+    NeoN::fill(phi.internalVector(), NeoN::one<ValueType>());
+
+    NeoN::Input input =
+        NeoN::TokenList({std::string("Gauss"), std::string("linear"), std::string("uncorrected")});
+
+    auto ls = la::createEmptyLinearSystem<ValueType>(mesh);
+    auto op = fvcc::LaplacianOperator<ValueType>(Operator::Type::Implicit, gamma, phi, input);
+    op.implicitOperation(ls);
+
+    return ls;
+}
+
+TEMPLATE_TEST_CASE("Solver::DiagonalSolver", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
+    auto ls = assembleLS<TestType>(exec, mesh);
+    NeoN::Vector<TestType> x(exec, mesh.nCells(), NeoN::zero<TestType>());
+
+    NeoN::Dictionary solverDict {{{"solver", std::string {"diagonal"}}}};
+    auto solver = NeoN::la::Solver(exec, solverDict);
+
+    DYNAMIC_SECTION("" << size)
+    {
+        NeoN::fill(x, NeoN::zero<TestType>());
+        BENCHMARK(std::string(execName) + "_diagonal") { solver.solve(ls, x); };
+    }
+}
+
+
+#if NF_WITH_GINKGO
+TEST_CASE("Solver::GinkgoCG", "[bench]")
+{
+    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
+    auto ls = assembleLS<NeoN::scalar>(exec, mesh);
+    NeoN::Vector<NeoN::scalar> x(exec, mesh.nCells(), NeoN::zero<NeoN::scalar>());
+
+    NeoN::Dictionary solverDict {
+        {{"solver", std::string {"Ginkgo"}},
+         {"type", "solver::Cg"},
+         {"criteria", NeoN::Dictionary {{{"iteration", 100}, {"relative_residual_norm", 1e-6}}}}}
+    };
+    auto solver = NeoN::la::Solver(exec, solverDict);
+
+    DYNAMIC_SECTION("" << size)
+    {
+        NeoN::fill(x, NeoN::zero<NeoN::scalar>());
+        BENCHMARK(std::string(execName) + "_ginkgo_cg") { solver.solve(ls, x); };
+    }
+}
+#endif
