@@ -332,7 +332,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec);
  * A 1D mesh in 3D space in which each cell has a left and a right boundary face.
  * The 1D mesh is aligned with the x coordinate of Cartesian coordinate system.
  */
-UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells);
+UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar Lx = 1.0);
 
 /** @brief A factory function for a 2D uniform mesh (OpenFOAM-style hex slab)
  *

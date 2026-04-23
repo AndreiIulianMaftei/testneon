@@ -162,9 +162,9 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     );
 }
 
-UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
+UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar Lx)
 {
-    return create3DUniformMesh(exec, nCells, 1, 1);
+    return create3DUniformMesh(exec, nCells, 1, 1, Lx, 1.0, 1.0);
 }
 
 UnstructuredMesh
