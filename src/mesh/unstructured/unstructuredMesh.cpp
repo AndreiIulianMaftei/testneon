@@ -242,28 +242,28 @@ UnstructuredMesh create3DUniformMesh(
     const localIdx nFaces = nInternalFaces + nBoundaryFaces;
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
-    const auto boundaryMesh = detail::generateBoundaryData(
+    auto boundaryMesh = detail::generateBoundaryData(
         exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces, offset
     );
 
-    // Note: With the localIdx type (int32_t), the safer limit is 2 x 10^9 cells
+    // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
     const localIdx nCells = nx * ny * nz;
 
     UnstructuredMesh mesh(
-        vectorVector(exec, points),
-        scalarVector(exec, cellVolumes),
-        vectorVector(exec, cellCentres),
-        {exec, faces.areas},
-        {exec, faces.centres},
-        {exec, faces.magnitudes},
-        {exec, faces.owner},
-        labelVector(exec, faces.neighbour),
+        vectorVector(exec, std::move(points)),
+        scalarVector(exec, std::move(cellVolumes)),
+        vectorVector(exec, std::move(cellCentres)),
+        {exec, std::move(faces.areas)},
+        {exec, std::move(faces.centres)},
+        {exec, std::move(faces.magnitudes)},
+        {exec, std::move(faces.owner)},
+        labelVector(exec, std::move(faces.neighbour)),
         nCells,
         nInternalFaces,
         nBoundaryFaces,
         offset.size() - 1, // nBoundaries
         nFaces,
-        boundaryMesh
+        std::move(boundaryMesh)
     );
 
     mesh.stencilDB().insert(std::string("stencilPatchNames"), patchNames);
