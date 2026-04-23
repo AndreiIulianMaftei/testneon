@@ -7,7 +7,6 @@
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
 
 #include "NeoN/core/primitives/vec3.hpp"
-#include "NeoN/core/segmentedVector.hpp"
 
 #include <vector>
 

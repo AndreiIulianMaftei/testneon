@@ -150,7 +150,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(patchNames.size() == 4);
 
         // Patch names must match the boundary order:
-        // xmin, xmax, ymin, ymax, zmin, zmax
+        // xmin, xmax, ymin, ymax
         REQUIRE(patchNames[0] == "xmin");
         REQUIRE(patchNames[1] == "xmax");
         REQUIRE(patchNames[2] == "ymin");

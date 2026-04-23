@@ -327,19 +327,18 @@ private:
  */
 UnstructuredMesh createSingleCellMesh(const Executor exec);
 
-/** @brief A factory function for a 1D mesh
+/** @brief A factory function for a 1D uniform mesh
  *
- * A 1D mesh in 3D space in which each cell has a left and a right face.
+ * A 1D mesh in 3D space in which each cell has a left and a right boundary face.
  * The 1D mesh is aligned with the x coordinate of Cartesian coordinate system.
  */
 UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells);
 
-/** @brief A factory function for a uniform 2D mesh (OpenFOAM-style hex slab)
+/** @brief A factory function for a 2D uniform mesh (OpenFOAM-style hex slab)
  *
  * Creates an nx × ny × 1 structured hex mesh on [0,Lx] × [0,Ly] × [0,1].
  * One cell thick in z, like OpenFOAM 2D meshes.
- * Six boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly),
- * front (z=0), back (z=1).
+ * Four boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly)
  */
 UnstructuredMesh create2DUniformMesh(
     const Executor exec, localIdx nx, localIdx ny, scalar Lx = 1.0, scalar Ly = 1.0

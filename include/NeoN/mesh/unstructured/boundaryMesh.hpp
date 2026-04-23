@@ -34,7 +34,7 @@ public:
      * @brief Constructor for the BoundaryMesh class.
      *
      * @param exec The executor used for computations.
-     * @param faceCells A list of the neighbouring cell of each boundary
+     * @param faceCells A list of the neighboring cells of each boundary
      * face.
      * @param Cf A field of face centres.
      * @param Cn A field of neighbor cell centers.
@@ -43,7 +43,7 @@ public:
      * @param nf A field of face unit normals.
      * @param delta A field of delta vectors.
      * @param weights A field of weights used in cell to face interpolation.
-     * @param deltaCoeffs A field of  the inverse of distances between boundary faces and their
+     * @param deltaCoeffs A field of the inverse of distances between boundary faces and their
      * neighboring cell centers
      * @param offset The offset of the faces of each boundary
      */
@@ -221,7 +221,7 @@ private:
     /**
      * @brief Vector of face cells.
      *
-     * A field with the neighbouring cell of each boundary face.
+     * A field with the neighboring cells of each boundary face.
      */
     labelVector faceCells_;
 

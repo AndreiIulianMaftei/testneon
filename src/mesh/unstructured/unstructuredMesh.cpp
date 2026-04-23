@@ -246,7 +246,7 @@ UnstructuredMesh create3DUniformMesh(
         exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces, offset
     );
 
-    // Note: With localIdx, the safer limit is ~700 million cells
+    // Note: With the localIdx type (int32_t), the safer limit is 2 x 10^9 cells
     const localIdx nCells = nx * ny * nz;
 
     UnstructuredMesh mesh(
