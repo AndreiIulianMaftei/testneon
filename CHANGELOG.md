@@ -2,6 +2,7 @@
 ## Features
 - Add experimental umpire support [#455](https://github.com/exasim-project/NeoN/pull/455)
 - Add python bindings via nanobind [#382](https://github.com/exasim-project/NeoN/pull/382)
+- Correct the Ginkgo version to 2.0.0 (unreleased) [#493](https://github.com/exasim-project/NeoN/pull/493)
 
 ### Misc
 - Bump Ginkgo to 1.11 and Kokkos 4.7.01 [#409](https://github.com/exasim-project/NeoN/pull/409)
