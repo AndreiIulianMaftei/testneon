@@ -104,6 +104,7 @@ Vector<ValueType> upper(const CSRMatrix<ValueType, IndexType>& mtx)
     return upper;
 }
 
+
 void negLUx(
     const CSRMatrix<Vec3, localIdx>& mtx,
     const Vector<Vec3>& a,

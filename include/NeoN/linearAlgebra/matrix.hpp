@@ -244,6 +244,11 @@ using CSRMatrix = Matrix<ValueType, la::SparsityPattern<IndexType>>;
 template<typename ValueType, typename IndexType>
 [[nodiscard]] Vector<ValueType> upper(const CSRMatrix<ValueType, IndexType>&);
 
+/** @brief extract the lower triangular of the matrix
+ * @note this function is meant for testing purposes, it will recompute lower offsets
+ */
+template<typename ValueType, typename IndexType>
+[[nodiscard]] Vector<ValueType> lower(const CSRMatrix<ValueType, IndexType>&);
 
 /** @brief computes the inverted diagonal of a matrix and scales it by a, ie. a*D^-1
  * @note this function is a specialized function for CSR<Vec3> matrices assuming all diagonal
@@ -303,6 +308,5 @@ void scaledInvDiagNegLUx(
     Vector<scalar>& rAU,
     Vector<Vec3>& out
 );
-
 
 } // namespace NeoN
