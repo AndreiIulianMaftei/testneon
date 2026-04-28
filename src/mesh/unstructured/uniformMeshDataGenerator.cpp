@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "NeoN/mesh/unstructured/uniformMeshGenerator.hpp"
+#include "NeoN/mesh/unstructured/uniformMeshDataGenerator.hpp"
 
 #include <memory>
 
