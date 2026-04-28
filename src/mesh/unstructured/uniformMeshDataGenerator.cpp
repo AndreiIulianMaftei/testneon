@@ -156,18 +156,20 @@ BoundaryMesh generateBoundaryData(
     {
         auto sz = static_cast<size_t>(bndId);
         auto fi = static_cast<size_t>(faceId);
+        auto ci_size_t = static_cast<size_t>(ci);
+        auto ci_label = static_cast<label>(ci);
         scalar magA = mag(area);
         Vec3 normal = area * (1.0 / magA);
-        Vec3 delta = faceCentre - centres[static_cast<size_t>(ci)];
+        Vec3 delta = faceCentre - centres[ci_size_t];
 
         faces.areas[fi] = area;
         faces.centres[fi] = faceCentre;
         faces.magnitudes[fi] = magA;
-        faces.owner[fi] = static_cast<label>(ci);
+        faces.owner[fi] = ci_label;
 
-        bndFaceCells[sz] = static_cast<label>(ci);
+        bndFaceCells[sz] = ci_label;
         bndCf[sz] = faceCentre;
-        bndCn[sz] = centres[static_cast<size_t>(ci)];
+        bndCn[sz] = centres[ci_size_t];
         bndSf[sz] = area;
         bndMagSf[sz] = magA;
         bndNf[sz] = normal;
