@@ -188,10 +188,12 @@ void registerUnstructuredMesh(nb::module_& m)
         &NeoN::create1DUniformMesh,
         "exec"_a,
         "n_cells"_a,
+        "Lx"_a = 1.0,
         "Create a uniform 1D mesh aligned with the x-axis.\n\n"
         "Args:\n"
         "    exec: Executor for parallel operations\n"
-        "    n_cells: Number of cells in the mesh\n\n"
+        "    n_cells: Number of cells in the mesh\n"
+        "    Lx: Length of the mesh in the x-direction (Default: 1.0)\n\n"
         "Each cell has a left and right face. Useful for 1D simulations\n"
         "and testing finite volume schemes."
     );

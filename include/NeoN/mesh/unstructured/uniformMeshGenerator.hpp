@@ -50,7 +50,6 @@ struct FaceData
     std::vector<scalar> magnitudes;
     std::vector<label> owner;
     std::vector<label> neighbour;
-    // localIdx nInternalFaces;
 };
 
 std::vector<Vec3> generatePoints(const MeshParams& p);
