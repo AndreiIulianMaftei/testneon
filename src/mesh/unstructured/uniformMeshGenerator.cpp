@@ -134,10 +134,10 @@ BoundaryMesh generateBoundaryData(
     const int dim,
     const MeshParams& p,
     const std::vector<Vec3>& centres,
-    FaceData& faces,
     const localIdx nInternalFaces,
     const localIdx nBoundaryFaces,
-    const std::vector<localIdx> offset
+    const std::vector<localIdx> offset,
+    FaceData& faces
 )
 {
     std::vector<label> bndFaceCells(static_cast<size_t>(nBoundaryFaces));

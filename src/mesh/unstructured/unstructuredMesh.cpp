@@ -243,7 +243,7 @@ UnstructuredMesh create3DUniformMesh(
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
     auto boundaryMesh = detail::generateBoundaryData(
-        exec, dim, p, cellCentres, faces, nInternalFaces, nBoundaryFaces, offset
+        exec, dim, p, cellCentres, nInternalFaces, nBoundaryFaces, offset, faces
     );
 
     // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
