@@ -35,9 +35,9 @@ public:
     void insert(std::string name, const VolumeField<Vec3>& f);
     void insert(std::string name, const VolumeField<Tensor>& f);
 
-    const VolumeField<scalar>& scalar(const std::string& name) const;
-    const VolumeField<Vec3>& vector(const std::string& name) const;
-    const VolumeField<Tensor>& tensor(const std::string& name) const;
+    const VolumeField<scalar>& scalarFieldPtr(const std::string& name) const;
+    const VolumeField<Vec3>& vectorFieldPtr(const std::string& name) const;
+    const VolumeField<Tensor>& tensorFieldPtr(const std::string& name) const;
 
     bool hasScalar(const std::string& name) const noexcept;
     bool hasVector(const std::string& name) const noexcept;

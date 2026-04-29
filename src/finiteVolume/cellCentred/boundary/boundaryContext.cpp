@@ -23,17 +23,17 @@ void BoundaryContext::insert(std::string name, const VolumeField<Tensor>& f)
     tensorFields_.emplace(std::move(name), &f);
 }
 
-const VolumeField<NeoN::scalar>& BoundaryContext::scalar(const std::string& name) const
+const VolumeField<NeoN::scalar>& BoundaryContext::scalarFieldPtr(const std::string& name) const
 {
     return *scalarFields_.at(name);
 }
 
-const VolumeField<Vec3>& BoundaryContext::vector(const std::string& name) const
+const VolumeField<Vec3>& BoundaryContext::vectorFieldPtr(const std::string& name) const
 {
     return *vectorFields_.at(name);
 }
 
-const VolumeField<Tensor>& BoundaryContext::tensor(const std::string& name) const
+const VolumeField<Tensor>& BoundaryContext::tensorFieldPtr(const std::string& name) const
 {
     return *tensorFields_.at(name);
 }
