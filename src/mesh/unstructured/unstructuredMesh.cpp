@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
+#include "NeoN/mesh/unstructured/uniformMeshDataGenerator.hpp"
 
 #include "NeoN/core/primitives/vec3.hpp" // for Vec3
 
@@ -161,115 +162,112 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     );
 }
 
-UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells)
+UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar Lx)
 {
-    const Vec3 leftBoundary = {0.0, 0.0, 0.0};
-    const Vec3 rightBoundary = {1.0, 0.0, 0.0};
-    scalar meshSpacing = (rightBoundary[0] - leftBoundary[0]) / static_cast<scalar>(nCells);
-    auto hostExec = SerialExecutor {};
-    vectorVector meshPointsHost(hostExec, nCells + 1, {0.0, 0.0, 0.0});
-    auto meshPointsHostView = meshPointsHost.view();
-    meshPointsHostView[nCells - 1] = leftBoundary;
-    meshPointsHostView[nCells] = rightBoundary;
-    auto meshPoints = meshPointsHost.copyToExecutor(exec);
+    return create3DUniformMesh(exec, nCells, 1, 1, Lx, 1.0, 1.0);
+}
 
-    // loop over internal mesh points
-    auto meshPointsView = meshPoints.view();
-    auto leftBoundaryX = leftBoundary[0];
-    parallelFor(
-        exec,
-        {0, nCells - 1},
-        NEON_LAMBDA(const localIdx i) {
-            meshPointsView[i][0] = leftBoundaryX + static_cast<scalar>(i + 1) * meshSpacing;
-        },
-        "computeMeshPoints"
+UnstructuredMesh
+create2DUniformMesh(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
+{
+    return create3DUniformMesh(exec, nx, ny, 1, Lx, Ly, 1.0);
+}
+
+UnstructuredMesh create3DUniformMesh(
+    const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar Lx, scalar Ly, scalar Lz
+)
+{
+    // Validate input parameters
+    NF_ASSERT(nx > 0 && ny > 0 && nz > 0, "Number of cells in each direction must be positive");
+    NF_ASSERT(Lx > 0 && Ly > 0 && Lz > 0, "Domain lengths must be positive");
+
+    // Hold the mesh parameters
+    detail::MeshParams p {nx, ny, nz, Lx, Ly, Lz};
+
+    const auto points = detail::generatePoints(p);
+    const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
+
+    // Judge the dimension based on the input parameters
+    int dim = 0;
+    if (ny == 1 && nz == 1)
+    {
+        dim = 1;
+    }
+    else if (nz == 1)
+    {
+        dim = 2;
+    }
+    else
+    {
+        dim = 3;
+    }
+
+    // Compute the number of internal faces and boundary faces based on the mesh parameters
+    const localIdx nXInternalFaces = (p.nx - 1) * p.ny * p.nz;
+    const localIdx nYInternalFaces = p.nx * (p.ny - 1) * p.nz;
+    const localIdx nZInternalFaces = p.nx * p.ny * (p.nz - 1);
+    const localIdx nInternalFaces = nXInternalFaces + nYInternalFaces + nZInternalFaces;
+
+    const localIdx nBndLeft = p.ny * p.nz;
+    const localIdx nBndRight = p.ny * p.nz;
+
+    std::vector<localIdx> offset = {0, nBndLeft, nBndLeft + nBndRight};
+    // std::vector<std::string> patchNames = {"xmin", "xmax"};
+    auto patchNames =
+        std::make_shared<std::vector<std::string>>(std::vector<std::string> {"xmin", "xmax"});
+
+    // If the mesh is more than 1D, there are bottom and top boundary faces
+    if (dim > 1)
+    {
+        const localIdx nBndBottom = p.nx * p.nz;
+        const localIdx nBndTop = p.nx * p.nz;
+        offset.push_back(offset.back() + nBndBottom);
+        offset.push_back(offset.back() + nBndTop);
+        patchNames->push_back("ymin");
+        patchNames->push_back("ymax");
+    }
+
+    // If the mesh is more than 2D, there are front and back boundary faces
+    if (dim > 2)
+    {
+        const localIdx nBndFront = p.nx * p.ny;
+        const localIdx nBndBack = p.nx * p.ny;
+        offset.push_back(offset.back() + nBndFront);
+        offset.push_back(offset.back() + nBndBack);
+        patchNames->push_back("zmin");
+        patchNames->push_back("zmax");
+    }
+
+    const localIdx nBoundaryFaces = offset.back();
+    const localIdx nFaces = nInternalFaces + nBoundaryFaces;
+
+    auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
+    auto boundaryMesh = detail::generateBoundaryData(
+        exec, dim, p, cellCentres, nInternalFaces, nBoundaryFaces, offset, faces
     );
 
-    scalarVector cellVolumes(exec, nCells, meshSpacing);
+    // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
+    const localIdx nCells = nx * ny * nz;
 
-    vectorVector cellCenters(exec, nCells, {0.0, 0.0, 0.0});
-    auto cellCentersView = cellCenters.view();
-    parallelFor(
-        exec,
-        {0, nCells},
-        NEON_LAMBDA(const localIdx i) {
-            cellCentersView[i][0] = 0.5 * meshSpacing + meshSpacing * static_cast<scalar>(i);
-        },
-        "computeCellCenters"
-    );
-
-
-    vectorVector faceAreasHost(hostExec, nCells + 1, {1.0, 0.0, 0.0});
-    auto faceAreasHostView = faceAreasHost.view();
-    faceAreasHostView[nCells - 1] = {-1.0, 0.0, 0.0}; // left boundary face
-    auto faceAreas = faceAreasHost.copyToExecutor(exec);
-
-    vectorVector faceCenters(exec, meshPoints);
-    scalarVector magFaceAreas(exec, nCells + 1, 1.0);
-
-    labelVector faceOwnerHost(hostExec, nCells + 1);
-    labelVector faceNeighbor(exec, nCells - 1);
-    auto faceOwnerHostView = faceOwnerHost.view();
-    faceOwnerHostView[nCells - 1] = 0;                          // left boundary face
-    faceOwnerHostView[nCells] = static_cast<label>(nCells) - 1; // right boundary face
-    auto faceOwner = faceOwnerHost.copyToExecutor(exec);
-
-    // loop over internal faces
-    auto faceOwnerView = faceOwner.view();
-    auto faceNeighborView = faceNeighbor.view();
-    parallelFor(
-        exec,
-        {0, nCells - 1},
-        NEON_LAMBDA(const localIdx i) {
-            faceOwnerView[i] = i;
-            faceNeighborView[i] = i + 1;
-        },
-        "computeFaceOwnerAndNeighbors"
-    );
-
-    vectorVector deltaHost(hostExec, 2);
-    auto deltaHostView = deltaHost.view();
-    auto cellCentersHost = cellCenters.copyToHost();
-    auto cellCentersHostView = cellCentersHost.view();
-    deltaHostView[0] = {leftBoundary[0] - cellCentersHostView[0][0], 0.0, 0.0};
-    deltaHostView[1] = {rightBoundary[0] - cellCentersHostView[nCells - 1][0], 0.0, 0.0};
-    auto delta = deltaHost.copyToExecutor(exec);
-
-    scalarVector deltaCoeffsHost(hostExec, 2);
-    auto deltaCoeffsHostView = deltaCoeffsHost.view();
-    deltaCoeffsHostView[0] = 1 / mag(deltaHostView[0]);
-    deltaCoeffsHostView[1] = 1 / mag(deltaHostView[1]);
-    auto deltaCoeffs = deltaCoeffsHost.copyToExecutor(exec);
-
-    BoundaryMesh boundaryMesh(
-        exec,
-        {exec, {0, nCells - 1}},
-        {exec, {leftBoundary, rightBoundary}},
-        {exec, {cellCentersHostView[0], cellCentersHostView[nCells - 1]}},
-        {exec, {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}}},
-        {exec, {1.0, 1.0}},
-        {exec, {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}}},
-        delta,
-        {exec, {1.0, 1.0}},
-        deltaCoeffs,
-        {0, 1, 2}
-    );
-
-    return UnstructuredMesh(
-        meshPoints,
-        cellVolumes,
-        cellCenters,
-        faceAreas,
-        faceCenters,
-        magFaceAreas,
-        faceOwner,
-        faceNeighbor,
+    UnstructuredMesh mesh(
+        vectorVector(exec, std::move(points)),
+        scalarVector(exec, std::move(cellVolumes)),
+        vectorVector(exec, std::move(cellCentres)),
+        {exec, std::move(faces.areas)},
+        {exec, std::move(faces.centres)},
+        {exec, std::move(faces.magnitudes)},
+        {exec, std::move(faces.owner)},
+        labelVector(exec, std::move(faces.neighbour)),
         nCells,
-        nCells - 1,
-        2,
-        2,
-        nCells + 1,
-        boundaryMesh
+        nInternalFaces,
+        nBoundaryFaces,
+        offset.size() - 1, // nBoundaries
+        nFaces,
+        std::move(boundaryMesh)
     );
+
+    mesh.stencilDB().insert(std::string("stencilPatchNames"), patchNames);
+
+    return mesh;
 }
 } // namespace NeoN

@@ -47,6 +47,55 @@ struct ApproxScalar
     }
 };
 
+/**
+ * @brief Predicate for approximate comparison of NeoN::Vec3 values.
+ *
+ * Performs component-wise floating-point comparison using Catch2's
+ * @ref Catch::Approx with a configurable absolute tolerance.
+ *
+ * This predicate is intended for use with @ref EqualsRangeMatcher and
+ * @ref IsEqualTo when comparing vector-valued fields (e.g. cell centres,
+ * face centres, geometric quantities).
+ *
+ * Each component of the vector is compared independently using the same
+ * absolute tolerance.
+ *
+ * Example usage:
+ * @code
+ * std::vector<NeoN::Vec3> expected = {
+ *     {0.125, 0.5, 0.5},
+ *     {0.375, 0.5, 0.5}
+ * };
+ *
+ * REQUIRE_THAT(expected,
+ *              IsEqualTo(mesh.cellCentres(), ApproxVec3{1e-12}));
+ * @endcode
+ */
+struct ApproxVec3
+{
+    NeoN::scalar margin; ///< Absolute tolerance used for each component.
+
+    /**
+     * @brief Returns true if vectors @p rhs and @p lhs are approximately equal.
+     *
+     * The comparison is performed component-wise using @ref Catch::Approx:
+     * \f[
+     * |rhs_i - lhs_i| \le \text{margin}, \quad i = 0,1,2
+     * \f]
+     *
+     * @param rhs Reference vector (used as the reference value in Catch::Approx).
+     * @param lhs Vector to compare against.
+     * @return @c true if all three components are approximately equal within
+     *         the specified tolerance.
+     */
+    bool operator()(const NeoN::Vec3& rhs, const NeoN::Vec3& lhs) const
+    {
+        return Catch::Approx(rhs[0]).margin(margin) == lhs[0]
+            && Catch::Approx(rhs[1]).margin(margin) == lhs[1]
+            && Catch::Approx(rhs[2]).margin(margin) == lhs[2];
+    }
+};
+
 /** @brief Predicate for exact equality comparison using the built-in == operator.
  *
  * Used with @ref EqualsRangeMatcher and @ref IsEqualTo to compare integer or
