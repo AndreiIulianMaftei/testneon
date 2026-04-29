@@ -119,7 +119,8 @@ struct EqualInt
  * the expected vector using the supplied predicate.
  *
  * @tparam Range     A NeoN field type that exposes @c copyToHost() and @c view().
- * @tparam Predicate A binary callable returning @c bool, e.g. @ref ApproxScalar or @ref EqualInt.
+ * @tparam Predicate A binary callable returning @c bool, e.g. @ref ApproxScalar or @ref
+ EqualInt.
  */
 template<typename Range, typename Predicate>
 struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase
@@ -156,6 +157,88 @@ private:
 };
 
 /**
+ * @brief Catch2 matcher for element-wise comparison between an actual field and expected values.
+ *
+ * This matcher compares a NeoN field (or any compatible range) against an
+ * expected container using a user-provided predicate. The comparison is
+ * performed element-wise via @c std::equal.
+ *
+ * If the @p actual argument represents a device-resident field, it is first
+ * copied to host memory via @c copyToHost() before comparison.
+ *
+ * Typical usage:
+ * @code
+ * std::vector<NeoN::Vec3> expected = { ... };
+ *
+ * REQUIRE_THAT(mesh.cellCentres(),
+ *              Equals(expected, ApproxVec3{1e-12}));
+ * @endcode
+ *
+ * @tparam Expected   Container type holding expected values (e.g. std::vector).
+ * @tparam Predicate  Binary callable returning @c bool for comparing two elements
+ *                    (e.g. @ref ApproxScalar, @ref ApproxVec3, @ref EqualInt).
+ */
+template<typename Expected, typename Predicate>
+struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
+{
+    /**
+     * @brief Constructs the matcher with expected values and comparison predicate.
+     *
+     * @param expected Container holding the expected values.
+     * @param pred     Predicate used for element-wise comparison.
+     */
+    EqualsMatcher(Expected expected, Predicate pred) : expected_(std::move(expected)), pred_(pred)
+    {}
+
+    /**
+     * @brief Performs element-wise comparison against the @p actual argument.
+     *
+     * The @p actual object is assumed to be a NeoN field (or compatible type)
+     * exposing @c copyToHost() and @c view(). The data is copied to host memory
+     * and compared against @ref expected_ using @ref pred_.
+     *
+     * @tparam Actual Type of the actual object passed by Catch2.
+     * @param actual  The object under test (typically a NeoN field).
+     * @return @c true if all elements compare equal under the predicate,
+     *         @c false otherwise.
+     */
+    template<typename Actual>
+    bool match(const Actual& actual) const
+    {
+        using std::begin;
+        using std::end;
+
+        // Copy device field to host if needed
+        auto actualHost = actual.copyToHost();
+
+        return std::equal(
+            begin(actualHost.view()),
+            end(actualHost.view()),
+            begin(expected_),
+            end(expected_),
+            pred_
+        );
+    }
+
+    /**
+     * @brief Returns a human-readable description of the matcher.
+     *
+     * This string is used by Catch2 when reporting assertion failures.
+     *
+     * @return Description of the expected values.
+     */
+    std::string describe() const override
+    {
+        return "is equal to " + Catch::rangeToString(expected_);
+    }
+
+private:
+
+    Expected expected_; ///< Container holding expected values.
+    Predicate pred_;    ///< Predicate used for element-wise comparison.
+};
+
+/**
  * @brief Factory function that creates an @ref EqualsRangeMatcher for a NeoN field.
  *
  * Typical usage:
@@ -176,4 +259,36 @@ auto IsEqualTo(const Range& range, Predicate pred = ApproxScalar(1e-32))
     -> EqualsRangeMatcher<Range, Predicate>
 {
     return EqualsRangeMatcher<Range, Predicate> {range, pred};
+}
+
+/**
+ * @brief Factory function to create an @ref EqualsMatcher for element-wise comparison.
+ *
+ * This function constructs an @ref EqualsMatcher that compares an actual range
+ * (e.g. NeoN field or container) against an expected container using a
+ * user-defined predicate.
+ *
+ * It is intended for use with Catch2's @ref REQUIRE_THAT macro:
+ * @code
+ * REQUIRE_THAT(mesh.cellCentres(),
+ *              Equals(expectedCentres, ApproxVec3{1e-12}));
+ * @endcode
+ *
+ * If no predicate is provided, @ref ApproxScalar is used by default for
+ * floating-point comparisons with a small tolerance.
+ *
+ * @tparam Expected   Type of the expected container (e.g. std::vector<T>).
+ * @tparam Predicate  Binary predicate used for element-wise comparison.
+ *                    Defaults to @ref ApproxScalar.
+ *
+ * @param expected    Container holding the expected values.
+ * @param pred        Predicate used for comparison (default: ApproxScalar{1e-32}).
+ *
+ * @return An @ref EqualsMatcher configured with the provided expected values
+ *         and comparison predicate.
+ */
+template<typename Expected, typename Predicate = ApproxScalar>
+auto Equals(Expected expected, Predicate pred = Predicate {1e-32})
+{
+    return EqualsMatcher<Expected, Predicate> {std::move(expected), pred};
 }
