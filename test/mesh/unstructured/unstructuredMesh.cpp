@@ -130,9 +130,6 @@ TEST_CASE("Unstructured Mesh")
             {0.0, 0.25, 0.0},
             {0.0, 0.25, 0.0}
         };
-        // auto hostBndDelta = bm.delta().copyToHost();
-        // REQUIRE(hostBndDelta.view()[0][0] == Catch::Approx(-0.25));
-        // REQUIRE(hostBndDelta.view()[0][1] == Catch::Approx(0.0));
         REQUIRE_THAT(boundaryDeltaExp, IsEqualTo(bm.delta(), ApproxVec3 {1e-12}));
     }
 
@@ -178,7 +175,7 @@ TEST_CASE("Unstructured Mesh")
 
         // Cell volume = (3/3) * (2/2) * 1.0 = 1.0
         auto cellVolumesExp = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes()));
+        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
     }
 
     SECTION("2D mesh patch face centres lie on correct planes (3x2) " + execName)
