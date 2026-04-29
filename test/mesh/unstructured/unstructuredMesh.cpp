@@ -105,22 +105,13 @@ TEST_CASE("Unstructured Mesh")
 
         // Verify cell volumes (each cell is 0.5 * 0.5 * 1.0 = 0.25)
         auto cellVolumesExp = {0.25, 0.25, 0.25, 0.25};
-        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes()));
+        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
 
         // Verify cell centres (z should be 0.5, halfway through the slab)
-        auto hostCC = mesh.cellCentres().copyToHost();
-        REQUIRE(hostCC.view()[0][0] == Catch::Approx(0.25));
-        REQUIRE(hostCC.view()[0][1] == Catch::Approx(0.25));
-        REQUIRE(hostCC.view()[0][2] == Catch::Approx(0.5));
-        REQUIRE(hostCC.view()[1][0] == Catch::Approx(0.75));
-        REQUIRE(hostCC.view()[1][1] == Catch::Approx(0.25));
-        REQUIRE(hostCC.view()[3][0] == Catch::Approx(0.75));
-        REQUIRE(hostCC.view()[3][1] == Catch::Approx(0.75));
-
-        // auto cellCentresExp = std::vector<NeoN::Vec3> {
-        //     {0.25, 0.25, 0.5}, {0.75, 0.25, 0.5}, {0.25, 0.75, 0.5}, {0.75, 0.75, 0.5}
-        // };
-        // REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres()));
+        auto cellCentresExp = std::vector<NeoN::Vec3> {
+            {0.25, 0.25, 0.5}, {0.75, 0.25, 0.5}, {0.25, 0.75, 0.5}, {0.75, 0.75, 0.5}
+        };
+        REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres(), ApproxVec3 {1e-12}));
 
         // Verify the number of neighbouring cells for boundary faces
         // 4 patches: left(2), right(2), bottom(2), top(2)
@@ -129,9 +120,20 @@ TEST_CASE("Unstructured Mesh")
 
         // Verify boundary delta vectors
         // Left boundary: delta.x should be negative (face at x=0, cell centre at x=0.25)
-        auto hostBndDelta = bm.delta().copyToHost();
-        REQUIRE(hostBndDelta.view()[0][0] == Catch::Approx(-0.25));
-        REQUIRE(hostBndDelta.view()[0][1] == Catch::Approx(0.0));
+        auto boundaryDeltaExp = std::vector<NeoN::Vec3> {
+            {-0.25, 0.0, 0.0},
+            {-0.25, 0.0, 0.0},
+            {0.25, 0.0, 0.0},
+            {0.25, 0.0, 0.0},
+            {0.0, -0.25, 0.0},
+            {0.0, -0.25, 0.0},
+            {0.0, 0.25, 0.0},
+            {0.0, 0.25, 0.0}
+        };
+        // auto hostBndDelta = bm.delta().copyToHost();
+        // REQUIRE(hostBndDelta.view()[0][0] == Catch::Approx(-0.25));
+        // REQUIRE(hostBndDelta.view()[0][1] == Catch::Approx(0.0));
+        REQUIRE_THAT(boundaryDeltaExp, IsEqualTo(bm.delta(), ApproxVec3 {1e-12}));
     }
 
     SECTION("Uniform 2D mesh stores patch names in stencilDB " + execName)
