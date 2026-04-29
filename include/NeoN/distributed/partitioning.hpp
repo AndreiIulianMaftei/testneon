@@ -93,6 +93,8 @@ oneDPartitionField(FieldType field, UnstructuredMesh& mesh, NeoN::mpi::Environme
 
 } // namespace detail
 
+using detail::oneDPartitionField;
+
 } // namespace NeoN
 
 #endif
