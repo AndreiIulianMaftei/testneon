@@ -53,27 +53,28 @@ TEST_CASE("Unstructured Mesh")
         auto cellCentresExp = std::vector<NeoN::Vec3> {
             {0.125, 0.5, 0.5}, {0.375, 0.5, 0.5}, {0.625, 0.5, 0.5}, {0.875, 0.5, 0.5}
         };
-        // REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres()));
+        REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres(), ApproxVec3 {1e-12}));
 
         // Verify face owners (x-direction)
         auto faceOwnerExp = std::vector<NeoN::label> {0, 1, 2, 0, 3};
-        // REQUIRE_THAT(faceOwnerExp, IsEqualTo(mesh.faceOwner(), EqualInt()));
+        REQUIRE_THAT(faceOwnerExp, IsEqualTo(mesh.faceOwner(), EqualInt()));
 
         // Verify face neighbours (x-direction)
-        // auto faceNeighbourExp = std::vector<NeoN::label> {1, 2, 3};
-        // REQUIRE_THAT(faceNeighbourExp, IsEqualTo(mesh.faceNeighbour(), EqualInt()));
+        auto faceNeighbourExp = std::vector<NeoN::label> {1, 2, 3};
+        REQUIRE_THAT(faceNeighbourExp, IsEqualTo(mesh.faceNeighbour(), EqualInt()));
 
         // Verify boundary mesh: first 2 boundary faces are xmin/xmax
         // Verify neighbouring cell for boundary faces
-        // auto faceCellsExp = std::vector<NeoN::localIdx> {0, 3};
-        // REQUIRE_THAT(faceCellsExp, IsEqualTo(mesh.boundaryMesh().faceCells(), EqualInt()));
+        auto faceCellsExp = std::vector<NeoN::localIdx> {0, 3};
+        REQUIRE_THAT(faceCellsExp, IsEqualTo(mesh.boundaryMesh().faceCells(), EqualInt()));
 
         // // Verify neighbor cell centres
-        // auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
-        // REQUIRE_THAT(cnExp, IsEqualTo(mesh.boundaryMesh().cn()));
+        auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
+        REQUIRE_THAT(cnExp, IsEqualTo(mesh.boundaryMesh().cn(), ApproxVec3 {1e-12}));
 
-        // auto deltaExp = std::vector<NeoN::Vec3> {{-0.125, 0.0, 0.0}, {0.125, 0.0, 0.0}};
-        // REQUIRE_THAT(deltaExp, IsEqualTo(mesh.boundaryMesh().delta()));
+        // // Verify delta vectors
+        auto deltaExp = std::vector<NeoN::Vec3> {{-0.125, 0.0, 0.0}, {0.125, 0.0, 0.0}};
+        REQUIRE_THAT(deltaExp, IsEqualTo(mesh.boundaryMesh().delta(), ApproxVec3 {1e-12}));
 
         // Verify stencilDB has patchNames
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
