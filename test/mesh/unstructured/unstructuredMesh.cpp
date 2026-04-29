@@ -61,21 +61,20 @@ TEST_CASE("Unstructured Mesh")
 
         // Verify face neighbours (x-direction)
         auto faceNeighbourExp = std::vector<NeoN::label> {1, 2, 3};
-        // REQUIRE_THAT(faceNeighbourExp, IsEqualTo(mesh.faceNeighbour(), EqualInt()));
         REQUIRE_THAT(mesh.faceNeighbour(), Equals(faceNeighbourExp, EqualInt()));
 
         // Verify boundary mesh: first 2 boundary faces are xmin/xmax
         // Verify neighbouring cell for boundary faces
         auto faceCellsExp = std::vector<NeoN::localIdx> {0, 3};
-        // REQUIRE_THAT(faceCellsExp, IsEqualTo(mesh.boundaryMesh().faceCells(), EqualInt()));
+        REQUIRE_THAT(mesh.boundaryMesh().faceCells(), Equals(faceCellsExp, EqualInt()));
 
         // // Verify neighbor cell centres
         auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
-        // REQUIRE_THAT(cnExp, IsEqualTo(mesh.boundaryMesh().cn(), ApproxVec3 {1e-12}));
+        REQUIRE_THAT(mesh.boundaryMesh().cn(), Equals(cnExp, ApproxVec3 {1e-12}));
 
         // // Verify delta vectors
         auto deltaExp = std::vector<NeoN::Vec3> {{-0.125, 0.0, 0.0}, {0.125, 0.0, 0.0}};
-        // REQUIRE_THAT(deltaExp, IsEqualTo(mesh.boundaryMesh().delta(), ApproxVec3 {1e-12}));
+        REQUIRE_THAT(mesh.boundaryMesh().delta(), Equals(deltaExp, ApproxVec3 {1e-12}));
 
         // Verify stencilDB has patchNames
         REQUIRE(mesh.stencilDB().contains(std::string("stencilPatchNames")));
@@ -106,13 +105,13 @@ TEST_CASE("Unstructured Mesh")
 
         // Verify cell volumes (each cell is 0.5 * 0.5 * 1.0 = 0.25)
         auto cellVolumesExp = {0.25, 0.25, 0.25, 0.25};
-        // REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
+        REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, ApproxScalar(1e-12)));
 
         // Verify cell centres (z should be 0.5, halfway through the slab)
         auto cellCentresExp = std::vector<NeoN::Vec3> {
             {0.25, 0.25, 0.5}, {0.75, 0.25, 0.5}, {0.25, 0.75, 0.5}, {0.75, 0.75, 0.5}
         };
-        // REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres(), ApproxVec3 {1e-12}));
+        REQUIRE_THAT(mesh.cellCentres(), Equals(cellCentresExp, ApproxVec3 {1e-12}));
 
         // Verify the number of neighbouring cells for boundary faces
         // 4 patches: left(2), right(2), bottom(2), top(2)
@@ -131,7 +130,7 @@ TEST_CASE("Unstructured Mesh")
             {0.0, 0.25, 0.0},
             {0.0, 0.25, 0.0}
         };
-        // REQUIRE_THAT(boundaryDeltaExp, IsEqualTo(bm.delta(), ApproxVec3 {1e-12}));
+        REQUIRE_THAT(bm.delta(), Equals(boundaryDeltaExp, ApproxVec3 {1e-12}));
     }
 
     SECTION("Uniform 2D mesh stores patch names in stencilDB " + execName)
