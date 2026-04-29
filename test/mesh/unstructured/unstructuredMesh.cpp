@@ -175,7 +175,7 @@ TEST_CASE("Unstructured Mesh")
 
         // Cell volume = (3/3) * (2/2) * 1.0 = 1.0
         auto cellVolumesExp = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-        // REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
+        REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, ApproxScalar(1e-12)));
     }
 
     SECTION("2D mesh patch face centres lie on correct planes (3x2) " + execName)
@@ -215,7 +215,7 @@ TEST_CASE("Unstructured Mesh")
             {1.5, ymax, 0.5},
             {2.5, ymax, 0.5} // top
         };
-        // REQUIRE_THAT(cfExp, IsEqualTo(bm.cf(), ApproxVec3 {1e-12}));
+        REQUIRE_THAT(bm.cf(), Equals(cfExp, ApproxVec3 {1e-12}));
     }
 
     SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
