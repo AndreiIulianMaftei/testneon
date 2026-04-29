@@ -287,10 +287,6 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(mesh.nFaces() == 52);
 
         // Cell volume = (3/3) * (2/2) * (2/2) = 1.0
-        // auto hostVols = mesh.cellVolumes().copyToHost();
-        // for (NeoN::localIdx c = 0; c < 12; ++c)
-        //     REQUIRE(hostVols.view()[c] == Catch::Approx(1.0));
-
         auto hostVolumesExp =
             std::vector<NeoN::scalar> {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
         REQUIRE_THAT(hostVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
@@ -327,30 +323,43 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[5] - offset[4] == 6);  // front
         REQUIRE(offset[6] - offset[5] == 6);  // back
 
+        // Verify face centres for each patch
         auto hostCf = bm.cf().copyToHost();
 
         // left (patch 0): all face centres on x = xmin plane
         for (NeoN::localIdx f = offset[0]; f < offset[1]; ++f)
+        {
             REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmin).margin(1e-10));
+        }
 
         // right (patch 1): all face centres on x = xmax plane
         for (NeoN::localIdx f = offset[1]; f < offset[2]; ++f)
+        {
             REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmax).margin(1e-10));
+        }
 
         // bottom (patch 2): all face centres on y = ymin plane
         for (NeoN::localIdx f = offset[2]; f < offset[3]; ++f)
+        {
             REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymin).margin(1e-10));
+        }
 
         // top (patch 3): all face centres on y = ymax plane
         for (NeoN::localIdx f = offset[3]; f < offset[4]; ++f)
+        {
             REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
+        }
 
         // front (patch 4): all face centres on z = zmin plane
         for (NeoN::localIdx f = offset[4]; f < offset[5]; ++f)
+        {
             REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmin).margin(1e-10));
+        }
 
         // back (patch 5): all face centres on z = zmax plane
         for (NeoN::localIdx f = offset[5]; f < offset[6]; ++f)
+        {
             REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
+        }
     }
 }
