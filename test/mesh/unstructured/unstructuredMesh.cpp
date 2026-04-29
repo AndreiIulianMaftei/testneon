@@ -202,31 +202,20 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[3] - offset[2] == 3); // bottom
         REQUIRE(offset[4] - offset[3] == 3); // top
 
-        auto hostCf = bm.cf().copyToHost();
-
-        // left (patch 0): all face centres on x = xmin plane
-        for (NeoN::localIdx f = offset[0]; f < offset[1]; ++f)
-        {
-            REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmin).margin(1e-10));
-        }
-
-        // right (patch 1): all face centres on x = xmax plane
-        for (NeoN::localIdx f = offset[1]; f < offset[2]; ++f)
-        {
-            REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmax).margin(1e-10));
-        }
-
-        // bottom (patch 2): all face centres on y = ymin plane
-        for (NeoN::localIdx f = offset[2]; f < offset[3]; ++f)
-        {
-            REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymin).margin(1e-10));
-        }
-
-        // top (patch 3): all face centres on y = ymax plane
-        for (NeoN::localIdx f = offset[3]; f < offset[4]; ++f)
-        {
-            REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
-        }
+        // Verify face centres for each patch
+        auto cfExp = std::vector<NeoN::Vec3> {
+            {xmin, 0.5, 0.5},
+            {xmin, 1.5, 0.5}, // left
+            {xmax, 0.5, 0.5},
+            {xmax, 1.5, 0.5}, // right
+            {0.5, ymin, 0.5},
+            {1.5, ymin, 0.5},
+            {2.5, ymin, 0.5}, // bottom
+            {0.5, ymax, 0.5},
+            {1.5, ymax, 0.5},
+            {2.5, ymax, 0.5} // top
+        };
+        REQUIRE_THAT(cfExp, IsEqualTo(bm.cf(), ApproxVec3 {1e-12}));
     }
 
     SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
