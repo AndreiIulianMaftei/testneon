@@ -242,10 +242,6 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostPoints.size() == 27);
 
         // Each cell is 0.5 * 0.5 * 0.5 = 0.125
-        // auto hostVols = mesh.cellVolumes().copyToHost();
-        // for (NeoN::localIdx c = 0; c < 8; ++c)
-        //     REQUIRE(hostVols.view()[c] == Catch::Approx(0.125));
-
         auto cellVolumesExp = {0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125};
         REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
 
@@ -291,9 +287,13 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(mesh.nFaces() == 52);
 
         // Cell volume = (3/3) * (2/2) * (2/2) = 1.0
-        auto hostVols = mesh.cellVolumes().copyToHost();
-        for (NeoN::localIdx c = 0; c < 12; ++c)
-            REQUIRE(hostVols.view()[c] == Catch::Approx(1.0));
+        // auto hostVols = mesh.cellVolumes().copyToHost();
+        // for (NeoN::localIdx c = 0; c < 12; ++c)
+        //     REQUIRE(hostVols.view()[c] == Catch::Approx(1.0));
+
+        auto hostVolumesExp =
+            std::vector<NeoN::scalar> {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+        REQUIRE_THAT(hostVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
     }
 
     SECTION("3D mesh patch face centres lie on correct planes (3x2x4) " + execName)
