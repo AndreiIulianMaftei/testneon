@@ -176,9 +176,9 @@ TEST_CASE("Tensor - Norms")
     REQUIRE_THAT(NeoN::magSqr(identity), Catch::Matchers::WithinRel(3.0));
 
     Tensor t(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
-    scalar expected_sqr = 1 + 4 + 9 + 16 + 25 + 36 + 49 + 64 + 81;
-    REQUIRE_THAT(NeoN::magSqr(t), Catch::Matchers::WithinRel(expected_sqr));
-    REQUIRE_THAT(NeoN::mag(t), Catch::Matchers::WithinRel(std::sqrt(expected_sqr)));
+    scalar expectedSqr = 1 + 4 + 9 + 16 + 25 + 36 + 49 + 64 + 81;
+    REQUIRE_THAT(NeoN::magSqr(t), Catch::Matchers::WithinRel(expectedSqr));
+    REQUIRE_THAT(NeoN::mag(t), Catch::Matchers::WithinRel(std::sqrt(expectedSqr)));
 }
 
 TEST_CASE("Tensor - Traits")

@@ -162,7 +162,7 @@ public:
 
     /** @brief Transpose */
     KOKKOS_INLINE_FUNCTION
-    Tensor T() const
+    Tensor T() const // NOLINT
     {
         return Tensor(
             data_[0], data_[3], data_[6], data_[1], data_[4], data_[7], data_[2], data_[5], data_[8]
