@@ -242,20 +242,27 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(hostPoints.size() == 27);
 
         // Each cell is 0.5 * 0.5 * 0.5 = 0.125
-        auto hostVols = mesh.cellVolumes().copyToHost();
-        for (NeoN::localIdx c = 0; c < 8; ++c)
-            REQUIRE(hostVols.view()[c] == Catch::Approx(0.125));
+        // auto hostVols = mesh.cellVolumes().copyToHost();
+        // for (NeoN::localIdx c = 0; c < 8; ++c)
+        //     REQUIRE(hostVols.view()[c] == Catch::Approx(0.125));
+
+        auto cellVolumesExp = {0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125};
+        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
 
         // Cell centres at 0.25 increments
-        auto hostCC = mesh.cellCentres().copyToHost();
         // cell(0,0,0) → (0.25, 0.25, 0.25)
-        REQUIRE(hostCC.view()[0][0] == Catch::Approx(0.25));
-        REQUIRE(hostCC.view()[0][1] == Catch::Approx(0.25));
-        REQUIRE(hostCC.view()[0][2] == Catch::Approx(0.25));
         // cell(1,1,1) = k*nx*ny + j*nx + i = 1*4 + 1*2 + 1 = 7 → (0.75, 0.75, 0.75)
-        REQUIRE(hostCC.view()[7][0] == Catch::Approx(0.75));
-        REQUIRE(hostCC.view()[7][1] == Catch::Approx(0.75));
-        REQUIRE(hostCC.view()[7][2] == Catch::Approx(0.75));
+        auto cellCentresExp = std::vector<NeoN::Vec3> {
+            {0.25, 0.25, 0.25},
+            {0.75, 0.25, 0.25},
+            {0.25, 0.75, 0.25},
+            {0.75, 0.75, 0.25},
+            {0.25, 0.25, 0.75},
+            {0.75, 0.25, 0.75},
+            {0.25, 0.75, 0.75},
+            {0.75, 0.75, 0.75}
+        };
+        REQUIRE_THAT(cellCentresExp, IsEqualTo(mesh.cellCentres(), ApproxVec3 {1e-12}));
 
         // Boundary delta: left boundary first face should have negative x delta
         auto hostBndDelta = mesh.boundaryMesh().delta().copyToHost();
