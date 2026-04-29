@@ -287,9 +287,9 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(mesh.nFaces() == 52);
 
         // Cell volume = (3/3) * (2/2) * (2/2) = 1.0
-        auto hostVolumesExp =
+        auto cellVolumesExp =
             std::vector<NeoN::scalar> {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-        REQUIRE_THAT(hostVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
+        REQUIRE_THAT(cellVolumesExp, IsEqualTo(mesh.cellVolumes(), ApproxScalar(1e-12)));
     }
 
     SECTION("3D mesh patch face centres lie on correct planes (3x2x4) " + execName)
