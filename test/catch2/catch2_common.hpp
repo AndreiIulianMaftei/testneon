@@ -183,10 +183,7 @@ struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
      *
      * @return Description of the expected values.
      */
-    std::string describe() const override
-    {
-        return "is equal to " + Catch::rangeToString(expected_);
-    }
+    std::string describe() const override { return "equals " + Catch::rangeToString(expected_); }
 
 private:
 
@@ -226,3 +223,18 @@ auto Equals(Expected expected, Predicate pred = Predicate {1e-32})
 {
     return EqualsMatcher<Expected, Predicate> {std::move(expected), pred};
 }
+
+namespace Catch
+{
+
+template<typename T>
+struct StringMaker<NeoN::Vector<T>>
+{
+    static std::string convert(const NeoN::Vector<T>& v)
+    {
+        auto host = v.copyToHost();
+        return rangeToString(host.view());
+    }
+};
+
+} // namespace Catch
