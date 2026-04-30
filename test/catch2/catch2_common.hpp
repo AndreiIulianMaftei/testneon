@@ -227,9 +227,38 @@ auto Equals(Expected expected, Predicate pred = Predicate {1e-32})
 namespace Catch
 {
 
+/**
+ * @brief Catch2 string conversion for NeoN::Vector.
+ *
+ * This specialization of @c Catch::StringMaker enables Catch2 to print
+ * @c NeoN::Vector objects in assertion messages. Without this, Catch2
+ * falls back to a placeholder ("{?}") because it does not know how to
+ * convert the type to a string.
+ *
+ * The vector is first copied from device to host memory (if applicable)
+ * using @c copyToHost(), and then converted to a string using
+ * @c Catch::rangeToString.
+ *
+ * This allows assertions such as:
+ * @code
+ * REQUIRE_THAT(checkSparse, Equals(I({1.0, 5.0, 7.0, 8.0})));
+ * @endcode
+ * to produce informative output like:
+ * @code
+ * { 1.0, 5.0, 6.999999, 8.0 } is equal to { 1.0, 5.0, 7.0, 8.0 }
+ * @endcode
+ *
+ * @tparam T Value type stored in the NeoN::Vector.
+ */
 template<typename T>
 struct StringMaker<NeoN::Vector<T>>
 {
+    /**
+     * @brief Converts a NeoN::Vector into a human-readable string.
+     *
+     * @param v The vector to convert (possibly device-resident).
+     * @return A string representation of the vector contents.
+     */
     static std::string convert(const NeoN::Vector<T>& v)
     {
         auto host = v.copyToHost();
