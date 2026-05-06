@@ -79,6 +79,9 @@ _build
 
 *.log
 
+*.lock
+conda/recipe/meta.yaml
+conda/recipe
 .vs/
 *.key
 
@@ -90,3 +93,4 @@ uv.lock
 *log
 *.claude
 CLAUDE.md
+.pixi/
