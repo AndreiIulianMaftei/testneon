@@ -87,3 +87,5 @@ __pycache__
 _skbuild
 uv.lock
 *.bck
+*log
+*.claude
