@@ -332,7 +332,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec);
  * A 1D mesh in 3D space in which each cell has a left and a right boundary face.
  * The 1D mesh is aligned with the x coordinate of Cartesian coordinate system.
  */
-UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar Lx = 1.0);
+UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar lx = 1.0);
 
 /** @brief A factory function for a 2D uniform mesh (OpenFOAM-style hex slab)
  *
@@ -341,7 +341,7 @@ UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells,
  * Four boundary patches: left (x=0), right (x=Lx), bottom (y=0), top (y=Ly)
  */
 UnstructuredMesh create2DUniformMesh(
-    const Executor exec, localIdx nx, localIdx ny, scalar Lx = 1.0, scalar Ly = 1.0
+    const Executor exec, localIdx nx, localIdx ny, scalar lx = 1.0, scalar ly = 1.0
 );
 
 /** @brief A factory function for a uniform 3D hex mesh
@@ -355,9 +355,9 @@ UnstructuredMesh create3DUniformMesh(
     localIdx nx,
     localIdx ny,
     localIdx nz,
-    scalar Lx = 1.0,
-    scalar Ly = 1.0,
-    scalar Lz = 1.0
+    scalar lx = 1.0,
+    scalar ly = 1.0,
+    scalar lz = 1.0
 );
 
 } // namespace NeoN
