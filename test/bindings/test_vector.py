@@ -74,7 +74,7 @@ def test_jax_operations(executor):
     For CPU executors (Serial/CPU): convert directly via __array__.
     For GPU executors: copy to host first, then convert.
     """
-    if !has_jax:
+    if not has_jax:
         return
     name, exec = executor
 
