@@ -5,8 +5,8 @@
 import neon
 
 
-def test_scalar_surface_field_and_bcs():
-    exec = neon.SerialExecutor()
+def test_scalar_surface_field_and_bcs(executor):
+    name, exec = executor
     mesh = neon.create_1d_uniform_mesh(exec, 4)
 
     bcs = neon.create_calculated_surface_bcs_scalar(mesh)
