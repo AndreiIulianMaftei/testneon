@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "NeoN/linearAlgebra/sparsityPattern.hpp"
 #include "NeoN/dsl/coeff.hpp"
 
 namespace NeoN::dsl

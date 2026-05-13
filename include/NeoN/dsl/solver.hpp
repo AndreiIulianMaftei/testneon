@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <iostream>
 #include <memory>
-#include <type_traits>
 #include <utility>
 #include <concepts>
 
@@ -19,7 +17,6 @@
 
 #include "NeoN/linearAlgebra/linearSystem.hpp"
 #include "NeoN/linearAlgebra/solver.hpp"
-#include "NeoN/linearAlgebra/sparsityPattern.hpp"
 
 
 namespace NeoN::dsl
