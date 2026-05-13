@@ -250,13 +250,13 @@ void computeDivImp(
             auto valueMat = flux * operatorScalingOwn * valFrac2 * one<ValueType>();
 
             Kokkos::atomic_add(&values[rowOwnStart + diagOffs[own]], valueMat);
-            bValues[bcfacei] = valueMat;
+            bValues[bcfacei] -= valueMat;
 
             auto valueRhs = (flux * operatorScalingOwn * (valFrac1 * refValue[bcfacei]))
                           + valFrac2 * refGradient[bcfacei] * (1 / deltaCoeffs[bcfacei]);
 
             Kokkos::atomic_sub(&rhs[own], valueRhs);
-            bRhs[bcfacei] = valueRhs;
+            bRhs[bcfacei] += valueRhs;
         },
         "computeInterfaceGaussGreenDivCoefficients"
     );

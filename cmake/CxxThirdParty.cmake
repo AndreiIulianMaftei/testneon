@@ -78,7 +78,7 @@ cpmaddpackage(
   YES)
 
 if(${NeoN_WITH_SPDLOG})
-  set(SPDLOG_OPTIONS "SPDLOG_FMT_EXTERNAL ON")
+  set(SPDLOG_OPTIONS "SPDLOG_FMT_EXTERNAL_HO ON")
   cpmaddpackage(
     NAME
     spdlog

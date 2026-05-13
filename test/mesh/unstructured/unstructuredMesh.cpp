@@ -161,9 +161,9 @@ TEST_CASE("Unstructured Mesh")
     {
         NeoN::localIdx nx = 3;
         NeoN::localIdx ny = 2;
-        NeoN::scalar Lx = 3.0;
-        NeoN::scalar Ly = 2.0;
-        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, Lx, Ly);
+        NeoN::scalar lx = 3.0;
+        NeoN::scalar ly = 2.0;
+        auto mesh = NeoN::create2DUniformMesh(exec, nx, ny, lx, ly);
 
         // 3x2 mesh: 6 hex cells, (3-1)*2 + 3*(2-1) = 4+3 = 7 internal faces
         // boundary: left(2) + right(2) + bottom(3) + top(3) = 10
@@ -272,10 +272,10 @@ TEST_CASE("Unstructured Mesh")
         NeoN::localIdx nx = 3;
         NeoN::localIdx ny = 2;
         NeoN::localIdx nz = 2;
-        NeoN::scalar Lx = 3.0;
-        NeoN::scalar Ly = 2.0;
-        NeoN::scalar Lz = 2.0;
-        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz, Lx, Ly, Lz);
+        NeoN::scalar lx = 3.0;
+        NeoN::scalar ly = 2.0;
+        NeoN::scalar lz = 2.0;
+        auto mesh = NeoN::create3DUniformMesh(exec, nx, ny, nz, lx, ly, lz);
 
         // 3x2x2: 12 cells
         // internal: x:(3-1)*2*2=8, y:3*(2-1)*2=6, z:3*2*(2-1)=6 → 20

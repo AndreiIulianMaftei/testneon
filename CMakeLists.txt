@@ -271,6 +271,9 @@ if(spdlog_ADDED)
     EXPORT SpdlogTargets
     INCLUDES
     DESTINATION include)
+  if(fmt_ADDED)
+    install(TARGETS fmt-header-only EXPORT SpdlogTargets)
+  endif()
   install(
     EXPORT SpdlogTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/spdlog
@@ -278,11 +281,8 @@ if(spdlog_ADDED)
 endif()
 
 if(fmt_ADDED)
-  install(
-    TARGETS fmt-header-only
-    EXPORT NeoNTargets
-    INCLUDES
-    DESTINATION include)
+  install(TARGETS fmt-header-only EXPORT NeoNTargets)
+  install(DIRECTORY "${fmt_SOURCE_DIR}/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 
 # install internal sundials version if(sundials_POPULATED) install( TARGETS cvode nvec arkode

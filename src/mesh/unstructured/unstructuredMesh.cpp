@@ -162,27 +162,27 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     );
 }
 
-UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar Lx)
+UnstructuredMesh create1DUniformMesh(const Executor exec, const localIdx nCells, scalar lx)
 {
-    return create3DUniformMesh(exec, nCells, 1, 1, Lx, 1.0, 1.0);
+    return create3DUniformMesh(exec, nCells, 1, 1, lx, 1.0, 1.0);
 }
 
 UnstructuredMesh
-create2DUniformMesh(const Executor exec, localIdx nx, localIdx ny, scalar Lx, scalar Ly)
+create2DUniformMesh(const Executor exec, localIdx nx, localIdx ny, scalar lx, scalar ly)
 {
-    return create3DUniformMesh(exec, nx, ny, 1, Lx, Ly, 1.0);
+    return create3DUniformMesh(exec, nx, ny, 1, lx, ly, 1.0);
 }
 
 UnstructuredMesh create3DUniformMesh(
-    const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar Lx, scalar Ly, scalar Lz
+    const Executor exec, localIdx nx, localIdx ny, localIdx nz, scalar lx, scalar ly, scalar lz
 )
 {
     // Validate input parameters
     NF_ASSERT(nx > 0 && ny > 0 && nz > 0, "Number of cells in each direction must be positive");
-    NF_ASSERT(Lx > 0 && Ly > 0 && Lz > 0, "Domain lengths must be positive");
+    NF_ASSERT(lx > 0 && ly > 0 && lz > 0, "Domain lengths must be positive");
 
     // Hold the mesh parameters
-    detail::MeshParams p {nx, ny, nz, Lx, Ly, Lz};
+    detail::MeshParams p {nx, ny, nz, lx, ly, lz};
 
     const auto points = detail::generatePoints(p);
     const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
