@@ -55,8 +55,8 @@ TEMPLATE_TEST_CASE("DdtOperator::ddt", "[bench]", NeoN::scalar, NeoN::Vec3)
         CreateVector<TestType> {.name = "phi", .mesh = mesh, .timeIndex = 1}
     );
 
-    fill(phi.internalVector(), NeoN::one<TestType>());
-    fill(phi.boundaryData().value(), NeoN::zero<TestType>());
+    NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
+    NeoN::fill(phi.boundaryData().value(), NeoN::zero<TestType>());
     phi.correctBoundaryConditions();
 
     // Ensure old-time storage exists and is initialized

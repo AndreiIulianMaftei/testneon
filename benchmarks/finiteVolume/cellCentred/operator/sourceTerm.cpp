@@ -21,15 +21,15 @@ TEMPLATE_TEST_CASE("SourceTerm::sourceTerm", "[bench]", NeoN::scalar, NeoN::Vec3
     // Create a scalar field coeff and initialise with 1.0
     auto coeffBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
     fvcc::VolumeField<NeoN::scalar> coeff(exec, "coeff", mesh, coeffBCs);
-    fill(coeff.internalVector(), 2.0);
-    fill(coeff.boundaryData().value(), 0.0);
+    NeoN::fill(coeff.internalVector(), 2.0);
+    NeoN::fill(coeff.boundaryData().value(), 0.0);
     coeff.correctBoundaryConditions();
 
     // Create a vector field to hold the variable
     auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
     fvcc::VolumeField<TestType> phi(exec, "sf", mesh, volumeBCs);
-    fill(phi.internalVector(), NeoN::one<TestType>());
-    fill(phi.boundaryData().value(), NeoN::zero<TestType>());
+    NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
+    NeoN::fill(phi.boundaryData().value(), NeoN::zero<TestType>());
     phi.correctBoundaryConditions();
 
     // capture the value of size as section name
