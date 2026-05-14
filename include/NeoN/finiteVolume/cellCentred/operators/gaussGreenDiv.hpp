@@ -24,11 +24,20 @@ void computeDivExp(
 );
 
 template<typename ValueType>
-void computeDivImp(
+void computeDivIntImp(
     la::LinearSystem<ValueType>& ls,
     const SurfaceField<scalar>& faceFlux,
     const VolumeField<ValueType>& phi,
-    const SurfaceInterpolation<ValueType>& surfInterp,
+    const SurfaceField<scalar>& weights,
+    const dsl::Coeff operatorScaling
+);
+
+template<typename ValueType>
+void computeDivBoundImp(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const SurfaceField<scalar>& weights,
     const dsl::Coeff operatorScaling
 );
 
@@ -98,7 +107,9 @@ public:
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling) const override
     {
-        computeDivImp(ls, faceFlux, phi, surfaceInterpolation_, operatorScaling);
+        const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
+        computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);
+        computeDivBoundImp(ls, faceFlux, phi, weights, operatorScaling);
     };
 
     std::unique_ptr<DivOperatorFactory<ValueType>> clone() const override

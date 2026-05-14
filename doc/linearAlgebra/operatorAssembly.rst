@@ -227,12 +227,6 @@ Row-sum verification per face:
    :math:`-(1-w) F_f` to the neighbour diagonal, so the full sums converge to
    :math:`+F_f` and :math:`-F_f` respectively.
 
-.. note::
-
-   **Matches OpenFOAM.**  OpenFOAM's ``gaussConvectionScheme`` sets
-   ``lower[f] = -w F_f``, ``upper[f] = (1-w) F_f``, then ``negSumDiag()`` gives
-   ``diag[own] += w F_f`` and ``diag[nei] -= (1-w) F_f`` — the **same structure**
-   as NeoN.
 
 Physical boundary
 ^^^^^^^^^^^^^^^^^
@@ -315,7 +309,7 @@ After both loops: ``laplacian[celli] *= operatorScaling[celli] / vol[celli]``.
 gaussGreenLaplacian — Implicit
 ------------------------------
 
-``computeLaplacianImpl`` assembles the diffusion operator
+``computeLaplacianIntImpl`` assembles the internal contributions of the diffusion operator
 :math:`+\nabla \cdot (\gamma \nabla \varphi)` into the linear system.
 
 Internal faces
