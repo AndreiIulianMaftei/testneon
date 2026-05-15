@@ -29,10 +29,15 @@ TEMPLATE_TEST_CASE("LinearSystem", "[bench]", NeoN::scalar, NeoN::Vec3)
         }
 
         SECTION("Reset")
-
         {
             auto ls = la::createEmptyLinearSystem<TestType>(mesh);
             BENCHMARK(std::string(execName) + "_reset") { ls.reset(); };
+        }
+
+        SECTION("CopyToHost")
+        {
+            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
+            BENCHMARK(std::string(execName) + "_copyToHost") { return ls.copyToHost(); };
         }
     }
 }

@@ -45,13 +45,11 @@ TEMPLATE_TEST_CASE("Solver::DiagonalSolver", "[bench]", NeoN::scalar, NeoN::Vec3
     NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
     auto ls = assembleLS<TestType>(exec, mesh);
     NeoN::Vector<TestType> x(exec, mesh.nCells(), NeoN::zero<TestType>());
-
     NeoN::Dictionary solverDict {{{"solver", std::string {"diagonal"}}}};
     auto solver = NeoN::la::Solver(exec, solverDict);
 
     DYNAMIC_SECTION("" << size)
     {
-        NeoN::fill(x, NeoN::zero<TestType>());
         BENCHMARK(std::string(execName) + "_diagonal") { solver.solve(ls, x); };
     }
 }
@@ -65,7 +63,6 @@ TEST_CASE("Solver::GinkgoCG", "[bench]")
     NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
     auto ls = assembleLS<NeoN::scalar>(exec, mesh);
     NeoN::Vector<NeoN::scalar> x(exec, mesh.nCells(), NeoN::zero<NeoN::scalar>());
-
     NeoN::Dictionary solverDict {
         {{"solver", std::string {"Ginkgo"}},
          {"type", "solver::Cg"},
@@ -75,7 +72,6 @@ TEST_CASE("Solver::GinkgoCG", "[bench]")
 
     DYNAMIC_SECTION("" << size)
     {
-        NeoN::fill(x, NeoN::zero<NeoN::scalar>());
         BENCHMARK(std::string(execName) + "_ginkgo_cg") { solver.solve(ls, x); };
     }
 }

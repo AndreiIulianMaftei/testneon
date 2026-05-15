@@ -4,4 +4,3 @@
 
 neon_benchmark(linearSystem)
 neon_benchmark(solver)
-neon_benchmark(sparsityPattern)
