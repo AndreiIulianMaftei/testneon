@@ -11,10 +11,11 @@
 
 using Operator = NeoN::dsl::Operator;
 
-// Assemble a diagonally-dominant linear system from a 1D laplacian.
-// The laplacian implicit operation produces a valid CSR matrix with non-zero
-// diagonals, making it suitable for both the diagonal solver and iterative solvers.
-
+/**@brief helper function to produce assembled linear system
+** Assemble a diagonally-dominant linear system from a 1D laplacian.
+**The laplacian implicit operation produces a valid CSR matrix with non-zero
+** diagonals, making it suitable for both the diagonal solver and iterative solvers.
+*/
 template<typename ValueType>
 la::LinearSystem<ValueType>
 assembleLS(const NeoN::Executor& exec, const NeoN::UnstructuredMesh& mesh)
