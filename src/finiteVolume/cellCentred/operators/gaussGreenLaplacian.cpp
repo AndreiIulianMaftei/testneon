@@ -116,10 +116,8 @@ void computeLaplacianBoundImpl(
 
     auto values = ls.matrix().values().view();
 
-    auto [/*bweights,*/ refGradient, value, valueFraction, refValue] = views(
-        // weights.boundaryData().value(),
+    auto [refGradient, valueFraction, refValue] = views(
         phi.boundaryData().refGrad(),
-        phi.boundaryData().value(),
         phi.boundaryData().valueFraction(),
         phi.boundaryData().refValue()
     );
@@ -140,14 +138,16 @@ void computeLaplacianBoundImpl(
             auto ownRow = surfFaceCells[bfi];
 
             auto ownRowStart = rowOffs[ownRow];
-            auto ownCoeff = operatorScaling[ownRow];
+            auto ownRowCoeff = operatorScaling[ownRow];
+            // Upper triangular - owner offsets
+            auto ownDiagOffs = ownRowStart + static_cast<localIdx>(diagOffs[ownRow]);
+
+            auto refValFrac = valueFraction[bfi];
+            auto refGradFrac = 1.0 - refValFrac;
 
             auto flux = gammaV[facei] * magFaceArea[facei];
             auto fluxContrib =
-                flux * ownCoeff * valueFraction[bfi] * deltaCoeffs[facei] * one<ValueType>();
-
-            // Upper triangular - owner offsets
-            auto ownDiagOffs = ownRowStart + static_cast<localIdx>(diagOffs[ownRow]);
+                flux * ownRowCoeff * refValFrac * deltaCoeffs[facei] * one<ValueType>();
 
             // since upper triangular value is "outside" of system matrix
             // it is stored separately in bMatrix
@@ -161,9 +161,9 @@ void computeLaplacianBoundImpl(
             // The implicit valFrac2 * φ_C term is handled via fluxContrib above.
             // bweights converts the Dirichlet face value to a cell-to-face flux contribution;
             // the Neumann gradient correction (refGradient/δ) enters directly as a known increment.
-            auto valueRhs = flux * ownCoeff
-                          * (valueFraction[bfi] * deltaCoeffs[facei] * refValue[bfi]
-                             + (1.0 - valueFraction[bfi]) * refGradient[bfi]);
+            auto valueRhs = flux * ownRowCoeff
+                          * (refValFrac * deltaCoeffs[facei] * refValue[bfi]
+                             + refGradFrac * refGradient[bfi]);
             Kokkos::atomic_sub(&rhs[ownRow], valueRhs);
             bRhs[bfi] += valueRhs;
         },

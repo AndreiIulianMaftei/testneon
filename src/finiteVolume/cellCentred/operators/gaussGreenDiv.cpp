@@ -55,63 +55,34 @@ void computeDiv(
     //   neighbour cell: F_f is inward  (S_f points into neighbour)  → −F_f * φ_f  (subtract)
     //
     // This computes +∇·(F φ) (positive divergence form).
-    // Note: the implicit operator (computeDivImp) assembles −∇·(F φ) (conservative form
-    // for transport equations where ∂φ/∂t = −∇·(F φ) + ...).
-
-    // check if the executor is GPU
-    if (std::holds_alternative<SerialExecutor>(exec))
-    {
-        for (localIdx i = 0; i < nInternalFaces; i++)
-        {
+    parallelFor(
+        exec,
+        {0, nInternalFaces},
+        NEON_LAMBDA(const localIdx i) {
             ValueType flux = faceFlux[i] * phiF[i];
-            res[owner[i]] += flux; // F_f outward from owner → positive divergence contribution
-            res[neighbour[i]] -= flux; // F_f inward to neighbour → negative divergence contribution
-        }
+            Kokkos::atomic_add(&res[owner[i]], flux);     // F_f outward from owner
+            Kokkos::atomic_sub(&res[neighbour[i]], flux); // F_f inward to neighbour
+        },
+        "sumFluxesInternal"
+    );
 
-        for (localIdx i = nInternalFaces; i < nInternalFaces + nBoundaryFaces; i++)
-        {
+    parallelFor(
+        exec,
+        {nInternalFaces, nInternalFaces + nBoundaryFaces},
+        NEON_LAMBDA(const localIdx i) {
             auto own = faceCells[i - nInternalFaces];
             ValueType valueOwn = faceFlux[i] * phiF[i];
-            res[own] += valueOwn; // boundary face: F_f outward from owner
-        }
+            Kokkos::atomic_add(&res[own], valueOwn); // boundary face: F_f outward from owner
+        },
+        "sumFluxesBoundary"
+    );
 
-        // TODO does it make sense to store invVol and multiply?
-        for (localIdx celli = 0; celli < nCells; celli++)
-        {
-            res[celli] *= operatorScaling[celli] / v[celli];
-        }
-    }
-    else
-    {
-        parallelFor(
-            exec,
-            {0, nInternalFaces},
-            NEON_LAMBDA(const localIdx i) {
-                ValueType flux = faceFlux[i] * phiF[i];
-                Kokkos::atomic_add(&res[owner[i]], flux);     // F_f outward from owner
-                Kokkos::atomic_sub(&res[neighbour[i]], flux); // F_f inward to neighbour
-            },
-            "sumFluxesInternal"
-        );
-
-        parallelFor(
-            exec,
-            {nInternalFaces, nInternalFaces + nBoundaryFaces},
-            NEON_LAMBDA(const localIdx i) {
-                auto own = faceCells[i - nInternalFaces];
-                ValueType valueOwn = faceFlux[i] * phiF[i];
-                Kokkos::atomic_add(&res[own], valueOwn); // boundary face: F_f outward from owner
-            },
-            "sumFluxesBoundary"
-        );
-
-        parallelFor(
-            exec,
-            {0, nCells},
-            NEON_LAMBDA(const localIdx celli) { res[celli] *= operatorScaling[celli] / v[celli]; },
-            "normalizeFluxes"
-        );
-    }
+    parallelFor(
+        exec,
+        {0, nCells},
+        NEON_LAMBDA(const localIdx celli) { res[celli] *= operatorScaling[celli] / v[celli]; },
+        "normalizeFluxes"
+    );
 }
 
 template<typename ValueType>
@@ -188,10 +159,9 @@ void computeDivBoundImp(
 
     auto values = ls.matrix().values().view();
 
-    auto [bweights, refGradient, value, valueFraction, refValue] = views(
+    auto [bweights, refGradient, valueFraction, refValue] = views(
         weights.boundaryData().value(),
         phi.boundaryData().refGrad(),
-        phi.boundaryData().value(),
         phi.boundaryData().valueFraction(),
         phi.boundaryData().refValue()
     );
@@ -212,11 +182,11 @@ void computeDivBoundImp(
 
             auto ownCoeff = operatorScaling[ownRow];
 
-            auto valFrac1 = valueFraction[bfi];
-            auto valFrac2 = 1.0 - valFrac1;
+            auto refValFrac = valueFraction[bfi];
+            auto refGradFrac = 1.0 - refValFrac;
 
-            auto fluxContrib =
-                faceFluxV[facei] * -bweights[bfi] * ownCoeff * valFrac2 * one<ValueType>();
+            auto flux =
+                faceFluxV[facei] * -bweights[bfi] * ownCoeff * refValFrac * one<ValueType>();
 
             // Upper triangular - owner offsets
             auto ownRowStart = rowOffs[ownRow];
@@ -224,19 +194,19 @@ void computeDivBoundImp(
 
             // since upper triangular value is "outside" of system matrix
             // it is stored separately in bMatrix
-            bValues[bfi] += fluxContrib;
+            bValues[bfi] += flux;
             // diagonal contribution
-            Kokkos::atomic_sub(&values[ownDiagOffs], fluxContrib);
+            Kokkos::atomic_sub(&values[ownDiagOffs], flux);
 
             // Explicit RHS contribution from the mixed BC:
-            //   φ_f = valFrac1 * refValue               (Dirichlet part)
-            //       + valFrac2 * (φ_C + refGradient/δ)  (Neumann part)
+            //   φ_f = refValFrac * refValue               (Dirichlet part)
+            //       + refGradFrac * (φ_C + refGradient/δ)  (Neumann part)
             // The implicit valFrac2 * φ_C term is handled via fluxContrib above.
             // bweights converts the Dirichlet face value to a cell-to-face flux contribution;
             // the Neumann gradient correction (refGradient/δ) enters directly as a known increment.
             auto valueRhs =
-                (bweights[bfi] * faceFluxV[facei] * ownCoeff * (valFrac1 * refValue[bfi]))
-                + valFrac2 * refGradient[bfi] * (1 / deltaCoeffs[bfi]);
+                (bweights[bfi] * faceFluxV[facei] * ownCoeff * (refValFrac * refValue[bfi]))
+                + refGradFrac * refGradient[bfi] * (1 / deltaCoeffs[bfi]);
             Kokkos::atomic_sub(&rhs[ownRow], valueRhs);
             bRhs[bfi] += valueRhs;
         },
