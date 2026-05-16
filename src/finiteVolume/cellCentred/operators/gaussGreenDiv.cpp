@@ -186,7 +186,7 @@ void computeDivBoundImp(
             auto refGradFrac = 1.0 - refValFrac;
 
             auto flux =
-                faceFluxV[facei] * -bweights[bfi] * ownCoeff * refValFrac * one<ValueType>();
+                faceFluxV[facei] * -bweights[bfi] * ownCoeff * refGradFrac * one<ValueType>();
 
             // Upper triangular - owner offsets
             auto ownRowStart = rowOffs[ownRow];
