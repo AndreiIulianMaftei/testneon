@@ -126,10 +126,10 @@ public:
         }
     }
 
-    /* @brief construct a linear system and force assembly
+    /** @brief construct a linear system and force assembly
      *
      * @param ps a vector of functor performing transformation on the created linear system
-     * @return a tuple of the sparsity pattern and the assembled linear system
+     * @return the assembled linear system
      */
     la::LinearSystem<ValueType> assemble(
         const UnstructuredMesh& mesh,
@@ -141,7 +141,7 @@ public:
         auto ls = la::createEmptyLinearSystem<ValueType>(mesh);
         assemble(t, dt, ls, ps);
         return ls;
-    };
+    }
 
     /* @brief assemble into a given linear system
      *
@@ -162,7 +162,7 @@ public:
         {
             p(ls);
         }
-    };
+    }
 
     void addOperator(const SpatialOperator<ValueType>& oper) { spatialOperators_.push_back(oper); }
 
