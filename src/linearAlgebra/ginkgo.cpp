@@ -54,7 +54,10 @@ gko::config::pnode NeoN::la::ginkgo::parse(const Dictionary& dictIn)
             using value_type = decltype(blueprint);
             if (dict[key].type() == typeid(value_type))
             {
-                return gko::config::pnode(dict.get<value_type>(key));
+                if constexpr (std::is_same_v<value_type, float>)
+                    return gko::config::pnode(static_cast<double>(dict.get<value_type>(key)));
+                else
+                    return gko::config::pnode(dict.get<value_type>(key));
             }
             else
             {

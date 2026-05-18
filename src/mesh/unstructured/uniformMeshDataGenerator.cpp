@@ -299,6 +299,6 @@ BoundaryMesh generateBoundaryData(
         offset
     );
 
-    return {std::move(boundaryMesh)};
+    return boundaryMesh;
 }
 } // namespace NeoN::detail

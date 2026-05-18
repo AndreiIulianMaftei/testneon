@@ -64,7 +64,7 @@ TEST_CASE("Dictionary Parsing - Ginkgo")
 
         auto node = NeoN::la::ginkgo::parse(dict);
 
-        gko::config::pnode expected({{"key", gko::config::pnode {1.0f}}});
+        gko::config::pnode expected({{"key", gko::config::pnode {1.0}}});
         CHECK(node == expected);
     }
     SECTION("Dict")
