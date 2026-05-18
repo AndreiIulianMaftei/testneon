@@ -17,22 +17,39 @@ using NeoN::finiteVolume::cellCentred::SurfaceField;
 
 TEMPLATE_TEST_CASE("linear", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
-    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
-
-    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
-    auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
     NeoN::Input input = NeoN::TokenList({std::string("linear")});
-    auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
 
-    auto in = VolumeField<TestType>(exec, "in", mesh, {});
-    auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
-
-    NeoN::fill(in.internalVector(), NeoN::one<TestType>());
-
-    // capture the value of size as section name
-    DYNAMIC_SECTION("" << size)
+    SECTION("2D")
     {
-        BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
+        auto nCellsPerDim = GENERATE(256, 512, 1024);
+        NeoN::UnstructuredMesh mesh = NeoN::create2DUniformMesh(exec, nCellsPerDim, nCellsPerDim);
+        auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
+        auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
+        auto in = VolumeField<TestType>(exec, "in", mesh, {});
+        auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
+        NeoN::fill(in.internalVector(), NeoN::one<TestType>());
+
+        DYNAMIC_SECTION(nCellsPerDim << "x" << nCellsPerDim)
+        {
+            BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
+        }
+    }
+
+    SECTION("3D")
+    {
+        auto nCellsPerDim = GENERATE(32, 64, 128);
+        NeoN::UnstructuredMesh mesh =
+            NeoN::create3DUniformMesh(exec, nCellsPerDim, nCellsPerDim, nCellsPerDim);
+        auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
+        auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
+        auto in = VolumeField<TestType>(exec, "in", mesh, {});
+        auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
+        NeoN::fill(in.internalVector(), NeoN::one<TestType>());
+
+        DYNAMIC_SECTION(nCellsPerDim << "x" << nCellsPerDim << "x" << nCellsPerDim)
+        {
+            BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
+        }
     }
 }
