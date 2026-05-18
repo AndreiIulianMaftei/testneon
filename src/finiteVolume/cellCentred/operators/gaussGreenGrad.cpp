@@ -249,7 +249,7 @@ void computeGradTensor(
         {0, nInt},
         NEON_LAMBDA(const localIdx f) {
             const Vec3 sf = SfAll[f];
-            const Vec3 uf = UfAll[f];
+            const Vec3 faceU = UfAll[f];
             const auto o = owner[f];
             const auto n = nei[f];
             // gradU(row,col) += Sf[col] * U[row]  (Gauss-Green)
@@ -257,7 +257,7 @@ void computeGradTensor(
             {
                 for (size_t col = 0; col < 3; ++col)
                 {
-                    const scalar c = sf[col] * uf[row];
+                    const scalar c = sf[col] * faceU[row];
                     atomicAddTensor(&gT[o], row, col, c);
                     atomicSubTensor(&gT[n], row, col, c);
                 }
@@ -273,12 +273,12 @@ void computeGradTensor(
             const localIdx bi = f - nInt;
             const auto o = bFaceCells[bi];
             const Vec3 sf = SfAll[f];
-            const Vec3 uf = UfAll[f];
+            const Vec3 faceU = UfAll[f];
             for (size_t row = 0; row < 3; ++row)
             {
                 for (size_t col = 0; col < 3; ++col)
                 {
-                    atomicAddTensor(&gT[o], row, col, sf[col] * uf[row]);
+                    atomicAddTensor(&gT[o], row, col, sf[col] * faceU[row]);
                 }
             }
         },

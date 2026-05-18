@@ -57,7 +57,7 @@ TEMPLATE_TEST_CASE("DivOperator", "[template]", NeoN::scalar, NeoN::Vec3)
              {std::string("surfaceInterpolation"), std::string("linear")}}
         );
         auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
-        op.div(result);
+        op.explicitOperation(result);
 
         // divergence of a uniform field should be zero
         auto outHost = result.copyToHost();
