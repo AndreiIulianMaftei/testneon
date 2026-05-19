@@ -27,16 +27,30 @@ NeoN::Array<uint8_t>& FaceToMatrixAddress::neighbourOffset() { return neighbourO
 
 NeoN::Array<uint8_t>& FaceToMatrixAddress::diagOffset() { return diagOffset_; }
 
+void FaceToMatrixAddress::validate() const
+{
+    NF_ASSERT(ownerOffset_.exec() == neighbourOffset_.exec(), "Executors are not the same");
+    NF_ASSERT(ownerOffset_.exec() == diagOffset_.exec(), "Executors are not the same");
+    NF_ASSERT(
+        ownerOffset_.size() == neighbourOffset_.size(),
+        "ownerOffset and neighbourOffset must have the same size"
+    );
+}
+
 FaceToMatrixAddress::FaceToMatrixAddress(
     Array<uint8_t> ownerOffset, Array<uint8_t> neighbourOffset, Array<uint8_t> diagOffset
 )
     : ownerOffset_(ownerOffset), neighbourOffset_(neighbourOffset), diagOffset_(diagOffset)
-{}
+{
+    validate();
+}
 
 FaceToMatrixAddress::FaceToMatrixAddress(const FaceToMatrixAddress& mi)
     : ownerOffset_(mi.ownerOffset_), neighbourOffset_(mi.neighbourOffset_),
       diagOffset_(mi.diagOffset_)
-{}
+{
+    validate();
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers for building the sparsity data from a mesh

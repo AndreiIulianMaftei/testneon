@@ -72,6 +72,7 @@ struct FaceToMatrixView
  */
 class FaceToMatrixAddress
 {
+    void validate() const;
 
     // clang-format off
     // NOTE The following data members store a simple mapping from face ids to offsets within
