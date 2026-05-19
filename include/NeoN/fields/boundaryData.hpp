@@ -64,7 +64,7 @@ public:
      * @param nBoundaryType - The total number of boundary patches
      */
     BoundaryData(const Executor& exec, localIdx nBoundaryFaces, localIdx nBoundaryTypes)
-        : exec_(exec), value_(exec, nBoundaryFaces, T {}), refValue_(exec, nBoundaryFaces, T {}),
+        : exec_(exec), value_(exec, nBoundaryFaces, ValueType {}), refValue_(exec, nBoundaryFaces, ValueType {}),
           valueFraction_(exec, nBoundaryFaces, scalar(0)), refGrad_(exec, nBoundaryFaces, T {}),
           boundaryTypes_(exec, nBoundaryTypes), offset_(SerialExecutor {}, nBoundaryTypes + 1),
           nBoundaries_(nBoundaryTypes), nBoundaryFaces_(nBoundaryFaces)
