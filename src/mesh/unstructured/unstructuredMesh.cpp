@@ -15,7 +15,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector points,
     scalarVector cellVolumes,
     vectorVector cellCentres,
-    vectorVector faceAreas,
+    vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector magFaceAreas,
     labelVector faceOwner,
@@ -28,7 +28,7 @@ UnstructuredMesh::UnstructuredMesh(
     BoundaryMesh boundaryMesh
 )
     : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
-      faceAreas_(faceAreas), faceCentres_(faceCentres), magFaceAreas_(magFaceAreas),
+      faceNormals_(faceNormals), faceCentres_(faceCentres), magFaceAreas_(magFaceAreas),
       faceOwner_(faceOwner), faceNeighbour_(faceNeighbour), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
       nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
@@ -38,7 +38,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector points,
     scalarVector cellVolumes,
     vectorVector cellCentres,
-    vectorVector faceAreas,
+    vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector magFaceAreas,
     labelVector faceOwner,
@@ -55,7 +55,7 @@ UnstructuredMesh::UnstructuredMesh(
         points,
         cellVolumes,
         cellCentres,
-        faceAreas,
+        faceNormals,
         faceCentres,
         magFaceAreas,
         faceOwner,
@@ -86,9 +86,9 @@ const vectorVector& UnstructuredMesh::faceCentres() const { return faceCentres_;
 
 vectorVector& UnstructuredMesh::faceCentres() { return faceCentres_; }
 
-const vectorVector& UnstructuredMesh::faceAreas() const { return faceAreas_; }
+const vectorVector& UnstructuredMesh::faceNormals() const { return faceNormals_; }
 
-vectorVector& UnstructuredMesh::faceAreas() { return faceAreas_; }
+vectorVector& UnstructuredMesh::faceNormals() { return faceNormals_; }
 
 const scalarVector& UnstructuredMesh::magFaceAreas() const { return magFaceAreas_; }
 

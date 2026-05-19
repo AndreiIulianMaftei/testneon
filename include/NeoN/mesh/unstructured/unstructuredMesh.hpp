@@ -38,7 +38,7 @@ public:
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
      * @param cellCentres The field of cell centres in the mesh.
-     * @param faceAreas The field of area face normals.
+     * @param faceNormals The field of area face normals.
      * @param faceCentres The field of face centres.
      * @param magFaceAreas The field of magnitudes of face areas.
      * @param faceOwner The field of face owner cells.
@@ -55,7 +55,7 @@ public:
         vectorVector points,
         scalarVector cellVolumes,
         vectorVector cellCentres,
-        vectorVector faceAreas,
+        vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector magFaceAreas,
         labelVector faceOwner,
@@ -75,7 +75,7 @@ public:
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
      * @param cellCentres The field of cell centres in the mesh.
-     * @param faceAreas The field of area face normals.
+     * @param faceNormals The field of area face normals.
      * @param faceCentres The field of face centres.
      * @param magFaceAreas The field of magnitudes of face areas.
      * @param faceOwner The list of face owner cells.
@@ -91,7 +91,7 @@ public:
         vectorVector points,
         scalarVector cellVolumes,
         vectorVector cellCentres,
-        vectorVector faceAreas,
+        vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector magFaceAreas,
         labelVector faceOwner,
@@ -141,8 +141,8 @@ public:
      *
      * @return The field of area face normals.
      */
-    const vectorVector& faceAreas() const;
-    vectorVector& faceAreas();
+    const vectorVector& faceNormals() const;
+    vectorVector& faceNormals();
 
     /**
      * @brief Get the field of magnitudes of face areas.
@@ -254,7 +254,7 @@ private:
      * The area face normals are defined as the normal vector to the face
      * with magnitude equal to the face area.
      */
-    vectorVector faceAreas_;
+    vectorVector faceNormals_;
 
     /**
      * @brief Vector of face centres.

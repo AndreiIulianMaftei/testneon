@@ -41,7 +41,7 @@ inline void ddtFluxCorrBDF1Kernel(
 )
 {
     auto [outV, flux0V, uf0V, SfV] = views(
-        fluxCorr.internalVector(), flux0.internalVector(), uf0.internalVector(), mesh.faceAreas()
+        fluxCorr.internalVector(), flux0.internalVector(), uf0.internalVector(), mesh.faceNormals()
     );
 
     const scalar a1 = scalar(1) / dt;
@@ -82,7 +82,7 @@ inline void ddtFluxCorrBDF2Kernel(
         flux00.internalVector(),
         uf0.internalVector(),
         uf00.internalVector(),
-        mesh.faceAreas()
+        mesh.faceNormals()
     );
 
     const scalar a1 = 2.0 / dt;

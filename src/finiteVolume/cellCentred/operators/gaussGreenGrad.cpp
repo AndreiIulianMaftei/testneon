@@ -39,7 +39,7 @@ void computeGrad(
         phif.internalVector(),
         mesh.faceOwner(),
         mesh.faceNeighbour(),
-        mesh.faceAreas(),
+        mesh.faceNormals(),
         mesh.cellVolumes()
     );
 
@@ -241,7 +241,7 @@ void computeGradTensor(
         uf.internalVector(),
         mesh.faceOwner(),
         mesh.faceNeighbour(),
-        mesh.faceAreas(),
+        mesh.faceNormals(),
         mesh.cellVolumes(),
         mesh.boundaryMesh().faceCells()
     );
