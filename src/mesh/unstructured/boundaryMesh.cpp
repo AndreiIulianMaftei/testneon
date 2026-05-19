@@ -10,7 +10,7 @@ namespace NeoN
 BoundaryMesh::BoundaryMesh(
     const Executor& exec,
     labelVector faceCells,
-    vectorVector cf,
+    vectorVector faceCenters,
     vectorVector cn,
     vectorVector sf,
     scalarVector magSf,
@@ -20,8 +20,9 @@ BoundaryMesh::BoundaryMesh(
     scalarVector deltaCoeffs,
     std::vector<localIdx> offset
 )
-    : exec_(exec), faceCells_(faceCells), Cf_(cf), Cn_(cn), Sf_(sf), magSf_(magSf), nf_(nf),
-      delta_(delta), weights_(weights), deltaCoeffs_(deltaCoeffs), offset_(offset) {};
+    : exec_(exec), faceCells_(faceCells), faceCenters_(faceCenters), Cn_(cn), Sf_(sf),
+      magSf_(magSf), nf_(nf), delta_(delta), weights_(weights), deltaCoeffs_(deltaCoeffs),
+      offset_(offset) {};
 
 // Accessor methods
 const labelVector& BoundaryMesh::faceCells() const { return faceCells_; }
@@ -42,11 +43,11 @@ View<const label> BoundaryMesh::faceCells(const localIdx i) const
     return extractSubView(faceCells_, offset_, i);
 }
 
-const vectorVector& BoundaryMesh::faceCenters() const { return Cf_; }
+const vectorVector& BoundaryMesh::faceCenters() const { return faceCenters_; }
 
 View<const Vec3> BoundaryMesh::faceCenters(const localIdx i) const
 {
-    return extractSubView(Cf_, offset_, i);
+    return extractSubView(faceCenters_, offset_, i);
 }
 
 const vectorVector& BoundaryMesh::cn() const { return Cn_; }

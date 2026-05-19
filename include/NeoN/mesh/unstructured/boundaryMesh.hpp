@@ -36,7 +36,7 @@ public:
      * @param exec The executor used for computations.
      * @param faceCells A list of the neighboring cells of each boundary
      * face.
-     * @param Cf A field of face centres.
+     * @param faceCenters A field of face centres.
      * @param Cn A field of neighbor cell centers.
      * @param Sf A field of face areas normals.
      * @param magSf A field of magnitudes of face areas normals.
@@ -50,7 +50,7 @@ public:
     BoundaryMesh(
         const Executor& exec,
         labelVector faceCells,
-        vectorVector cf,
+        vectorVector faceCenters,
         vectorVector cn,
         vectorVector sf,
         scalarVector magSf,
@@ -228,7 +228,7 @@ private:
     /**
      * @brief Vector of face centres.
      */
-    vectorVector Cf_;
+    vectorVector faceCenters_;
 
     /**
      * @brief Vector of face normals.
