@@ -150,4 +150,28 @@ TEST_CASE("Utilities")
         auto residualExp = std::vector<scalar> {4.0, 13.0, 22.0};
         REQUIRE_THAT(res, Equals(residualExp, ApproxScalar(1e-15)));
     }
+
+    SECTION("Can convert empty rowsToRowOffs  " + execName)
+    {
+        auto rowIdx = Vector<localIdx>(exec, {});
+        auto rowOffs = NeoN::la::rowsToRowOffs(rowIdx);
+        auto rowIdxExp = std::vector<localIdx> {0};
+        REQUIRE_THAT(rowOffs, Equals(rowIdxExp, EqualInt()));
+    }
+
+    SECTION("Can convert non empty rowsToRowOffs  " + execName)
+    {
+        auto rowIdx = Vector<localIdx>(exec, {0, 1, 2});
+        auto rowOffs = NeoN::la::rowsToRowOffs(rowIdx);
+        auto rowIdxExp = std::vector<localIdx> {0, 1, 2, 3};
+        REQUIRE_THAT(rowOffs, Equals(rowIdxExp, EqualInt()));
+    }
+
+    SECTION("Can convert non empty with duplicates rowsToRowOffs  " + execName)
+    {
+        auto rowIdx = Vector<localIdx>(exec, {0, 0, 2, 2, 2});
+        auto rowOffs = NeoN::la::rowsToRowOffs(rowIdx);
+        auto rowIdxExp = std::vector<localIdx> {0, 2, 2, 5};
+        REQUIRE_THAT(rowOffs, Equals(rowIdxExp, EqualInt()));
+    }
 }

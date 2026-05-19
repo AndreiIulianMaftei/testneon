@@ -197,6 +197,11 @@ Vector<IndexType> rowsToRowOffs(const Vector<IndexType>& rows)
     const auto rowsV = rowsHost.view();
     const auto nnz = rowsV.size();
 
+    if (nnz == 0)
+    {
+        return Vector<IndexType>(SerialExecutor {}, 1, IndexType(0)).copyToExecutor(rows.exec());
+    }
+
     // TODO can this be realized without copying to host?
     IndexType maxRow = 0;
     for (localIdx i = 0; i < nnz; i++)
