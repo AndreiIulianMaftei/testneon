@@ -8,8 +8,6 @@
 #include "sparsityPattern.hpp"
 #include "faceToMatrixAddress.hpp"
 
-#include <type_traits>
-
 namespace NeoN::la
 {
 

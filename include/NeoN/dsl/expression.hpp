@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "NeoN/core/error.hpp"
@@ -191,17 +192,11 @@ public:
         { return op.getName() == name && op.getType() == opType; };
         if constexpr (std::is_same_v<OperatorType, SpatialOperator<ValueType>>)
         {
-            return std::find_if(
-                       spatialOperators_.begin(), spatialOperators_.end(), matchNameAndType
-                   )
-                != spatialOperators_.end();
+            return std::ranges::any_of(spatialOperators_, matchNameAndType);
         }
         else if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
         {
-            return std::find_if(
-                       temporalOperators_.begin(), temporalOperators_.end(), matchNameAndType
-                   )
-                != temporalOperators_.end();
+            return std::ranges::any_of(temporalOperators_, matchNameAndType);
         }
         return false;
     }
@@ -227,15 +222,11 @@ public:
         { return op.getName() == name && op.getType() == opType; };
         if constexpr (std::is_same_v<OperatorType, SpatialOperator<ValueType>>)
         {
-            return *std::find_if(
-                spatialOperators_.begin(), spatialOperators_.end(), matchNameAndType
-            );
+            return *std::ranges::find_if(spatialOperators_, matchNameAndType);
         }
         else if constexpr (std::is_same_v<OperatorType, TemporalOperator<ValueType>>)
         {
-            return *std::find_if(
-                temporalOperators_.begin(), temporalOperators_.end(), matchNameAndType
-            );
+            return *std::ranges::find_if(temporalOperators_, matchNameAndType);
         }
         throw std::runtime_error {"Unknown operator type"};
         // should never be reached, shut up compiler warning

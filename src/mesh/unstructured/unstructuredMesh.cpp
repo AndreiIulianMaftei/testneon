@@ -261,7 +261,7 @@ UnstructuredMesh create3DUniformMesh(
         nCells,
         nInternalFaces,
         nBoundaryFaces,
-        offset.size() - 1, // nBoundaries
+        static_cast<localIdx>(offset.size() - 1), // nBoundaries
         nFaces,
         std::move(boundaryMesh)
     );
