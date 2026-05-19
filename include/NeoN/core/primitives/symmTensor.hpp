@@ -173,7 +173,8 @@ public:
     KOKKOS_INLINE_FUNCTION
     SymmTensor dev2() const
     {
-        // TODO in case of trace returning a float, when NeoN_DEFINE_DP_SCALAR = OFF, this will trigger a compiler warning
+        // TODO in case of trace returning a float, when NeoN_DEFINE_DP_SCALAR = OFF, this will
+        // trigger a compiler warning
         const scalar tr23 = (2.0 / 3.0) * trace();
         return SymmTensor(
             data_[0] - tr23, data_[1], data_[2], data_[3] - tr23, data_[4], data_[5] - tr23

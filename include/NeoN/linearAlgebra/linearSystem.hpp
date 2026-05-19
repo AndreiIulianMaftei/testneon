@@ -231,7 +231,8 @@ LinearSystem<ValueType, MatrixType> createEmptyLinearSystem(const UnstructuredMe
     return {createSparsityPatternFaceToMatrixAddress<NeoN::localIdx>(mesh)};
 }
 
-/** @brief for testing purposes, this function reverses boundary contributions previously applied to the matrix diagonal and RHS for some operators (e.g., div). **/
+/** @brief for testing purposes, this function reverses boundary contributions previously applied to
+ * the matrix diagonal and RHS for some operators (e.g., div). **/
 template<typename ValueType>
 inline la::LinearSystem<ValueType>
 removeBoundaryContributions(const la::LinearSystem<ValueType>& lsIn)
