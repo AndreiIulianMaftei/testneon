@@ -18,6 +18,14 @@
 template<typename T>
 using I = std::initializer_list<T>;
 
+/** @brief Detects whether T has a copyToHost() member function. */
+template<typename T, typename = void>
+inline constexpr bool hasCopyToHost = false;
+
+template<typename T>
+inline constexpr bool
+    hasCopyToHost<T, std::void_t<decltype(std::declval<const T&>().copyToHost())>> = true;
+
 /**
  * @brief Conditionally enters a Catch2 SECTION if the given condition is true.
  * @param COND The boolean condition to evaluate.
@@ -156,7 +164,7 @@ struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
 
         auto actualHost = actual.copyToHost();
 
-        if constexpr (requires { expected_.copyToHost(); })
+        if constexpr (hasCopyToHost<Expected>)
         {
             auto expectedHost = expected_.copyToHost();
             return std::equal(
