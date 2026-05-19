@@ -70,7 +70,7 @@ la::SolverStats iterativeSolveImpl(
     std::vector<PostAssemblyBase<typename VectorType::ElementType, IndexType>> ps
 )
 {
-    auto [sparsity, ls] = exp.assemble(solution.mesh(), t, dt, ps);
+    auto ls = exp.assemble(solution.mesh(), t, dt, ps);
 
     // TODO move that to expression explicit operation or
     // into functor ?
