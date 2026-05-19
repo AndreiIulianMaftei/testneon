@@ -27,7 +27,7 @@ using I = std::initializer_list<T>;
     if (COND) SECTION(__VA_ARGS__)
 
 /**
- * @brief Predicate for approximate comparison of NeoN::Vec3 values andfloating-point comparison
+ * @brief Predicate for approximate comparison of NeoN::Vec3 values and floating-point comparison
  * within a given margin.
  *
  * Performs component-wise floating-point comparison using Catch2's
@@ -48,7 +48,7 @@ using I = std::initializer_list<T>;
  * };
  *
  * REQUIRE_THAT(mesh.cellCentres(),
- *              Equals(expected, ApproxVec3{1e-12}));
+ *              Equals(expected, Approx{1e-12}));
  * @endcode
  */
 struct Approx
@@ -156,6 +156,7 @@ struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
 
         // Copy device field to host if needed
         auto actualHost = actual.copyToHost();
+        // FIXME test if expected has a copyToHost
 
         return std::equal(
             begin(actualHost.view()),
