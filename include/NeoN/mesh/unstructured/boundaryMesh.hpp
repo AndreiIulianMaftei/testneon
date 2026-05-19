@@ -84,7 +84,7 @@ public:
      *
      * @return A constant reference to the field of face centres.
      */
-    const vectorVector& cf() const;
+    const vectorVector& faceCenters() const;
 
     /**
      * @brief Get a view of face centres for a specific boundary face.
@@ -92,7 +92,7 @@ public:
      * @param i The index of the boundary face.
      * @return A view of face centres for the specified boundary face.
      */
-    View<const Vec3> cf(const localIdx i) const;
+    View<const Vec3> faceCenters(const localIdx i) const;
 
     /**
      * @brief Get the field of face normals.

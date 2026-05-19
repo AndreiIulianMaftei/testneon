@@ -42,9 +42,9 @@ View<const label> BoundaryMesh::faceCells(const localIdx i) const
     return extractSubView(faceCells_, offset_, i);
 }
 
-const vectorVector& BoundaryMesh::cf() const { return Cf_; }
+const vectorVector& BoundaryMesh::faceCenters() const { return Cf_; }
 
-View<const Vec3> BoundaryMesh::cf(const localIdx i) const
+View<const Vec3> BoundaryMesh::faceCenters(const localIdx i) const
 {
     return extractSubView(Cf_, offset_, i);
 }

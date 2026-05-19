@@ -215,7 +215,7 @@ TEST_CASE("Unstructured Mesh")
             {1.5, ymax, 0.5},
             {2.5, ymax, 0.5} // top
         };
-        REQUIRE_THAT(bm.cf(), Equals(cfExp, Approx {1e-12}));
+        REQUIRE_THAT(bm.faceCenters(), Equals(cfExp, Approx {1e-12}));
     }
 
     SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
@@ -324,7 +324,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[6] - offset[5] == 6);  // back
 
         // Verify face centres for each patch
-        auto hostCf = bm.cf().copyToHost();
+        auto hostCf = bm.faceCenters().copyToHost();
 
         // left (patch 0): all face centres on x = xmin plane
         for (NeoN::localIdx f = offset[0]; f < offset[1]; ++f)

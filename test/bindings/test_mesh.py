@@ -67,7 +67,7 @@ def test_boundary_mesh_fields(executor):
 
     # check all boundary fields are accessible and sized correctly
     assert bm.face_cells().size() == n_bfaces
-    assert bm.cf().size() == n_bfaces
+    assert bm.faceCenters().size() == n_bfaces
     assert bm.sf().size() == n_bfaces
     bm.cn()
     bm.mag_sf()
