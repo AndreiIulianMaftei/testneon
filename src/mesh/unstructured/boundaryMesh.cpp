@@ -4,8 +4,11 @@
 
 #include "NeoN/mesh/unstructured/boundaryMesh.hpp"
 
+
 namespace NeoN
 {
+
+void BoundaryMesh::validate() const {}
 
 BoundaryMesh::BoundaryMesh(
     const Executor& exec,
@@ -18,12 +21,15 @@ BoundaryMesh::BoundaryMesh(
     vectorVector delta,
     scalarVector weights,
     scalarVector deltaCoeffs,
-    std::vector<localIdx> offset
+    std::vector<localIdx> offset,
+    localIdx procBoundaryPatches,
+    std::vector<localIdx> neighbourRank
 )
     : exec_(exec), faceOwners_(faceOwners), faceCenters_(faceCenters),
       ownerCellCenters_(ownerCellCenters), faceNormals_(faceNormals), faceAreas_(faceAreas),
       faceUnitNormals_(faceUnitNormals), delta_(delta), weights_(weights),
-      deltaCoeffs_(deltaCoeffs), offset_(offset) {};
+      deltaCoeffs_(deltaCoeffs), offset_(offset), procBoundaryPatches_(procBoundaryPatches),
+      neighbourRank_(neighbourRank) {};
 
 // Accessor methods
 const labelVector& BoundaryMesh::faceOwners() const { return faceOwners_; }
@@ -95,9 +101,24 @@ View<const scalar> BoundaryMesh::weights(const localIdx i) const
 
 const scalarVector& BoundaryMesh::deltaCoeffs() const { return deltaCoeffs_; }
 
+localIdx BoundaryMesh::neighbourRank(const localIdx i) const { return neighbourRank_[i]; }
+
+const std::vector<localIdx>& BoundaryMesh::neighbourRank() const { return neighbourRank_; }
+
 View<const scalar> BoundaryMesh::deltaCoeffs(const localIdx i) const
 {
     return extractSubView(deltaCoeffs_, offset_, i);
+}
+
+localIdx BoundaryMesh::nProcBoundaryPatches() const { return procBoundaryPatches_; }
+
+localIdx BoundaryMesh::nProcBoundaryFaces() const
+{
+    if (nProcBoundaryPatches() == 0)
+    {
+        return 0;
+    }
+    return offset_[offset_.size() - 1] - offset_[offset_.size() - nProcBoundaryPatches() - 1];
 }
 
 const std::vector<localIdx>& BoundaryMesh::offset() const { return offset_; }

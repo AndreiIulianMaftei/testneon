@@ -10,6 +10,29 @@
 
 namespace NeoN
 {
+
+localIdx computeGlobalOffset(const BoundaryMesh& boundaryMesh, localIdx localNCells)
+{
+    // NOTE not yet implemented, will be added via separate PR
+    // if (!boundaryMesh.isDistributed())
+    // {
+    //     return 0;
+    // }
+    // mpi::Environment mpiEnviron;
+    // const auto nRanks = mpiEnviron.sizeRank();
+    // const auto myRank = mpiEnviron.rank();
+    // auto allNCells = std::vector<int>(nRanks);
+    // MPI_Allgather(&localNCells, 1, MPI_INT, allNCells.data(), 1, MPI_INT, mpiEnviron.comm());
+    // std::vector<localIdx> globalOffset(nRanks + 1, 0);
+    // for (int i = 0; i < nRanks; i++)
+    // {
+    //     globalOffset[i + 1] = globalOffset[i] + allNCells[i];
+    // }
+    // return globalOffset[myRank];
+    return 0;
+}
+
+
 UnstructuredMesh::UnstructuredMesh(
     Executor exec,
     vectorVector points,
@@ -20,18 +43,13 @@ UnstructuredMesh::UnstructuredMesh(
     scalarVector faceAreas,
     labelVector faceOwners,
     labelVector faceNeighbors,
-    localIdx nCells,
-    localIdx nInternalFaces,
-    localIdx nBoundaryFaces,
-    localIdx nBoundaries,
-    localIdx nFaces,
     BoundaryMesh boundaryMesh
 )
     : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCenters_(cellCenters),
       faceNormals_(faceNormals), faceCenters_(faceCenters), faceAreas_(faceAreas),
-      faceOwners_(faceOwners), faceNeighbors_(faceNeighbors), nCells_(nCells),
-      nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
-      nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
+      faceOwners_(faceOwners), faceNeighbors_(faceNeighbors), nCells_(cellVolumes.size()),
+      nInternalFaces_(faceNeighbors.size()), boundaryMesh_(boundaryMesh),
+      globalOffset_(computeGlobalOffset(boundaryMesh, cellVolumes.size())), stencilDataBase_()
 {}
 
 UnstructuredMesh::UnstructuredMesh(
@@ -43,11 +61,6 @@ UnstructuredMesh::UnstructuredMesh(
     scalarVector faceAreas,
     labelVector faceOwners,
     labelVector faceNeighbors,
-    localIdx nCells,
-    localIdx nInternalFaces,
-    localIdx nBoundaryFaces,
-    localIdx nBoundaries,
-    localIdx nFaces,
     BoundaryMesh boundaryMesh
 )
     : UnstructuredMesh(
@@ -60,11 +73,6 @@ UnstructuredMesh::UnstructuredMesh(
         faceAreas,
         faceOwners,
         faceNeighbors,
-        nCells,
-        nInternalFaces,
-        nBoundaryFaces,
-        nBoundaries,
-        nFaces,
         boundaryMesh
     )
 {}
@@ -106,13 +114,22 @@ localIdx UnstructuredMesh::nCells() const { return nCells_; }
 
 localIdx UnstructuredMesh::nInternalFaces() const { return nInternalFaces_; }
 
-localIdx UnstructuredMesh::nBoundaryFaces() const { return nBoundaryFaces_; }
+localIdx UnstructuredMesh::nBoundaryFaces() const { return boundaryMesh_.nBoundaryFaces(); }
 
-localIdx UnstructuredMesh::nBoundaries() const { return nBoundaries_; }
+localIdx UnstructuredMesh::nProcBoundaryFaces() const { return boundaryMesh_.nProcBoundaryFaces(); }
 
-localIdx UnstructuredMesh::nFaces() const { return nFaces_; }
+localIdx UnstructuredMesh::nBoundaries() const { return boundaryMesh_.nBoundaries(); }
+
+localIdx UnstructuredMesh::nTotalFaces() const
+{
+    return nInternalFaces() + nBoundaryFaces() + nProcBoundaryFaces();
+}
+
+localIdx UnstructuredMesh::globalOffset() const { return globalOffset_; }
 
 const BoundaryMesh& UnstructuredMesh::boundaryMesh() const { return boundaryMesh_; }
+
+BoundaryMesh& UnstructuredMesh::boundaryMesh() { return boundaryMesh_; }
 
 Dictionary& UnstructuredMesh::stencilDB() const { return stencilDataBase_; }
 
@@ -142,7 +159,9 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         {exec, {{-0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}}}, // delta
         {exec, {1, 1, 1, 1}},                                                           // weights
         {exec, {2.0, 2.0, 2.0, 2.0}}, // deltaCoeffs --> mag(1 / delta)
-        {0, 1, 2, 3, 4}               // offset
+        {0, 1, 2, 3, 4},              // offset
+        0,                            // number of proc boundary patches
+        {}                            // neighbourRank
     );
     return UnstructuredMesh(
         {exec, {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}}, // points,
@@ -152,12 +171,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         faceCentersVec3s,
         faceAreas,
         {exec, {0, 0, 0, 0}}, // faceOwners
-        {exec, {}},           // faceNeighbors,
-        1,                    // nCells
-        0,                    // nInternalFaces,
-        4,                    // nBoundaryFaces,
-        4,                    // nBoundaries,
-        4,                    // nFaces,
+        {exec, {}},           // faceNeighbors
         boundaryMesh
     );
 }
@@ -258,11 +272,6 @@ UnstructuredMesh create3DUniformMesh(
         {exec, std::move(faces.magnitudes)},
         {exec, std::move(faces.owner)},
         labelVector(exec, std::move(faces.neighbour)),
-        nCells,
-        nInternalFaces,
-        nBoundaryFaces,
-        static_cast<localIdx>(offset.size() - 1), // nBoundaries
-        nFaces,
         std::move(boundaryMesh)
     );
 
@@ -270,4 +279,6 @@ UnstructuredMesh create3DUniformMesh(
 
     return mesh;
 }
+
+
 } // namespace NeoN

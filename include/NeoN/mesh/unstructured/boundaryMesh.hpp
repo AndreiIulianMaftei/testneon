@@ -21,6 +21,9 @@ namespace NeoN
  * as face cells, face centers, face normals, face areas normals, magnitudes of
  * face areas normals, delta vectors, weights, delta coefficients, and offsets.
  *
+ * Boundary faces are organised such that regular boundaries are stored first, followed
+ * by the processor boundaries.
+ *
  * The class also provides getter methods to access the individual fields and
  * their components.
  *
@@ -29,6 +32,8 @@ namespace NeoN
 class BoundaryMesh
 {
 public:
+
+    void validate() const;
 
     /**
      * @brief Constructor for the BoundaryMesh class.
@@ -44,7 +49,9 @@ public:
      * @param weights A field of weights used in cell to face interpolation.
      * @param deltaCoeffs A field of the inverse of distances between boundary faces and their
      * neighboring cell centers
-     * @param offset The offset of the faces of each boundary
+     * @param offset The offsets of the boundary faces, i.e. offset[i], offset[i+1] define beginning
+     * and end of a patch.
+     * @param neighbourRank corresponding mpiRank ouf neighbour
      */
     BoundaryMesh(
         const Executor& exec,
@@ -57,7 +64,9 @@ public:
         vectorVector delta,
         scalarVector weights,
         scalarVector deltaCoeffs,
-        std::vector<localIdx> offset
+        std::vector<localIdx> offset,
+        localIdx procBoundaryPatches,
+        std::vector<localIdx> neighbourRank
     );
 
 
@@ -199,6 +208,13 @@ public:
     View<const scalar> deltaCoeffs(const localIdx i) const;
 
     /**
+     * @brief Given a patchId the corresponding neighbour Rank gets returned
+     *
+     * -1 for patches without a distributed neighbour
+     */
+    localIdx neighbourRank(const localIdx i) const;
+
+    /**
      * @brief Get the offset of the boundary faces.
      *
      * @return A constant reference to the offset of the boundary faces.
@@ -206,6 +222,35 @@ public:
     // TODO consistent use of Vector on CPU
     const std::vector<localIdx>& offset() const;
 
+    /**@brief number of proc boundary patches */
+    localIdx nProcBoundaryPatches() const;
+
+    /**
+     * @brief Get the offset of the boundary faces.
+     *
+     * @return A constant reference to the offset of the boundary faces.
+     */
+    const std::vector<localIdx>& neighbourRank() const;
+
+    /**
+     * @brief Get the number of the boundaries.
+     */
+    localIdx nBoundaries() const { return offset_.size() - 1; }
+
+    /**
+     * @brief Get the number of the boundary faces.
+     */
+    localIdx nBoundaryFaces() const { return faceOwners_.size() - nProcBoundaryFaces(); }
+
+    /**
+     * @brief Get the number of the processor boundary faces.
+     */
+    localIdx nProcBoundaryFaces() const;
+
+    /**
+     * @brief Return whether this local mesh is a part of a global distributed mesh
+     */
+    bool isDistributed() const { return nProcBoundaryFaces() > 0; }
 
 private:
 
@@ -275,6 +320,18 @@ private:
      */
     // TODO consistent use of Vector on CPU
     std::vector<localIdx> offset_;
+
+    /**
+     * @brief number of processor patches
+     *
+     * Vector of cell to face distances.
+     */
+    localIdx procBoundaryPatches_;
+
+    /**
+     * @brief The mpi rank of the corresponding neighbour patch
+     */
+    std::vector<localIdx> neighbourRank_;
 };
 
 } // namespace NeoN

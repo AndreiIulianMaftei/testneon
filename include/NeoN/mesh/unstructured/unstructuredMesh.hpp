@@ -43,11 +43,6 @@ public:
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
      * @param faceNeighbors The list of labels of face neighbor cells.
-     * @param nCells The number of cells in the mesh.
-     * @param nInternalFaces The number of internal faces in the mesh.
-     * @param nBoundaryFaces The number of boundary faces in the mesh.
-     * @param nBoundaries The number of boundaries in the mesh.
-     * @param nFaces The number of faces in the mesh.
      * @param boundaryMesh The boundary mesh.
      */
     UnstructuredMesh(
@@ -60,11 +55,6 @@ public:
         scalarVector faceAreas,
         labelVector faceOwners,
         labelVector faceNeighbors,
-        localIdx nCells,
-        localIdx nInternalFaces,
-        localIdx nBoundaryFaces,
-        localIdx nBoundaries,
-        localIdx nFaces,
         BoundaryMesh boundaryMesh
     );
 
@@ -80,11 +70,6 @@ public:
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
      * @param faceNeighbors The list of labels of face neighbor cells.
-     * @param nCells The number of cells in the mesh.
-     * @param nInternalFaces The number of internal faces in the mesh.
-     * @param nBoundaryFaces The number of boundary faces in the mesh.
-     * @param nBoundaries The number of boundaries in the mesh.
-     * @param nFaces The number of faces in the mesh.
      * @param boundaryMesh The boundary mesh.
      */
     UnstructuredMesh(
@@ -96,11 +81,6 @@ public:
         scalarVector faceAreas,
         labelVector faceOwners,
         labelVector faceNeighbors,
-        localIdx nCells,
-        localIdx nInternalFaces,
-        localIdx nBoundaryFaces,
-        localIdx nBoundaries,
-        localIdx nFaces,
         BoundaryMesh boundaryMesh
     );
 
@@ -189,19 +169,28 @@ public:
      */
     localIdx nBoundaryFaces() const;
 
+    localIdx nProcBoundaryFaces() const;
+
     /**
-     * @brief Get the number of boundaries in the mesh.
+     * @brief Get the total number of faces including boundary and processor faces in the mesh.
+     *
+     * @return The  total number of faces in the mesh.
+     */
+    localIdx nTotalFaces() const;
+
+    /**
+     * @brief Get the number of boundaries patches in the mesh.
      *
      * @return The number of boundaries in the mesh.
      */
     localIdx nBoundaries() const;
 
     /**
-     * @brief Get the number of faces in the mesh.
+     * @brief the offset local cellIds for the global mesh.
      *
-     * @return The number of faces in the mesh.
+     * @return the global offset
      */
-    localIdx nFaces() const;
+    localIdx globalOffset() const;
 
     /**
      * @brief Get the boundary mesh.
@@ -209,6 +198,8 @@ public:
      * @return The boundary mesh.
      */
     const BoundaryMesh& boundaryMesh() const;
+
+    BoundaryMesh& boundaryMesh();
 
     /**
      * @brief Get the stencil data base.
@@ -287,27 +278,15 @@ private:
     localIdx nInternalFaces_;
 
     /**
-     * @brief Number of boundary faces in the mesh.
-     */
-    localIdx nBoundaryFaces_;
-
-    /**
-     * @brief Number of boundaries in the mesh.
-     */
-    localIdx nBoundaries_;
-
-    /**
-     * @brief Number of faces in the mesh.
-     */
-    localIdx nFaces_;
-
-    /**
      * @brief Boundary mesh.
      *
      * The boundary mesh is a collection of boundary patches
      * that are used to define boundary conditions in the mesh.
      */
     BoundaryMesh boundaryMesh_;
+
+    //
+    localIdx globalOffset_;
 
     /**
      * @brief Stencil data base.
