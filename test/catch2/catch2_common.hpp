@@ -154,17 +154,29 @@ struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
         using std::begin;
         using std::end;
 
-        // Copy device field to host if needed
         auto actualHost = actual.copyToHost();
-        // FIXME test if expected has a copyToHost
 
-        return std::equal(
-            begin(actualHost.view()),
-            end(actualHost.view()),
-            begin(expected_),
-            end(expected_),
-            pred_
-        );
+        if constexpr (requires { expected_.copyToHost(); })
+        {
+            auto expectedHost = expected_.copyToHost();
+            return std::equal(
+                begin(actualHost.view()),
+                end(actualHost.view()),
+                begin(expectedHost.view()),
+                end(expectedHost.view()),
+                pred_
+            );
+        }
+        else
+        {
+            return std::equal(
+                begin(actualHost.view()),
+                end(actualHost.view()),
+                begin(expected_),
+                end(expected_),
+                pred_
+            );
+        }
     }
 
     /**
