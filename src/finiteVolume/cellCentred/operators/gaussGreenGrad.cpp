@@ -35,7 +35,7 @@ void computeGrad(
 
     const auto [surfFaceCells, sBSf, surfPhif, surfOwner, surfNeighbour, faceAreaS, surfV] = views(
         mesh.boundaryMesh().faceCells(),
-        mesh.boundaryMesh().sf(),
+        mesh.boundaryMesh().faceNormals(),
         phif.internalVector(),
         mesh.faceOwner(),
         mesh.faceNeighbour(),

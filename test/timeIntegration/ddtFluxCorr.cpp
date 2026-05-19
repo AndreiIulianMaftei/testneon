@@ -47,7 +47,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
         );
         auto uf0 = interp.interpolate(u0);
 
-        auto [uf0H, sfH] = copyToHosts(uf0.internalVector(), mesh.boundaryMesh().sf());
+        auto [uf0H, sfH] = copyToHosts(uf0.internalVector(), mesh.boundaryMesh().faceNormals());
         auto [uf0V, sfV] = views(uf0H, sfH);
 
         // --- 4) Surface scalar field phi (with oldTime support)
@@ -96,8 +96,9 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
         // Case A: flux0 = sf·uf0  ⇒ correction ≈ 0
         // ─────────────────────────────────────────────
         {
-            auto [flux0V2, sfV2, uf0V2] =
-                views(flux0.internalVector(), mesh.boundaryMesh().sf(), uf0.internalVector());
+            auto [flux0V2, sfV2, uf0V2] = views(
+                flux0.internalVector(), mesh.boundaryMesh().faceNormals(), uf0.internalVector()
+            );
 
             NeoN::parallelFor(
                 exec,
