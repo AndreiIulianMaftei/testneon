@@ -203,7 +203,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[4] - offset[3] == 3); // top
 
         // Verify face centres for each patch
-        auto cfExp = std::vector<NeoN::Vec3> {
+        auto faceCentersExp = std::vector<NeoN::Vec3> {
             {xmin, 0.5, 0.5},
             {xmin, 1.5, 0.5}, // left
             {xmax, 0.5, 0.5},
@@ -215,7 +215,7 @@ TEST_CASE("Unstructured Mesh")
             {1.5, ymax, 0.5},
             {2.5, ymax, 0.5} // top
         };
-        REQUIRE_THAT(bm.faceCenters(), Equals(cfExp, Approx {1e-12}));
+        REQUIRE_THAT(bm.faceCenters(), Equals(faceCentersExp, Approx {1e-12}));
     }
 
     SECTION("Can create a uniform 3D mesh (2x2x2) " + execName)
@@ -324,42 +324,42 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[6] - offset[5] == 6);  // back
 
         // Verify face centres for each patch
-        auto hostCf = bm.faceCenters().copyToHost();
+        auto hostFaceCenters = bm.faceCenters().copyToHost();
 
         // left (patch 0): all face centres on x = xmin plane
         for (NeoN::localIdx f = offset[0]; f < offset[1]; ++f)
         {
-            REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmin).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][0] == Catch::Approx(xmin).margin(1e-10));
         }
 
         // right (patch 1): all face centres on x = xmax plane
         for (NeoN::localIdx f = offset[1]; f < offset[2]; ++f)
         {
-            REQUIRE(hostCf.view()[f][0] == Catch::Approx(xmax).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][0] == Catch::Approx(xmax).margin(1e-10));
         }
 
         // bottom (patch 2): all face centres on y = ymin plane
         for (NeoN::localIdx f = offset[2]; f < offset[3]; ++f)
         {
-            REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymin).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][1] == Catch::Approx(ymin).margin(1e-10));
         }
 
         // top (patch 3): all face centres on y = ymax plane
         for (NeoN::localIdx f = offset[3]; f < offset[4]; ++f)
         {
-            REQUIRE(hostCf.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
         }
 
         // front (patch 4): all face centres on z = zmin plane
         for (NeoN::localIdx f = offset[4]; f < offset[5]; ++f)
         {
-            REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmin).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][2] == Catch::Approx(zmin).margin(1e-10));
         }
 
         // back (patch 5): all face centres on z = zmax plane
         for (NeoN::localIdx f = offset[5]; f < offset[6]; ++f)
         {
-            REQUIRE(hostCf.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
+            REQUIRE(hostFaceCenters.view()[f][2] == Catch::Approx(zmax).margin(1e-10));
         }
     }
 }
