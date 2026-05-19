@@ -301,7 +301,7 @@ TEMPLATE_TEST_CASE("take", "[template]", NeoN::scalar, NeoN::Vec3)
         {2.0 * NeoN::one<TestType>(), 3.0 * NeoN::one<TestType>(), 4.0 * NeoN::one<TestType>()}
     );
 
-    auto takeRes = take(a, 1, 4);
+    auto takeRes = take(a, 1, 3);
 
     REQUIRE_THAT(takeRes, Equals(aExp, Approx {1e-12}));
 }

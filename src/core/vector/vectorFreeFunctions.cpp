@@ -156,17 +156,20 @@ template void setComponent<1>(const Vector<scalar>&, Vector<Vec3>&);
 template void setComponent<2>(const Vector<scalar>&, Vector<Vec3>&);
 
 template<typename ValueType>
-Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx last)
+Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx length)
 {
-    NF_ASSERT(last >= first, "Invalid index range");
+    NF_ASSERT(length < 0, "Invalid length");
     const auto exec = in.exec();
 
-    auto out = Vector<ValueType>(exec, (last - first));
+    auto out = Vector<ValueType>(exec, (length));
     auto outV = out.view();
     const auto inV = in.view();
 
     NeoN::parallelFor(
-        exec, {first, last}, NEON_LAMBDA(const localIdx i) { outV[i - first] = inV[i]; }, "copyMap"
+        exec,
+        {first, first + length},
+        NEON_LAMBDA(const localIdx i) { outV[i - first] = inV[i]; },
+        "copyMap"
     );
 
     return out;

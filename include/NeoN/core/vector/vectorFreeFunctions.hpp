@@ -63,10 +63,10 @@ template<unsigned int I>
 template<unsigned int I>
 void setComponent(const Vector<scalar>& in, Vector<Vec3>& out);
 
-/** @brief Given a Vector and an index range [first, last] a subvector is created
+/** @brief Given a Vector and an index range [first, first+length] a subvector is created
  * @returns The resulting subset vector
  */
 template<typename ValueType>
-Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx last);
+Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx length);
 
 } // namespace NeoN
