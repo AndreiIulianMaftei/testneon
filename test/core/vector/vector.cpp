@@ -281,3 +281,27 @@ TEST_CASE("getViews")
         REQUIRE(value == 5.0);
     }
 }
+
+TEMPLATE_TEST_CASE("take", "[template]", NeoN::scalar, NeoN::Vec3)
+{
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::Vector<TestType> a(
+        exec,
+        {1.0 * NeoN::one<TestType>(),
+         2.0 * NeoN::one<TestType>(),
+         3.0 * NeoN::one<TestType>(),
+         4.0 * NeoN::one<TestType>(),
+         5.0 * NeoN::one<TestType>(),
+         6.0 * NeoN::one<TestType>()}
+    );
+
+    NeoN::Vector<TestType> aExp(
+        exec,
+        {2.0 * NeoN::one<TestType>(), 3.0 * NeoN::one<TestType>(), 4.0 * NeoN::one<TestType>()}
+    );
+
+    auto takeRes = take(a, 1, 4);
+
+    REQUIRE_THAT(takeRes, Equals(aExp, Approx {1e-12}));
+}

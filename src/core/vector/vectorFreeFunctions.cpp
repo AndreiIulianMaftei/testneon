@@ -155,11 +155,28 @@ template void setComponent<0>(const Vector<scalar>&, Vector<Vec3>&);
 template void setComponent<1>(const Vector<scalar>&, Vector<Vec3>&);
 template void setComponent<2>(const Vector<scalar>&, Vector<Vec3>&);
 
+template<typename ValueType>
+Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx last)
+{
+    NF_ASSERT(last >= first, "Invalid index range");
+    const auto exec = in.exec();
+
+    auto out = Vector<ValueType>(exec, (last - first));
+    auto outV = out.view();
+    const auto inV = in.view();
+
+    NeoN::parallelFor(
+        exec, {first, last}, NEON_LAMBDA(const localIdx i) { outV[i - first] = inV[i]; }, "copyMap"
+    );
+
+    return out;
+}
 
 // operator instantiation
 #define NN_VECTOR_OPERATOR_INSTANTIATION(Type)                                                     \
     /* free function operator with additional requirements  */                                     \
     template void scalarMul<Type>(Vector<Type>&, const scalar);                                    \
+    template Vector<Type> take<Type>(const Vector<Type>&, localIdx, localIdx);                     \
     template void add<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
     template void add<Type>(Vector<Type>&, const Vector<std::type_identity_t<Type>>&);             \
     template void sub<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
@@ -170,6 +187,7 @@ template void setComponent<2>(const Vector<scalar>&, Vector<Vec3>&);
 #define NN_VECTOR_OPERATOR_INSTANTIATION_VEC3(Type)                                                \
     /* free function operator with additional requirements  */                                     \
     template void scalarMul<Type>(Vector<Type>&, const scalar);                                    \
+    template Vector<Type> take<Type>(const Vector<Type>&, localIdx, localIdx);                     \
     template void add<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
     template void add<Type>(Vector<Type>&, const Vector<std::type_identity_t<Type>>&);             \
     template void sub<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
