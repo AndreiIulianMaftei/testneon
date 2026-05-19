@@ -69,7 +69,7 @@ void setBoundarySparsityPatternImpl(
     const auto nBoundaryFaces = mesh.boundaryMesh().faceCells().size();
     const auto diagOffsV = diagOffs.view();
     const auto faceCellsV = mesh.boundaryMesh().faceCells().view();
-    auto bRowOffsV = rowIdx.view();
+    auto rowIdxV = rowIdx.view();
     auto bColIdxV = bColIdx.view();
     parallelFor(
         exec,
@@ -78,7 +78,7 @@ void setBoundarySparsityPatternImpl(
             localIdx celli = faceCellsV[bfacei];
             bColIdxV[bfacei] = celli + diagOffsV[celli]; // TODO the meaning of bColIdxV  is
                                                          // currently unused and undefined
-            bRowOffsV[bfacei] = celli;
+            rowIdxV[bfacei] = celli;
         },
         "setSparsityPatternFaceToMatrixAddress::setBoundarySparsity"
     );
