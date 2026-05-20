@@ -113,6 +113,11 @@ public:
 
     [[nodiscard]] const SystemMatrixType& matrix() const { return matrix_; }
 
+    // TODO use correct nonLocalMatrix
+    [[nodiscard]] BoundaryMatrixType& nonLocalMatrix() { return boundaryMatrix_; }
+
+    [[nodiscard]] const BoundaryMatrixType& nonLocalMatrix() const { return boundaryMatrix_; }
+
     [[nodiscard]] BoundaryMatrixType& boundaryMatrix() { return boundaryMatrix_; }
 
     [[nodiscard]] const BoundaryMatrixType& boundaryMatrix() const { return boundaryMatrix_; }

@@ -113,26 +113,13 @@ public:
     FaceToMatrixAddress(const FaceToMatrixAddress& mi);
 
 
-    [[nodiscard]] FaceToMatrixAddress copyToExecutor(Executor dstExec) const override
-    {
-        return {
-            ownerOffset_.copyToExecutor(dstExec),
-            neighbourOffset_.copyToExecutor(dstExec),
-            diagOffset_.copyToExecutor(dstExec)
-        };
-    }
-
+    FaceToMatrixAddress copyToExecutor(Executor dstExec) const;
 
     /**
      * @brief Get a view representation of the matrix's data.
      * @return FaceToMatrixView for easy access to matrix elements.
      */
-    [[nodiscard]] FaceToMatrixView view(View<const localIdx> rowOffsView) const
-    {
-        return FaceToMatrixView(
-            ownerOffset_.view(), neighbourOffset_.view(), diagOffset_.view(), rowOffsView
-        );
-    }
+    [[nodiscard]] FaceToMatrixView view(View<const localIdx> rowOffsView) const;
 
     /*@brief getter for ownerOffset */
     const Array<uint8_t>& ownerOffset() const;

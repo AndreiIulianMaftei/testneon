@@ -141,8 +141,9 @@ TEST_CASE("Utilities")
         Vector<localIdx> bColIdx(exec, {0, 1, 2});
         Vector<localIdx> bRowOffs(exec, {0, 1, 2});
         COOMatrix<scalar, localIdx> bCooMatrix(bValues, bColIdx, bRowOffs, {3, 1});
+        Vector<scalar> bRhs(exec, 3, 0.0);
         LinearSystem<scalar, CSRMatrix<scalar, localIdx>> linearSystem(
-            csrMatrix, rhs, bCooMatrix, rhs
+            csrMatrix, rhs, bCooMatrix, bRhs
         );
 
         NeoN::la::computeResidual(csrMatrix, rhs, x, res);

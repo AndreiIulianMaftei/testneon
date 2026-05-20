@@ -169,8 +169,6 @@ public:
      */
     localIdx nBoundaryFaces() const;
 
-    localIdx nProcBoundaryFaces() const;
-
     /**
      * @brief Get the total number of faces including boundary and processor faces in the mesh.
      *
@@ -184,6 +182,13 @@ public:
      * @return The number of boundaries in the mesh.
      */
     localIdx nBoundaries() const;
+
+    /**
+     * @brief Get the number of processor-boundary faces (inter-rank faces).
+     *
+     * Returns 0 for single-process runs.
+     */
+    localIdx nProcBoundaryFaces() const;
 
     /**
      * @brief the offset local cellIds for the global mesh.

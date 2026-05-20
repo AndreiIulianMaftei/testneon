@@ -14,6 +14,7 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
+
 /* @brief
  *
  */
@@ -67,6 +68,7 @@ private:
     SurfaceInterpolation<ValueType> surfaceInterpolation_;
 };
 
+// FIXME is this needed?
 extern template class GaussGreenDiv<scalar>;
 extern template class GaussGreenDiv<Vec3>;
 

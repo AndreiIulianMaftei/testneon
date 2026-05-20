@@ -15,14 +15,6 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
-template<typename ValueType>
-void computeLaplacianExp(
-    const FaceNormalGradient<ValueType>& faceNormalGradient,
-    const SurfaceField<scalar>& gamma,
-    const VolumeField<ValueType>& phi,
-    Vector<ValueType>& lapPhi,
-    const dsl::Coeff operatorScaling
-);
 
 template<typename ValueType>
 class GaussGreenLaplacian :
@@ -80,6 +72,7 @@ private:
     FaceNormalGradient<ValueType> faceNormalGradient_;
 };
 
+// FIXME is this needed
 extern template class GaussGreenLaplacian<scalar>;
 extern template class GaussGreenLaplacian<Vec3>;
 

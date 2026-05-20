@@ -157,6 +157,11 @@ public:
      */
     [[nodiscard]] localIdx nNonZeros() const { return sparsityPattern_->nnz(); }
 
+    void reset()
+    { /* TODO: implement */
+    }
+
+
     /**
      * @brief Get a reference to values vector.
      * @return Vector containing the matrix values.
