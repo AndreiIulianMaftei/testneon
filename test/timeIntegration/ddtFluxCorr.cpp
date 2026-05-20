@@ -80,8 +80,6 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
         // Helper: expected values for boundary faces (host-side)
         auto expectedFrom = [&](const SurfScalar& flux0Field)
         {
-
-            for (auto i = 0; i < mesh.nTotalFaces(); ++i)
             std::vector<Scalar> e(static_cast<size_t>(nBndFaces), 0.0);
             auto flux0FieldH = flux0Field.boundaryData().value().copyToHost();
             auto flux0FieldV = flux0FieldH.view();
@@ -110,13 +108,8 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
 
             NeoN::parallelFor(
                 exec,
-<<<<<<< HEAD
-                {size_t(0), mesh.nTotalFaces()},
-                NEON_LAMBDA(const NeoN::localIdx i) { flux0V2[i] = (sfV2[i] & uf0V2[i]); }
-=======
                 {size_t(0), static_cast<size_t>(nBndFaces)},
                 NEON_LAMBDA(const NeoN::localIdx i) { flux0BV2[i] = (sfV2[i] & uf0BV2[i]); }
->>>>>>> a744ac4b54 (make surface field contain only internal data)
             );
 
             flux.boundaryData().value() = flux0.boundaryData().value();
@@ -124,15 +117,9 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrBH = fluxCorr.boundaryData().value().copyToHost();
 
-<<<<<<< HEAD
-            for (auto i = 0; i < mesh.nTotalFaces(); ++i)
-            {
-                REQUIRE(corrH.view()[i] == Catch::Approx(0.0).margin(1e-12));
-            }
-=======
-            for (NeoN::localIdx i = 0; i < nBndFaces; ++i)
+            for (NeoN::localIdx i = 0; i < nBndFaces; ++i) {
                 REQUIRE(corrBH.view()[i] == Catch::Approx(0.0).margin(1e-12));
->>>>>>> a744ac4b54 (make surface field contain only internal data)
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -146,12 +133,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrBH = fluxCorr.boundaryData().value().copyToHost();
 
-<<<<<<< HEAD
-            for (auto i = 0; i < mesh.nTotalFaces(); ++i)
-            {
-=======
-            for (NeoN::localIdx i = 0; i < nBndFaces; ++i)
->>>>>>> a744ac4b54 (make surface field contain only internal data)
+            for (NeoN::localIdx i = 0; i < nBndFaces; ++i) {
                 REQUIRE(
                     corrBH.view()[i]
                     == Catch::Approx(expected[static_cast<size_t>(i)]).margin(1e-12)
