@@ -14,12 +14,12 @@ UnstructuredMesh::UnstructuredMesh(
     Executor exec,
     vectorVector points,
     scalarVector cellVolumes,
-    vectorVector cellCentres,
-    vectorVector faceAreas,
-    vectorVector faceCentres,
-    scalarVector magFaceAreas,
-    labelVector faceOwner,
-    labelVector faceNeighbour,
+    vectorVector cellCenters,
+    vectorVector faceNormals,
+    vectorVector faceCenters,
+    scalarVector faceAreas,
+    labelVector faceOwners,
+    labelVector faceNeighbors,
     localIdx nCells,
     localIdx nInternalFaces,
     localIdx nBoundaryFaces,
@@ -27,9 +27,9 @@ UnstructuredMesh::UnstructuredMesh(
     localIdx nFaces,
     BoundaryMesh boundaryMesh
 )
-    : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
-      faceAreas_(faceAreas), faceCentres_(faceCentres), magFaceAreas_(magFaceAreas),
-      faceOwner_(faceOwner), faceNeighbour_(faceNeighbour), nCells_(nCells),
+    : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCenters_(cellCenters),
+      faceNormals_(faceNormals), faceCenters_(faceCenters), faceAreas_(faceAreas),
+      faceOwners_(faceOwners), faceNeighbors_(faceNeighbors), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
       nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
 {}
@@ -37,12 +37,12 @@ UnstructuredMesh::UnstructuredMesh(
 UnstructuredMesh::UnstructuredMesh(
     vectorVector points,
     scalarVector cellVolumes,
-    vectorVector cellCentres,
-    vectorVector faceAreas,
-    vectorVector faceCentres,
-    scalarVector magFaceAreas,
-    labelVector faceOwner,
-    labelVector faceNeighbour,
+    vectorVector cellCenters,
+    vectorVector faceNormals,
+    vectorVector faceCenters,
+    scalarVector faceAreas,
+    labelVector faceOwners,
+    labelVector faceNeighbors,
     localIdx nCells,
     localIdx nInternalFaces,
     localIdx nBoundaryFaces,
@@ -51,15 +51,15 @@ UnstructuredMesh::UnstructuredMesh(
     BoundaryMesh boundaryMesh
 )
     : UnstructuredMesh(
-        faceOwner.exec(),
+        faceOwners.exec(),
         points,
         cellVolumes,
-        cellCentres,
+        cellCenters,
+        faceNormals,
+        faceCenters,
         faceAreas,
-        faceCentres,
-        magFaceAreas,
-        faceOwner,
-        faceNeighbour,
+        faceOwners,
+        faceNeighbors,
         nCells,
         nInternalFaces,
         nBoundaryFaces,
@@ -78,29 +78,29 @@ const scalarVector& UnstructuredMesh::cellVolumes() const { return cellVolumes_;
 
 scalarVector& UnstructuredMesh::cellVolumes() { return cellVolumes_; }
 
-const vectorVector& UnstructuredMesh::cellCentres() const { return cellCentres_; }
+const vectorVector& UnstructuredMesh::cellCenters() const { return cellCenters_; }
 
-vectorVector& UnstructuredMesh::cellCentres() { return cellCentres_; }
+vectorVector& UnstructuredMesh::cellCenters() { return cellCenters_; }
 
-const vectorVector& UnstructuredMesh::faceCentres() const { return faceCentres_; }
+const vectorVector& UnstructuredMesh::faceCenters() const { return faceCenters_; }
 
-vectorVector& UnstructuredMesh::faceCentres() { return faceCentres_; }
+vectorVector& UnstructuredMesh::faceCenters() { return faceCenters_; }
 
-const vectorVector& UnstructuredMesh::faceAreas() const { return faceAreas_; }
+const vectorVector& UnstructuredMesh::faceNormals() const { return faceNormals_; }
 
-vectorVector& UnstructuredMesh::faceAreas() { return faceAreas_; }
+vectorVector& UnstructuredMesh::faceNormals() { return faceNormals_; }
 
-const scalarVector& UnstructuredMesh::magFaceAreas() const { return magFaceAreas_; }
+const scalarVector& UnstructuredMesh::faceAreas() const { return faceAreas_; }
 
-scalarVector& UnstructuredMesh::magFaceAreas() { return magFaceAreas_; }
+scalarVector& UnstructuredMesh::faceAreas() { return faceAreas_; }
 
-const labelVector& UnstructuredMesh::faceOwner() const { return faceOwner_; }
+const labelVector& UnstructuredMesh::faceOwners() const { return faceOwners_; }
 
-labelVector& UnstructuredMesh::faceOwner() { return faceOwner_; }
+labelVector& UnstructuredMesh::faceOwners() { return faceOwners_; }
 
-const labelVector& UnstructuredMesh::faceNeighbour() const { return faceNeighbour_; }
+const labelVector& UnstructuredMesh::faceNeighbors() const { return faceNeighbors_; }
 
-labelVector& UnstructuredMesh::faceNeighbour() { return faceNeighbour_; }
+labelVector& UnstructuredMesh::faceNeighbors() { return faceNeighbors_; }
 
 localIdx UnstructuredMesh::nCells() const { return nCells_; }
 
@@ -126,18 +126,18 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     // and four boundaries one left, right, top, bottom
 
     vectorVector faceAreasVec3s(exec, {{-1, 0, 0}, {0, 1, 0}, {1, 0, 0}, {0, -1, 0}});
-    vectorVector faceCentresVec3s(
+    vectorVector faceCentersVec3s(
         exec, {{0.0, 0.5, 0.0}, {0.5, 1.0, 0.0}, {1.0, 0.5, 0.0}, {0.5, 0.0, 0.0}}
     );
-    scalarVector magFaceAreas(exec, {1, 1, 1, 1});
+    scalarVector faceAreas(exec, {1, 1, 1, 1});
 
     BoundaryMesh boundaryMesh(
         exec,
         {exec, {0, 0, 0, 0}},                                                           // faceCells
-        faceCentresVec3s,                                                               // cf
+        faceCentersVec3s,                                                               // cf
         faceAreasVec3s,                                                                 // cn,
         faceAreasVec3s,                                                                 // sf,
-        magFaceAreas,                                                                   // magSf,
+        faceAreas,                                                                      // magSf,
         faceAreasVec3s,                                                                 // nf,
         {exec, {{-0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}}}, // delta
         {exec, {1, 1, 1, 1}},                                                           // weights
@@ -147,12 +147,12 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     return UnstructuredMesh(
         {exec, {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}}, // points,
         {exec, 1, 1.0},                                       // cellVolumes
-        {exec, {{0.5, 0.5, 0.0}}},                            // cellCentres
+        {exec, {{0.5, 0.5, 0.0}}},                            // cellCenters
         faceAreasVec3s,
-        faceCentresVec3s,
-        magFaceAreas,
-        {exec, {0, 0, 0, 0}}, // faceOwner
-        {exec, {}},           // faceNeighbour,
+        faceCentersVec3s,
+        faceAreas,
+        {exec, {0, 0, 0, 0}}, // faceOwners
+        {exec, {}},           // faceNeighbors,
         1,                    // nCells
         0,                    // nInternalFaces,
         4,                    // nBoundaryFaces,
@@ -185,7 +185,7 @@ UnstructuredMesh create3DUniformMesh(
     detail::MeshParams p {nx, ny, nz, lx, ly, lz};
 
     const auto points = detail::generatePoints(p);
-    const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
+    const auto [cellVolumes, cellCenters] = detail::generateCellData(p);
 
     // Judge the dimension based on the input parameters
     int dim = 0;
@@ -243,7 +243,7 @@ UnstructuredMesh create3DUniformMesh(
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
     auto boundaryMesh = detail::generateBoundaryData(
-        exec, dim, p, cellCentres, nInternalFaces, nBoundaryFaces, offset, faces
+        exec, dim, p, cellCenters, nInternalFaces, nBoundaryFaces, offset, faces
     );
 
     // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
@@ -252,9 +252,9 @@ UnstructuredMesh create3DUniformMesh(
     UnstructuredMesh mesh(
         vectorVector(exec, std::move(points)),
         scalarVector(exec, std::move(cellVolumes)),
-        vectorVector(exec, std::move(cellCentres)),
+        vectorVector(exec, std::move(cellCenters)),
         {exec, std::move(faces.areas)},
-        {exec, std::move(faces.centres)},
+        {exec, std::move(faces.centers)},
         {exec, std::move(faces.magnitudes)},
         {exec, std::move(faces.owner)},
         labelVector(exec, std::move(faces.neighbour)),

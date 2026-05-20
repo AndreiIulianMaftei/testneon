@@ -37,7 +37,7 @@ TEST_CASE("symmetry_volume")
                 field.boundaryData().refValue(),
                 field.boundaryData().value(),
                 field.boundaryData().refGrad(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceOwners(),
                 field.internalVector()
             );
 
@@ -79,8 +79,8 @@ TEST_CASE("symmetry_volume")
                 field.boundaryData().refValue(),
                 field.boundaryData().value(),
                 field.boundaryData().refGrad(),
-                mesh.boundaryMesh().nf(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceUnitNormals(),
+                mesh.boundaryMesh().faceOwners(),
                 field.internalVector()
             );
 

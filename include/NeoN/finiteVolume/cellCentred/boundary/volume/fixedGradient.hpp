@@ -30,12 +30,12 @@ void setGradientValue(
 {
     const auto iVector = domainVector.internalVector().view();
 
-    auto [refGradient, value, valueFraction, refValue, faceCells, deltaCoeffs] = views(
+    auto [refGradient, value, valueFraction, refValue, boundaryFaceOwners, deltaCoeffs] = views(
         domainVector.boundaryData().refGrad(),
         domainVector.boundaryData().value(),
         domainVector.boundaryData().valueFraction(),
         domainVector.boundaryData().refValue(),
-        mesh.boundaryMesh().faceCells(),
+        mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().deltaCoeffs()
     );
 
@@ -46,7 +46,7 @@ void setGradientValue(
         NEON_LAMBDA(const localIdx i) {
             refGradient[i] = fixedGradient;
             // operator / is not defined for all ValueTypes
-            value[i] = iVector[faceCells[i]] + fixedGradient * (1 / deltaCoeffs[i]);
+            value[i] = iVector[boundaryFaceOwners[i]] + fixedGradient * (1 / deltaCoeffs[i]);
             valueFraction[i] = 0.0;          // only use refGrad
             refValue[i] = zero<ValueType>(); // not used
         },

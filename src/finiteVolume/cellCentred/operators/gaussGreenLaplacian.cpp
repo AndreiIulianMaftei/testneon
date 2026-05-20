@@ -22,11 +22,11 @@ void computeLaplacianExp(
 
     SurfaceField<ValueType> faceNormalGrad = faceNormalGradient.faceNormalGrad(phi);
 
-    const auto [owner, neighbour, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
+    const auto [owners, neighbors, boundaryFaceOwners] =
+        views(mesh.faceOwners(), mesh.faceNeighbors(), mesh.boundaryMesh().faceOwners());
 
     const auto [result, faceArea, fnGrad, vol] =
-        views(lapPhi, mesh.magFaceAreas(), faceNormalGrad.internalVector(), mesh.cellVolumes());
+        views(lapPhi, mesh.faceAreas(), faceNormalGrad.internalVector(), mesh.cellVolumes());
 
     auto nInternalFaces = mesh.nInternalFaces();
 
@@ -47,10 +47,10 @@ void computeLaplacianExp(
         NEON_LAMBDA(const localIdx i) {
             ValueType flux = faceArea[i] * fnGrad[i];
             Kokkos::atomic_add(
-                &result[owner[i]], flux
+                &result[owners[i]], flux
             ); // +|S_f| * fnGrad (outward gradient from owner)
             Kokkos::atomic_sub(
-                &result[neighbour[i]], flux
+                &result[neighbors[i]], flux
             ); // −|S_f| * fnGrad (inward gradient for neighbour)
         },
         "computeLaplacianExplicitInternal"
@@ -61,7 +61,7 @@ void computeLaplacianExp(
         exec,
         {nInternalFaces, fnGrad.size()},
         NEON_LAMBDA(const localIdx i) {
-            auto own = surfFaceCells[i - nInternalFaces];
+            auto own = boundaryFaceOwners[i - nInternalFaces];
             ValueType valueOwn =
                 faceArea[i] * fnGrad[i]; // +|S_f| * fnGrad (S_f outward from owner)
             Kokkos::atomic_add(&result[own], valueOwn);
@@ -104,9 +104,9 @@ void computeLaplacianBoundImpl(
 
     auto gammaV = gamma.internalVector().view();
 
-    const auto [magFaceArea, surfFaceCells, deltaCoeffs] = views(
-        mesh.magFaceAreas(),
-        mesh.boundaryMesh().faceCells(),
+    const auto [magFaceArea, boundaryFaceOwners, deltaCoeffs] = views(
+        mesh.faceAreas(),
+        mesh.boundaryMesh().faceOwners(),
         faceNormalGradient.deltaCoeffs().internalVector()
     );
 
@@ -132,7 +132,7 @@ void computeLaplacianBoundImpl(
         {nInternalFaces, totalFaces},
         NEON_LAMBDA(const localIdx facei) {
             auto bfi = facei - nInternalFaces;
-            auto ownRow = surfFaceCells[bfi];
+            auto ownRow = boundaryFaceOwners[bfi];
 
             auto ownRowCoeff = operatorScaling[ownRow];
 
@@ -177,13 +177,11 @@ void computeLaplacianIntImpl(
     const UnstructuredMesh& mesh = phi.mesh();
     const auto exec = phi.exec();
     const auto matIt = ls.faceToMatrixAddress();
-    const auto [ownV, neiV, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
+    const auto [ownV, neiV, boundaryFaceOwners] =
+        views(mesh.faceOwners(), mesh.faceNeighbors(), mesh.boundaryMesh().faceOwners());
 
     const auto [gammaV, deltaCoeffs, magFaceArea] = views(
-        gamma.internalVector(),
-        faceNormalGradient.deltaCoeffs().internalVector(),
-        mesh.magFaceAreas()
+        gamma.internalVector(), faceNormalGradient.deltaCoeffs().internalVector(), mesh.faceAreas()
     );
 
     auto values = ls.matrix().values().view();

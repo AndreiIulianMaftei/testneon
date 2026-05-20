@@ -14,8 +14,8 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
 {
     const auto exec = mesh_.exec();
     const auto nCells = mesh_.nCells();
-    const auto [faceOwner, faceNeighbour, boundaryFaceCells] =
-        views(mesh_.faceOwner(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceCells());
+    const auto [faceOwners, faceNeighbors, boundaryFaceOwners] =
+        views(mesh_.faceOwners(), mesh_.faceNeighbors(), mesh_.boundaryMesh().faceOwners());
 
     const auto nInternalFaces = mesh_.nInternalFaces();
 
@@ -26,17 +26,17 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Kokkos::atomic_inc(&nFacesPerCellView[faceOwner[i]]);
-            Kokkos::atomic_inc(&nFacesPerCellView[faceNeighbour[i]]);
+            Kokkos::atomic_inc(&nFacesPerCellView[faceOwners[i]]);
+            Kokkos::atomic_inc(&nFacesPerCellView[faceNeighbors[i]]);
         },
         "countFacesPerCellInternal"
     );
 
     parallelFor(
         exec,
-        {0, boundaryFaceCells.size()},
+        {0, boundaryFaceOwners.size()},
         NEON_LAMBDA(const localIdx i) {
-            Kokkos::atomic_inc(&nFacesPerCellView[boundaryFaceCells[i]]);
+            Kokkos::atomic_inc(&nFacesPerCellView[boundaryFaceOwners[i]]);
         },
         "countFacesPerCellBoundary"
     );
@@ -50,8 +50,8 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
-            localIdx owner = faceOwner[facei];
-            localIdx neighbour = faceNeighbour[facei];
+            localIdx owner = faceOwners[facei];
+            localIdx neighbour = faceNeighbors[facei];
 
             localIdx segIdxOwn = Kokkos::atomic_fetch_add(&nFacesPerCellView[owner], 1);
             localIdx segIdxNei = Kokkos::atomic_fetch_add(&nFacesPerCellView[neighbour], 1);
@@ -66,9 +66,9 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeStencil() const
 
     parallelFor(
         exec,
-        {nInternalFaces, nInternalFaces + boundaryFaceCells.size()},
+        {nInternalFaces, nInternalFaces + boundaryFaceOwners.size()},
         NEON_LAMBDA(const localIdx facei) {
-            localIdx owner = boundaryFaceCells[facei - nInternalFaces];
+            localIdx owner = boundaryFaceOwners[facei - nInternalFaces];
             localIdx segIdxOwn = Kokkos::atomic_fetch_add(&nFacesPerCellView[owner], 1);
             localIdx startSegOwn = segment[owner];
             Kokkos::atomic_store(&stencilValues[startSegOwn + segIdxOwn], facei);

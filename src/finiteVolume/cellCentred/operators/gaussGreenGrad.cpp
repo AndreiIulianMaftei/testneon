@@ -33,15 +33,23 @@ void computeGrad(
 
     auto surfGradPhi = out.view();
 
-    const auto [surfFaceCells, sBSf, surfPhif, surfOwner, surfNeighbour, faceAreaS, surfV] = views(
-        mesh.boundaryMesh().faceCells(),
-        mesh.boundaryMesh().sf(),
-        phif.internalVector(),
-        mesh.faceOwner(),
-        mesh.faceNeighbour(),
-        mesh.faceAreas(),
-        mesh.cellVolumes()
-    );
+    const auto
+        [boundaryFaceOwners,
+         boundaryFaceNormals,
+         surfPhif,
+         faceOwners,
+         faceNeighbors,
+         faceNormals,
+         surfV] =
+            views(
+                mesh.boundaryMesh().faceOwners(),
+                mesh.boundaryMesh().faceNormals(),
+                phif.internalVector(),
+                mesh.faceOwners(),
+                mesh.faceNeighbors(),
+                mesh.faceNormals(),
+                mesh.cellVolumes()
+            );
 
     auto nInternalFaces = mesh.nInternalFaces();
 
@@ -55,9 +63,9 @@ void computeGrad(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Vec3 flux = faceAreaS[i] * surfPhif[i];
-            Kokkos::atomic_add(&surfGradPhi[surfOwner[i]], flux);     // +S_f * φ_f
-            Kokkos::atomic_sub(&surfGradPhi[surfNeighbour[i]], flux); // −S_f * φ_f
+            Vec3 flux = faceNormals[i] * surfPhif[i];
+            Kokkos::atomic_add(&surfGradPhi[faceOwners[i]], flux);    // +S_f * φ_f
+            Kokkos::atomic_sub(&surfGradPhi[faceNeighbors[i]], flux); // −S_f * φ_f
         },
         "computeGradInternal"
     );
@@ -67,8 +75,8 @@ void computeGrad(
         exec,
         {nInternalFaces, surfPhif.size()},
         NEON_LAMBDA(const localIdx i) {
-            auto own = surfFaceCells[i - nInternalFaces];
-            Vec3 valueOwn = faceAreaS[i] * surfPhif[i]; // +S_f * φ_f (S_f outward from owner)
+            auto own = boundaryFaceOwners[i - nInternalFaces];
+            Vec3 valueOwn = faceNormals[i] * surfPhif[i]; // +S_f * φ_f (S_f outward from owner)
             Kokkos::atomic_add(&surfGradPhi[own], valueOwn);
         },
         "computeGradBoundary"
@@ -102,9 +110,9 @@ void computeBoundaryGrad(
                 phi.internalVector(),
                 phi.boundaryData().value(),
                 phi.boundaryData().refGrad(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceOwners(),
                 mesh.boundaryMesh().deltaCoeffs(),
-                mesh.boundaryMesh().nf()
+                mesh.boundaryMesh().faceUnitNormals()
             );
 
     for (localIdx patchID = 0; patchID < mesh.nBoundaries(); ++patchID)
@@ -239,11 +247,11 @@ void computeGradTensor(
 
     const auto [UfAll, owner, nei, SfAll, V, bFaceCells] = views(
         uf.internalVector(),
-        mesh.faceOwner(),
-        mesh.faceNeighbour(),
-        mesh.faceAreas(),
+        mesh.faceOwners(),
+        mesh.faceNeighbors(),
+        mesh.faceNormals(),
         mesh.cellVolumes(),
-        mesh.boundaryMesh().faceCells()
+        mesh.boundaryMesh().faceOwners()
     );
 
     const localIdx nInt = mesh.nInternalFaces();
@@ -317,9 +325,9 @@ void computeBoundaryGradTensor(const VolumeField<Vec3>& u, VolumeField<Tensor>& 
         u.internalVector(),
         u.boundaryData().value(),
         u.boundaryData().refGrad(),
-        mesh.boundaryMesh().faceCells(),
+        mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().deltaCoeffs(),
-        mesh.boundaryMesh().nf()
+        mesh.boundaryMesh().faceUnitNormals()
     );
 
     for (localIdx patchID = 0; patchID < static_cast<localIdx>(offsets.size() - 1); ++patchID)

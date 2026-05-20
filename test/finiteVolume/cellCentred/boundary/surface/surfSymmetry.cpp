@@ -34,7 +34,7 @@ TEST_CASE("symmetry_surface")
             auto [refValuesH, valuesH, faceCellsH, internalH] = copyToHosts(
                 field.boundaryData().refValue(),
                 field.boundaryData().value(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceOwners(),
                 field.internalVector()
             );
 
@@ -71,9 +71,9 @@ TEST_CASE("symmetry_surface")
             auto [refValuesH, valuesH, faceCellsH, internalH, nHatH] = copyToHosts(
                 field.boundaryData().refValue(),
                 field.boundaryData().value(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceOwners(),
                 field.internalVector(),
-                mesh.boundaryMesh().nf()
+                mesh.boundaryMesh().faceUnitNormals()
             );
 
             for (auto& boundaryValueV : refValuesH.view(boundary->range()))

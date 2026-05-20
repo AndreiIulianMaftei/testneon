@@ -19,8 +19,8 @@ void computeFaceNormalGrad(
     const UnstructuredMesh& mesh = surfaceVector.mesh();
     const auto& exec = surfaceVector.exec();
 
-    const auto [owner, neighbour, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
+    const auto [owners, neighbors, boundaryFaceOwners] =
+        views(mesh.faceOwners(), mesh.faceNeighbors(), mesh.boundaryMesh().faceOwners());
 
 
     const auto [phif, phi, phiBCValue, nonOrthDeltaCoeffs] = views(
@@ -36,7 +36,7 @@ void computeFaceNormalGrad(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
-            phif[facei] = nonOrthDeltaCoeffs[facei] * (phi[neighbour[facei]] - phi[owner[facei]]);
+            phif[facei] = nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
         },
         "computeFaceNormalGradInternal"
     );
@@ -46,7 +46,7 @@ void computeFaceNormalGrad(
         {nInternalFaces, phif.size()},
         NEON_LAMBDA(const localIdx facei) {
             auto faceBCI = facei - nInternalFaces;
-            auto own = surfFaceCells[faceBCI];
+            auto own = boundaryFaceOwners[faceBCI];
 
             phif[facei] = nonOrthDeltaCoeffs[facei] * (phiBCValue[faceBCI] - phi[own]);
         },

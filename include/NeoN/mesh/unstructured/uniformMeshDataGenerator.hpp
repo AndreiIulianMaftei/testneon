@@ -49,7 +49,7 @@ struct MeshParams
 struct CellData
 {
     std::vector<scalar> volumes;
-    std::vector<Vec3> centres;
+    std::vector<Vec3> centers;
 };
 
 /** @brief Face geometric and topological data for internal mesh faces
@@ -60,7 +60,7 @@ struct CellData
 struct FaceData
 {
     std::vector<Vec3> areas;
-    std::vector<Vec3> centres;
+    std::vector<Vec3> centers;
     std::vector<scalar> magnitudes;
     std::vector<label> owner;
     std::vector<label> neighbour;
@@ -114,7 +114,7 @@ generateInternalFaces(const MeshParams& p, const localIdx nInternalFaces, const 
  * @param exec Execution context
  * @param dim Spatial dimension (1, 2, or 3)
  * @param p Mesh parameters
- * @param centres Cell center coordinates
+ * @param centers Cell center coordinates
  * @param nInternalFaces Number of internal faces
  * @param nBoundaryFaces Number of boundary faces
  * @param offset Boundary face offset mapping for patch indexing
@@ -125,7 +125,7 @@ BoundaryMesh generateBoundaryData(
     const Executor exec,
     const int dim,
     const MeshParams& p,
-    const std::vector<Vec3>& centres,
+    const std::vector<Vec3>& centers,
     const localIdx nInternalFaces,
     const localIdx nBoundaryFaces,
     const std::vector<localIdx> offset,

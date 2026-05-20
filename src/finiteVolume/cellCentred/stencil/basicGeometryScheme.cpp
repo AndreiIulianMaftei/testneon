@@ -15,12 +15,12 @@ BasicGeometryScheme::BasicGeometryScheme(const UnstructuredMesh& mesh)
 
 void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scalar>& weights)
 {
-    const auto owner = mesh_.faceOwner().view();
-    const auto neighbour = mesh_.faceNeighbour().view();
+    const auto owners = mesh_.faceOwners().view();
+    const auto neighbors = mesh_.faceNeighbors().view();
 
-    const auto cf = mesh_.faceCentres().view();
-    const auto c = mesh_.cellCentres().view();
-    const auto sf = mesh_.faceAreas().view();
+    const auto faceCenters = mesh_.faceCenters().view();
+    const auto cellCenters = mesh_.cellCenters().view();
+    const auto faceNormals = mesh_.faceNormals().view();
 
     const auto [weightS, weightB] = views(weights.internalVector(), weights.boundaryData().value());
     const auto nInternalFaces = mesh_.nInternalFaces();
@@ -29,8 +29,10 @@ void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scala
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
-            scalar sfdOwn = std::abs(sf[facei] & (cf[facei] - c[owner[facei]]));
-            scalar sfdNei = std::abs(sf[facei] & (c[neighbour[facei]] - cf[facei]));
+            scalar sfdOwn =
+                std::abs(faceNormals[facei] & (faceCenters[facei] - cellCenters[owners[facei]]));
+            scalar sfdNei =
+                std::abs(faceNormals[facei] & (cellCenters[neighbors[facei]] - faceCenters[facei]));
 
             if (std::abs(sfdOwn + sfdNei) > ROOTVSMALL)
             {
@@ -60,11 +62,11 @@ void BasicGeometryScheme::updateDeltaCoeffs(
     [[maybe_unused]] const Executor& exec, [[maybe_unused]] SurfaceField<scalar>& deltaCoeffs
 )
 {
-    const auto [owner, neighbour, surfFaceCells] =
-        views(mesh_.faceOwner(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceCells());
+    const auto [owners, neighbors, surfFaceCells] =
+        views(mesh_.faceOwners(), mesh_.faceNeighbors(), mesh_.boundaryMesh().faceOwners());
 
 
-    const auto [cf, cellCentre] = views(mesh_.faceCentres(), mesh_.cellCentres());
+    const auto [faceCenters, cellCenters] = views(mesh_.faceCenters(), mesh_.cellCenters());
 
     auto deltaCoeff = deltaCoeffs.internalVector().view();
 
@@ -72,7 +74,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
         exec,
         {0, mesh_.nInternalFaces()},
         NEON_LAMBDA(const localIdx facei) {
-            Vec3 cellToCellDist = cellCentre[neighbour[facei]] - cellCentre[owner[facei]];
+            Vec3 cellToCellDist = cellCenters[neighbors[facei]] - cellCenters[owners[facei]];
             deltaCoeff[facei] = 1.0 / mag(cellToCellDist);
         },
         "basicGeometricScheme::updateDeltaCoeffsInternal"
@@ -85,7 +87,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
         {nInternalFaces, deltaCoeff.size()},
         NEON_LAMBDA(const localIdx facei) {
             auto own = surfFaceCells[facei - nInternalFaces];
-            Vec3 cellToCellDist = cf[facei] - cellCentre[own];
+            Vec3 cellToCellDist = faceCenters[facei] - cellCenters[own];
 
             deltaCoeff[facei] = 1.0 / mag(cellToCellDist);
         },
@@ -98,12 +100,12 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
     [[maybe_unused]] const Executor& exec, [[maybe_unused]] SurfaceField<scalar>& nonOrthDeltaCoeffs
 )
 {
-    const auto [owner, neighbour, surfFaceCells] =
-        views(mesh_.faceOwner(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceCells());
+    const auto [owners, neighbors, surfFaceCells] =
+        views(mesh_.faceOwners(), mesh_.faceNeighbors(), mesh_.boundaryMesh().faceOwners());
 
 
-    const auto [cf, cellCentre, faceAreaVec3, faceArea] =
-        views(mesh_.faceCentres(), mesh_.cellCentres(), mesh_.faceAreas(), mesh_.magFaceAreas());
+    const auto [faceCenters, cellCenters, faceAreaVec3, faceArea] =
+        views(mesh_.faceCenters(), mesh_.cellCenters(), mesh_.faceNormals(), mesh_.faceAreas());
 
     auto nonOrthDeltaCoeff = nonOrthDeltaCoeffs.internalVector().view();
     fill(nonOrthDeltaCoeffs.internalVector(), 0.0);
@@ -114,7 +116,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
-            Vec3 cellToCellDist = cellCentre[neighbour[facei]] - cellCentre[owner[facei]];
+            Vec3 cellToCellDist = cellCenters[neighbors[facei]] - cellCenters[owners[facei]];
             Vec3 faceNormal = 1 / faceArea[facei] * faceAreaVec3[facei];
             scalar orthoDist = faceNormal & cellToCellDist;
             nonOrthDeltaCoeff[facei] = 1.0 / std::max(orthoDist, 0.05 * mag(cellToCellDist));
@@ -127,7 +129,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
         {nInternalFaces, nonOrthDeltaCoeff.size()},
         NEON_LAMBDA(const localIdx facei) {
             auto own = surfFaceCells[facei - nInternalFaces];
-            Vec3 cellToCellDist = cf[facei] - cellCentre[own];
+            Vec3 cellToCellDist = faceCenters[facei] - cellCenters[own];
             Vec3 faceNormal = 1 / faceArea[facei] * faceAreaVec3[facei];
             scalar orthoDist = faceNormal & cellToCellDist;
             nonOrthDeltaCoeff[facei] = 1.0 / std::max(orthoDist, 0.05 * mag(cellToCellDist));

@@ -66,9 +66,9 @@ void setBoundarySparsityPatternImpl(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceCells().size();
+    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
     const auto diagOffsV = diagOffs.view();
-    const auto faceCellsV = mesh.boundaryMesh().faceCells().view();
+    const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
     auto rowIdxV = rowIdx.view();
     auto bColIdxV = bColIdx.view();
     parallelFor(
@@ -102,7 +102,7 @@ void setSparsityPatternFaceToMatrixAddressSerial(
     // start with one to include the diagonal
     auto nFacesPerCellH = Vector<localIdx>(SerialExecutor {}, nCells, 1);
     auto [neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH] =
-        copyToHosts(neiOffs, ownOffs, diagOffs, mesh.faceOwner(), mesh.faceNeighbour());
+        copyToHosts(neiOffs, ownOffs, diagOffs, mesh.faceOwners(), mesh.faceNeighbors());
 
     auto [nFacesPerCellHV, neiOffsetHV, ownOffsetHV, diagOffsetHV, faceOwnHV, faceNeiHV] =
         views(nFacesPerCellH, neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH);
@@ -265,7 +265,7 @@ createBoundarySparsityPattern<CooSparsityPattern<localIdx>>(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceCells().size();
+    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
     setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
@@ -281,7 +281,7 @@ createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceCells().size();
+    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
     setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);

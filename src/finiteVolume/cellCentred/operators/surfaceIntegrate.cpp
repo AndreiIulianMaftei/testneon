@@ -12,9 +12,9 @@ template<typename ValueType>
 void surfaceIntegrate(
     const Executor& exec,
     localIdx nInternalFaces,
-    View<const int> neighbour,
-    View<const int> owner,
-    View<const int> faceCells,
+    View<const int> neighbors,
+    View<const int> owners,
+    View<const int> faceOwners,
     View<const ValueType> flux,
     View<const scalar> v,
     View<ValueType> res,
@@ -22,13 +22,13 @@ void surfaceIntegrate(
 )
 {
     auto nCells = v.size();
-    const auto nBoundaryFaces = faceCells.size();
+    const auto nBoundaryFaces = faceOwners.size();
     parallelFor(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Kokkos::atomic_add(&res[owner[i]], flux[i]);
-            Kokkos::atomic_sub(&res[neighbour[i]], flux[i]);
+            Kokkos::atomic_add(&res[owners[i]], flux[i]);
+            Kokkos::atomic_sub(&res[neighbors[i]], flux[i]);
         },
         "surfaceIntegrateInternalFaces"
     );
@@ -37,7 +37,7 @@ void surfaceIntegrate(
         exec,
         {nInternalFaces, nInternalFaces + nBoundaryFaces},
         NEON_LAMBDA(const localIdx i) {
-            auto own = faceCells[i - nInternalFaces];
+            auto own = faceOwners[i - nInternalFaces];
             Kokkos::atomic_add(&res[own], flux[i]);
         },
         "surfaceIntegrateBoundaryFaces"

@@ -42,8 +42,8 @@ inline constexpr bool
  * @ref Catch::Approx with a configurable absolute tolerance.
  *
  * This predicate is intended for use with @ref EqualsMatcher and
- * @ref Equals when comparing vector-valued fields (e.g. cell centres,
- * face centres, geometric quantities).
+ * @ref Equals when comparing vector-valued fields (e.g. cell centers,
+ * face centers, geometric quantities).
  *
  * Each component of the vector is compared independently using the same
  * absolute tolerance.
@@ -55,7 +55,7 @@ inline constexpr bool
  *     {0.375, 0.5, 0.5}
  * };
  *
- * REQUIRE_THAT(mesh.cellCentres(),
+ * REQUIRE_THAT(mesh.cellCenters(),
  *              Equals(expected, Approx{1e-12}));
  * @endcode
  */
@@ -124,7 +124,7 @@ struct EqualInt
  * @code
  * std::vector<NeoN::Vec3> expected = { ... };
  *
- * REQUIRE_THAT(mesh.cellCentres(),
+ * REQUIRE_THAT(mesh.cellCenters(),
  *              Equals(expected, ApproxVec3{1e-12}));
  * @endcode
  *
@@ -212,8 +212,8 @@ private:
  *
  * It is intended for use with Catch2's @ref REQUIRE_THAT macro:
  * @code
- * REQUIRE_THAT(mesh.cellCentres(),
- *              Equals(expectedCentres, ApproxVec3{1e-12}));
+ * REQUIRE_THAT(mesh.cellCenters(),
+ *              Equals(expectedCenters, ApproxVec3{1e-12}));
  * @endcode
  *
  * If no predicate is provided, @ref ApproxScalar is used by default for

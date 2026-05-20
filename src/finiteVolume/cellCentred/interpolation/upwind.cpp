@@ -23,8 +23,8 @@ void computeUpwindInterpolation(
     const auto [srcS, weightS, ownerS, neighS, boundS, fluxS] = views(
         src.internalVector(),
         weights.internalVector(),
-        dst.mesh().faceOwner(),
-        dst.mesh().faceNeighbour(),
+        dst.mesh().faceOwners(),
+        dst.mesh().faceNeighbors(),
         src.boundaryData().value(),
         flux.internalVector()
     );
@@ -68,8 +68,8 @@ void computeUpwindInterpolationWeights(
     const auto [weightS, weightB, ownerS, neighS, fluxS] = views(
         weights.internalVector(),
         weights.boundaryData().value(),
-        src.mesh().faceOwner(),
-        src.mesh().faceNeighbour(),
+        src.mesh().faceOwners(),
+        src.mesh().faceNeighbors(),
         flux.internalVector()
     );
     auto nInternalFaces = src.mesh().nInternalFaces();
