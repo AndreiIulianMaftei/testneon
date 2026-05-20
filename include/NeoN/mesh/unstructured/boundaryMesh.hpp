@@ -39,7 +39,7 @@ public:
      * @param faceCenters A field of face centres.
      * @param Cn A field of neighbor cell centers.
      * @param faceNormals A field of face normal vectors.
-     * @param faceAreas A field of magnitudes of face areas normals.
+     * @param faceAreas A field of face areas.
      * @param nf A field of face unit normals.
      * @param delta A field of delta vectors.
      * @param weights A field of weights used in cell to face interpolation.
@@ -125,20 +125,17 @@ public:
     View<const Vec3> faceNormals(const localIdx i) const;
 
     /**
-     * @brief Get the field of magnitudes of face areas normals.
+     * @brief Get the field of face areas.
      *
-     * @return A constant reference to the field of magnitudes of face areas
-     * normals.
+     * @return A constant reference to the field of face areas.
      */
     const scalarVector& faceAreas() const;
 
     /**
-     * @brief Get a view of magnitudes of face areas normals for a specific
-     * boundary face.
+     * @brief Get a view of face areas for a specific boundary face.
      *
      * @param i The index of the boundary face.
-     * @return A view of magnitudes of face areas normals for the specified
-     * boundary face.
+     * @return A view of face areas for the specified boundary face.
      */
     View<const scalar> faceAreas(const localIdx i) const;
 
@@ -241,7 +238,7 @@ private:
     vectorVector faceNormals_;
 
     /**
-     * @brief Vector of magnitudes of face areas normals.
+     * @brief Vector of face areas.
      */
     scalarVector faceAreas_;
 
