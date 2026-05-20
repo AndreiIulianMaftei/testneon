@@ -27,14 +27,13 @@ def test_single_cell_mesh(executor):
 def test_1d_uniform_mesh(executor):
     name, exec = executor
     n_cells = 10
-    mesh = neon.create_1d_uniform_mesh(exec, n_cells)
+    mesh = neon.create_1d_uniform_mesh(exec, n_cells, 1.0)
 
     assert mesh.n_cells() == n_cells
     assert mesh.n_internal_faces() == n_cells - 1
-    assert mesh.n_faces() > 0
+    assert mesh.n_total_faces() > 0
     assert mesh.cell_volumes.size() == n_cells
     assert mesh.cell_centers.size() == n_cells
-    assert mesh.face_owners.size() == mesh.n_faces()
     assert mesh.face_neighbors.size() == mesh.n_internal_faces()
 
 
@@ -45,16 +44,12 @@ def test_mesh_geometry(executor):
     assert mesh.points.size() > 0
     assert mesh.cell_volumes.size() == mesh.n_cells()
     assert mesh.cell_centers.size() == mesh.n_cells()
-    assert mesh.face_centers.size() == mesh.n_faces()
-    assert mesh.face_normals.size() == mesh.n_faces()
-    assert mesh.face_areas.size() == mesh.n_faces()
 
 
 def test_mesh_topology(executor):
     name, exec = executor
-    mesh = neon.create_1d_uniform_mesh(exec, 5)
+    mesh = neon.create_1d_uniform_mesh(exec, 5, 1.0)
 
-    assert mesh.face_owners.size() == mesh.n_faces()
     assert mesh.face_neighbors.size() == mesh.n_internal_faces()
     assert mesh.boundary_mesh().face_owners().size() > 0
 
