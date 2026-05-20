@@ -42,7 +42,7 @@ public:
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
-     * @param faceNeighbors The field of face neighbour cells.
+     * @param faceNeighbors The list of labels of face neighbor cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
      * @param nBoundaryFaces The number of boundary faces in the mesh.
@@ -79,7 +79,7 @@ public:
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
-     * @param faceNeighbors The list of face neighbour cells.
+     * @param faceNeighbors The list of labels of face neighbor cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
      * @param nBoundaryFaces The number of boundary faces in the mesh.
@@ -161,9 +161,9 @@ public:
     labelVector& faceOwners();
 
     /**
-     * @brief Get the field of face neighbour cells.
+     * @brief Get the list of labels of face neighbor cells.
      *
-     * @return The field of face neighbour cells.
+     * @return The list of labels of face neighbor cells.
      */
     const labelVector& faceNeighbors() const;
     labelVector& faceNeighbors();
@@ -272,7 +272,7 @@ private:
     labelVector faceOwners_;
 
     /**
-     * @brief Vector of face neighbour cells.
+     * @brief Vector of labels of face neighbor cells.
      */
     labelVector faceNeighbors_;
 
