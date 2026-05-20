@@ -14,7 +14,7 @@ UnstructuredMesh::UnstructuredMesh(
     Executor exec,
     vectorVector points,
     scalarVector cellVolumes,
-    vectorVector cellCentres,
+    vectorVector cellCenters,
     vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector faceAreas,
@@ -27,7 +27,7 @@ UnstructuredMesh::UnstructuredMesh(
     localIdx nFaces,
     BoundaryMesh boundaryMesh
 )
-    : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
+    : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCenters_(cellCenters),
       faceNormals_(faceNormals), faceCentres_(faceCentres), faceAreas_(faceAreas),
       faceOwners_(faceOwners), faceNeighbors_(faceNeighbors), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
@@ -37,7 +37,7 @@ UnstructuredMesh::UnstructuredMesh(
 UnstructuredMesh::UnstructuredMesh(
     vectorVector points,
     scalarVector cellVolumes,
-    vectorVector cellCentres,
+    vectorVector cellCenters,
     vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector faceAreas,
@@ -54,7 +54,7 @@ UnstructuredMesh::UnstructuredMesh(
         faceOwners.exec(),
         points,
         cellVolumes,
-        cellCentres,
+        cellCenters,
         faceNormals,
         faceCentres,
         faceAreas,
@@ -78,9 +78,9 @@ const scalarVector& UnstructuredMesh::cellVolumes() const { return cellVolumes_;
 
 scalarVector& UnstructuredMesh::cellVolumes() { return cellVolumes_; }
 
-const vectorVector& UnstructuredMesh::cellCentres() const { return cellCentres_; }
+const vectorVector& UnstructuredMesh::cellCenters() const { return cellCenters_; }
 
-vectorVector& UnstructuredMesh::cellCentres() { return cellCentres_; }
+vectorVector& UnstructuredMesh::cellCenters() { return cellCenters_; }
 
 const vectorVector& UnstructuredMesh::faceCentres() const { return faceCentres_; }
 
@@ -147,7 +147,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     return UnstructuredMesh(
         {exec, {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}}, // points,
         {exec, 1, 1.0},                                       // cellVolumes
-        {exec, {{0.5, 0.5, 0.0}}},                            // cellCentres
+        {exec, {{0.5, 0.5, 0.0}}},                            // cellCenters
         faceAreasVec3s,
         faceCentresVec3s,
         faceAreas,
@@ -185,7 +185,7 @@ UnstructuredMesh create3DUniformMesh(
     detail::MeshParams p {nx, ny, nz, lx, ly, lz};
 
     const auto points = detail::generatePoints(p);
-    const auto [cellVolumes, cellCentres] = detail::generateCellData(p);
+    const auto [cellVolumes, cellCenters] = detail::generateCellData(p);
 
     // Judge the dimension based on the input parameters
     int dim = 0;
@@ -243,7 +243,7 @@ UnstructuredMesh create3DUniformMesh(
 
     auto faces = detail::generateInternalFaces(p, nInternalFaces, nFaces);
     auto boundaryMesh = detail::generateBoundaryData(
-        exec, dim, p, cellCentres, nInternalFaces, nBoundaryFaces, offset, faces
+        exec, dim, p, cellCenters, nInternalFaces, nBoundaryFaces, offset, faces
     );
 
     // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
@@ -252,7 +252,7 @@ UnstructuredMesh create3DUniformMesh(
     UnstructuredMesh mesh(
         vectorVector(exec, std::move(points)),
         scalarVector(exec, std::move(cellVolumes)),
-        vectorVector(exec, std::move(cellCentres)),
+        vectorVector(exec, std::move(cellCenters)),
         {exec, std::move(faces.areas)},
         {exec, std::move(faces.centres)},
         {exec, std::move(faces.magnitudes)},

@@ -127,7 +127,7 @@ void GeometryScheme::reset() const
     // ideally faceCentres are some kind of hostViewVector
     Logging::warn("resetting face and cell centres");
     const_cast<UnstructuredMesh&>(mesh_).faceCentres().resize(0);
-    const_cast<UnstructuredMesh&>(mesh_).cellCentres().resize(0);
+    const_cast<UnstructuredMesh&>(mesh_).cellCenters().resize(0);
 }
 
 

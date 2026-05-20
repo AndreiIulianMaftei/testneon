@@ -37,7 +37,7 @@ public:
      * @param exec
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
-     * @param cellCentres The field of cell centres in the mesh.
+     * @param cellCenters The field of cell centres in the mesh.
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
@@ -54,7 +54,7 @@ public:
         Executor exec,
         vectorVector points,
         scalarVector cellVolumes,
-        vectorVector cellCentres,
+        vectorVector cellCenters,
         vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector faceAreas,
@@ -74,7 +74,7 @@ public:
      *
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
-     * @param cellCentres The field of cell centres in the mesh.
+     * @param cellCenters The field of cell centres in the mesh.
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
@@ -90,7 +90,7 @@ public:
     UnstructuredMesh(
         vectorVector points,
         scalarVector cellVolumes,
-        vectorVector cellCentres,
+        vectorVector cellCenters,
         vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector faceAreas,
@@ -125,8 +125,8 @@ public:
      *
      * @return The field of cell centres in the mesh.
      */
-    const vectorVector& cellCentres() const;
-    vectorVector& cellCentres();
+    const vectorVector& cellCenters() const;
+    vectorVector& cellCenters();
 
     /**
      * @brief Get the field of face centres.
@@ -246,7 +246,7 @@ private:
     /**
      * @brief Vector of cell centres in the mesh.
      */
-    vectorVector cellCentres_;
+    vectorVector cellCenters_;
 
     /**
      * @brief Vector of face normal vectors.

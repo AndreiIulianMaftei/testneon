@@ -53,7 +53,7 @@ TEST_CASE("Unstructured Mesh")
         auto cellCentresExp = std::vector<NeoN::Vec3> {
             {0.125, 0.5, 0.5}, {0.375, 0.5, 0.5}, {0.625, 0.5, 0.5}, {0.875, 0.5, 0.5}
         };
-        REQUIRE_THAT(mesh.cellCentres(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
 
         // Verify face owners (x-direction)
         auto faceOwnerExp = std::vector<NeoN::label> {0, 1, 2, 0, 3};
@@ -111,7 +111,7 @@ TEST_CASE("Unstructured Mesh")
         auto cellCentresExp = std::vector<NeoN::Vec3> {
             {0.25, 0.25, 0.5}, {0.75, 0.25, 0.5}, {0.25, 0.75, 0.5}, {0.75, 0.75, 0.5}
         };
-        REQUIRE_THAT(mesh.cellCentres(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
 
         // Verify the number of neighbouring cells for boundary faces
         // 4 patches: left(2), right(2), bottom(2), top(2)
@@ -258,7 +258,7 @@ TEST_CASE("Unstructured Mesh")
             {0.25, 0.75, 0.75},
             {0.75, 0.75, 0.75}
         };
-        REQUIRE_THAT(mesh.cellCentres(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
 
         // Boundary delta: left boundary first face should have negative x delta
         auto hostBndDelta = mesh.boundaryMesh().delta().copyToHost();

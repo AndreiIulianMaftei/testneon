@@ -19,7 +19,7 @@ void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scala
     const auto neighbour = mesh_.faceNeighbors().view();
 
     const auto cf = mesh_.faceCentres().view();
-    const auto c = mesh_.cellCentres().view();
+    const auto c = mesh_.cellCenters().view();
     const auto sf = mesh_.faceNormals().view();
 
     const auto [weightS, weightB] = views(weights.internalVector(), weights.boundaryData().value());
@@ -64,7 +64,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
         views(mesh_.faceOwners(), mesh_.faceNeighbors(), mesh_.boundaryMesh().faceOwners());
 
 
-    const auto [cf, cellCentre] = views(mesh_.faceCentres(), mesh_.cellCentres());
+    const auto [cf, cellCentre] = views(mesh_.faceCentres(), mesh_.cellCenters());
 
     auto deltaCoeff = deltaCoeffs.internalVector().view();
 
@@ -103,7 +103,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
 
 
     const auto [cf, cellCentre, faceAreaVec3, faceArea] =
-        views(mesh_.faceCentres(), mesh_.cellCentres(), mesh_.faceNormals(), mesh_.faceAreas());
+        views(mesh_.faceCentres(), mesh_.cellCenters(), mesh_.faceNormals(), mesh_.faceAreas());
 
     auto nonOrthDeltaCoeff = nonOrthDeltaCoeffs.internalVector().view();
     fill(nonOrthDeltaCoeffs.internalVector(), 0.0);
