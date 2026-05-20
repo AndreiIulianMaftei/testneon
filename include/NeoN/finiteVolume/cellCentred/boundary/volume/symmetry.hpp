@@ -76,7 +76,7 @@ inline void setSymmetryValue<NeoN::Vec3>(
         domainVector.boundaryData().valueFraction(),
         domainVector.boundaryData().refValue(),
         mesh.boundaryMesh().faceOwners(),
-        mesh.boundaryMesh().nf()
+        mesh.boundaryMesh().faceUnitNormals()
     );
 
     NeoN::parallelFor(

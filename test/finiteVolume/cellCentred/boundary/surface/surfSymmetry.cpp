@@ -73,7 +73,7 @@ TEST_CASE("symmetry_surface")
                 field.boundaryData().value(),
                 mesh.boundaryMesh().faceOwners(),
                 field.internalVector(),
-                mesh.boundaryMesh().nf()
+                mesh.boundaryMesh().faceUnitNormals()
             );
 
             for (auto& boundaryValueV : refValuesH.view(boundary->range()))

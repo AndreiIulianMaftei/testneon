@@ -71,7 +71,7 @@ def test_boundary_mesh_fields(executor):
     assert bm.faceNormals().size() == n_bfaces
     bm.ownerCellCenters()
     bm.mag_sf()
-    bm.nf()
+    bm.faceUnitNormals()
     bm.delta()
     bm.weights()
     bm.delta_coeffs()

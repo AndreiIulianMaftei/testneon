@@ -39,7 +39,7 @@ public:
      * @param ownerCellCenters A field of centers of owner cells of boundary faces.
      * @param faceNormals A field of face normal vectors.
      * @param faceAreas A field of face areas.
-     * @param nf A field of face unit normals.
+     * @param faceUnitNormals A field of face unit normal vectors.
      * @param delta A field of delta vectors.
      * @param weights A field of weights used in cell to face interpolation.
      * @param deltaCoeffs A field of the inverse of distances between boundary faces and their
@@ -53,7 +53,7 @@ public:
         vectorVector ownerCellCenters,
         vectorVector faceNormals,
         scalarVector faceAreas,
-        vectorVector nf,
+        vectorVector faceUnitNormals,
         vectorVector delta,
         scalarVector weights,
         scalarVector deltaCoeffs,
@@ -139,19 +139,19 @@ public:
     View<const scalar> faceAreas(const localIdx i) const;
 
     /**
-     * @brief Get the field of face unit normals.
+     * @brief Get the field of face unit normal vectors.
      *
-     * @return A constant reference to the field of face unit normals.
+     * @return A constant reference to the field of face unit normal vectors.
      */
-    const vectorVector& nf() const;
+    const vectorVector& faceUnitNormals() const;
 
     /**
-     * @brief Get a view of face unit normals for a specific boundary face.
+     * @brief Get a view of face unit normal vectors for a specific boundary face.
      *
      * @param i The index of the boundary face.
-     * @return A view of face unit normals for the specified boundary face.
+     * @return A view of face unit normal vectors for the specified boundary face.
      */
-    View<const Vec3> nf(const localIdx i) const;
+    View<const Vec3> faceUnitNormals(const localIdx i) const;
 
     /**
      * @brief Get the field of delta vectors.
@@ -242,9 +242,9 @@ private:
     scalarVector faceAreas_;
 
     /**
-     * @brief Vector of face unit normals.
+     * @brief Vector of face unit normal vectors.
      */
-    vectorVector nf_;
+    vectorVector faceUnitNormals_;
 
     /**
      * @brief Vector of delta vectors.

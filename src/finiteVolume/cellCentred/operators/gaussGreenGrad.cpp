@@ -104,7 +104,7 @@ void computeBoundaryGrad(
                 phi.boundaryData().refGrad(),
                 mesh.boundaryMesh().faceOwners(),
                 mesh.boundaryMesh().deltaCoeffs(),
-                mesh.boundaryMesh().nf()
+                mesh.boundaryMesh().faceUnitNormals()
             );
 
     for (localIdx patchID = 0; patchID < mesh.nBoundaries(); ++patchID)
@@ -319,7 +319,7 @@ void computeBoundaryGradTensor(const VolumeField<Vec3>& u, VolumeField<Tensor>& 
         u.boundaryData().refGrad(),
         mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().deltaCoeffs(),
-        mesh.boundaryMesh().nf()
+        mesh.boundaryMesh().faceUnitNormals()
     );
 
     for (localIdx patchID = 0; patchID < static_cast<localIdx>(offsets.size() - 1); ++patchID)

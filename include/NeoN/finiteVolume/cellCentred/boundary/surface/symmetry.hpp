@@ -51,7 +51,7 @@ inline void applySymmetry(
         domainVector.boundaryData().value(),
         domainVector.internalVector(),
         mesh.boundaryMesh().faceOwners(),
-        mesh.boundaryMesh().nf()
+        mesh.boundaryMesh().faceUnitNormals()
     );
 
     NeoN::parallelFor(
