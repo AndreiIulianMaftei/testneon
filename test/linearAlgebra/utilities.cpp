@@ -148,7 +148,7 @@ TEST_CASE("Utilities")
         NeoN::la::computeResidual(csrMatrix, rhs, x, res);
 
         auto residualExp = std::vector<scalar> {4.0, 13.0, 22.0};
-        REQUIRE_THAT(res, Equals(residualExp, ApproxScalar(1e-15)));
+        REQUIRE_THAT(res, Equals(residualExp, Approx(1e-15)));
     }
 
     SECTION("Can convert empty rowsToRowOffs  " + execName)

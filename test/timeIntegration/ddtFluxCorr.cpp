@@ -8,7 +8,6 @@
 #include "../dsl/common.hpp"
 #include "NeoN/NeoN.hpp"
 
-using Catch::Approx;
 namespace fvcc = NeoN::finiteVolume::cellCentred;
 
 using Scalar = NeoN::scalar;
@@ -112,7 +111,7 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto corrH = fluxCorr.internalVector().copyToHost();
 
             for (auto i = 0; i < mesh.nFaces(); ++i)
-                REQUIRE(corrH.view()[i] == Approx(0.0).margin(1e-12));
+                REQUIRE(corrH.view()[i] == Catch::Approx(0.0).margin(1e-12));
         }
 
         // ─────────────────────────────────────────────
@@ -127,7 +126,9 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto corrH = fluxCorr.internalVector().copyToHost();
 
             for (auto i = 0; i < mesh.nFaces(); ++i)
-                REQUIRE(corrH.view()[i] == Approx(expected[static_cast<size_t>(i)]).margin(1e-12));
+                REQUIRE(
+                    corrH.view()[i] == Catch::Approx(expected[static_cast<size_t>(i)]).margin(1e-12)
+                );
         }
     }
 }

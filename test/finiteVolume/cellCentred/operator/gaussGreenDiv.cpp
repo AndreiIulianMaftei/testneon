@@ -86,7 +86,7 @@ TEMPLATE_TEST_CASE("DivOperator", "[template]", NeoN::scalar, NeoN::Vec3)
             computeResidual(ls.matrix(), ls.rhs(), phi.internalVector(), res);
 
             auto resExp = std::vector<NeoN::scalar>(res.size(), 0);
-            REQUIRE_THAT(res, Equals(resExp, ApproxScalar {1e-12}));
+            REQUIRE_THAT(res, Equals(resExp, Approx {1e-12}));
         }
     }
 }

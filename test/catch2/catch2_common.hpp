@@ -18,6 +18,14 @@
 template<typename T>
 using I = std::initializer_list<T>;
 
+/** @brief Detects whether T has a copyToHost() member function. */
+template<typename T, typename = void>
+inline constexpr bool hasCopyToHost = false;
+
+template<typename T>
+inline constexpr bool
+    hasCopyToHost<T, std::void_t<decltype(std::declval<const T&>().copyToHost())>> = true;
+
 /**
  * @brief Conditionally enters a Catch2 SECTION if the given condition is true.
  * @param COND The boolean condition to evaluate.
@@ -27,28 +35,8 @@ using I = std::initializer_list<T>;
     if (COND) SECTION(__VA_ARGS__)
 
 /**
- *  @brief Predicate for approximate floating-point comparison within a given margin.
- *
- * Used with @ref EqualsMatcher and @ref Equals to compare scalar values
- * using Catch2's Approx mechanism, allowing for a configurable absolute tolerance.
- */
-struct ApproxScalar
-{
-    NeoN::scalar margin; ///< Absolute tolerance margin for the comparison.
-
-    /**
-     * @brief Returns true if @p rhs and @p lhs are equal within the stored margin.
-     * @param rhs Left-hand value passed to Catch::Approx.
-     * @param lhs Right-hand value to compare against.
-     */
-    bool operator()(double rhs, double lhs) const
-    {
-        return Catch::Approx(rhs).margin(margin) == lhs;
-    }
-};
-
-/**
- * @brief Predicate for approximate comparison of NeoN::Vec3 values.
+ * @brief Predicate for approximate comparison of NeoN::Vec3 values and floating-point comparison
+ * within a given margin.
  *
  * Performs component-wise floating-point comparison using Catch2's
  * @ref Catch::Approx with a configurable absolute tolerance.
@@ -68,10 +56,10 @@ struct ApproxScalar
  * };
  *
  * REQUIRE_THAT(mesh.cellCentres(),
- *              Equals(expected, ApproxVec3{1e-12}));
+ *              Equals(expected, Approx{1e-12}));
  * @endcode
  */
-struct ApproxVec3
+struct Approx
 {
     NeoN::scalar margin; ///< Absolute tolerance used for each component.
 
@@ -93,6 +81,16 @@ struct ApproxVec3
         return Catch::Approx(rhs[0]).margin(margin) == lhs[0]
             && Catch::Approx(rhs[1]).margin(margin) == lhs[1]
             && Catch::Approx(rhs[2]).margin(margin) == lhs[2];
+    }
+
+    /**
+     * @brief Returns true if @p rhs and @p lhs are equal within the stored margin.
+     * @param rhs Left-hand value passed to Catch::Approx.
+     * @param lhs Right-hand value to compare against.
+     */
+    bool operator()(double rhs, double lhs) const
+    {
+        return Catch::Approx(rhs).margin(margin) == lhs;
     }
 };
 
@@ -164,16 +162,29 @@ struct EqualsMatcher : Catch::Matchers::MatcherGenericBase
         using std::begin;
         using std::end;
 
-        // Copy device field to host if needed
         auto actualHost = actual.copyToHost();
 
-        return std::equal(
-            begin(actualHost.view()),
-            end(actualHost.view()),
-            begin(expected_),
-            end(expected_),
-            pred_
-        );
+        if constexpr (hasCopyToHost<Expected>)
+        {
+            auto expectedHost = expected_.copyToHost();
+            return std::equal(
+                begin(actualHost.view()),
+                end(actualHost.view()),
+                begin(expectedHost.view()),
+                end(expectedHost.view()),
+                pred_
+            );
+        }
+        else
+        {
+            return std::equal(
+                begin(actualHost.view()),
+                end(actualHost.view()),
+                begin(expected_),
+                end(expected_),
+                pred_
+            );
+        }
     }
 
     /**
@@ -218,7 +229,7 @@ private:
  * @return An @ref EqualsMatcher configured with the provided expected values
  *         and comparison predicate.
  */
-template<typename Expected, typename Predicate = ApproxScalar>
+template<typename Expected, typename Predicate = Approx>
 auto Equals(Expected expected, Predicate pred = Predicate {1e-32})
 {
     return EqualsMatcher<Expected, Predicate> {std::move(expected), pred};
@@ -226,6 +237,21 @@ auto Equals(Expected expected, Predicate pred = Predicate {1e-32})
 
 namespace Catch
 {
+
+/**
+ * @brief Disable Catch2's built-in range StringMaker for NeoN::Vector.
+ *
+ * NeoN::Vector exposes @c begin()/@c end() and is therefore detected as a range
+ * by Catch2's @ref is_range trait. Without this specialization, both Catch2's
+ * generic range StringMaker and the NeoN-specific one below match, producing
+ * an "ambiguous partial specializations" error. Disabling the range trait lets
+ * the NeoN-specific specialization win unambiguously and ensures
+ * device-resident vectors are copied to host before stringification.
+ */
+template<typename T>
+struct is_range<NeoN::Vector<T>> : std::false_type
+{
+};
 
 /**
  * @brief Catch2 string conversion for NeoN::Vector.

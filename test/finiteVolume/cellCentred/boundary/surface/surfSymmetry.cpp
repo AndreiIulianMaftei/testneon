@@ -7,8 +7,6 @@
 
 #include "NeoN/NeoN.hpp"
 
-using Catch::Approx;
-
 TEST_CASE("symmetry_surface")
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -44,14 +42,14 @@ TEST_CASE("symmetry_surface")
             {
                 const auto i = static_cast<NeoN::localIdx>(&boundaryValueV - refValuesH.data());
                 const auto ownerV = faceCellsH.view()[i];
-                REQUIRE(boundaryValueV == Approx(internalH.view()[ownerV]));
+                REQUIRE(boundaryValueV == Catch::Approx(internalH.view()[ownerV]));
             }
 
             for (auto& boundaryValueV : valuesH.view(boundary->range()))
             {
                 const auto i = static_cast<NeoN::localIdx>(&boundaryValueV - valuesH.data());
                 const auto ownerV = faceCellsH.view()[i];
-                REQUIRE(boundaryValueV == Approx(internalH.view()[ownerV]));
+                REQUIRE(boundaryValueV == Catch::Approx(internalH.view()[ownerV]));
             }
         }
 
@@ -89,7 +87,7 @@ TEST_CASE("symmetry_surface")
 
                 for (auto d = 0u; d < 3; ++d)
                 {
-                    REQUIRE(boundaryValueV[d] == Approx(vExpected[d]));
+                    REQUIRE(boundaryValueV[d] == Catch::Approx(vExpected[d]));
                 }
             }
 
@@ -104,7 +102,7 @@ TEST_CASE("symmetry_surface")
 
                 for (auto d = 0u; d < 3; ++d)
                 {
-                    REQUIRE(boundaryValueV[d] == Approx(vExpected[d]));
+                    REQUIRE(boundaryValueV[d] == Catch::Approx(vExpected[d]));
                 }
             }
         }
