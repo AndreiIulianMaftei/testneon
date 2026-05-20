@@ -36,7 +36,7 @@ public:
      * @param exec The executor used for computations.
      * @param faceOwners A list of labels of owner cells of boundary faces.
      * @param faceCenters A field of face centres.
-     * @param ownerCellCenters A field of neighbor cell centers.
+     * @param ownerCellCenters A field of centers of owner cells of boundary faces.
      * @param faceNormals A field of face normal vectors.
      * @param faceAreas A field of face areas.
      * @param nf A field of face unit normals.
@@ -94,9 +94,9 @@ public:
     View<const Vec3> faceCenters(const localIdx i) const;
 
     /**
-     * @brief Get the field of face normals.
+     * @brief Get the field of centers of owner cells of boundary faces.
      *
-     * @return A constant reference to the field of face normals.
+     * @return A constant reference to the field of owner cell centers.
      */
     const vectorVector& ownerCellCenters() const;
 
