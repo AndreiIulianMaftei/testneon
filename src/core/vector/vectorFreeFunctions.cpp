@@ -156,30 +156,17 @@ template void setComponent<1>(const Vector<scalar>&, Vector<Vec3>&);
 template void setComponent<2>(const Vector<scalar>&, Vector<Vec3>&);
 
 template<typename ValueType>
-Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx length)
+Vector<ValueType> take(const Vector<ValueType>& in, std::pair<localIdx, localIdx> range)
 {
-    NF_ASSERT(length < 0, "Invalid length");
-    const auto exec = in.exec();
-
-    auto out = Vector<ValueType>(exec, (length));
-    auto outV = out.view();
-    const auto inV = in.view();
-
-    NeoN::parallelFor(
-        exec,
-        {first, first + length},
-        NEON_LAMBDA(const localIdx i) { outV[i - first] = inV[i]; },
-        "copyMap"
-    );
-
-    return out;
+    auto rangeView = in.view(range);
+    return {in.exec(), rangeView.data(), rangeView.size()};
 }
 
 // operator instantiation
 #define NN_VECTOR_OPERATOR_INSTANTIATION(Type)                                                     \
     /* free function operator with additional requirements  */                                     \
     template void scalarMul<Type>(Vector<Type>&, const scalar);                                    \
-    template Vector<Type> take<Type>(const Vector<Type>&, localIdx, localIdx);                     \
+    template Vector<Type> take<Type>(const Vector<Type>&, std::pair<localIdx, localIdx>);          \
     template void add<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
     template void add<Type>(Vector<Type>&, const Vector<std::type_identity_t<Type>>&);             \
     template void sub<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
@@ -190,7 +177,7 @@ Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx len
 #define NN_VECTOR_OPERATOR_INSTANTIATION_VEC3(Type)                                                \
     /* free function operator with additional requirements  */                                     \
     template void scalarMul<Type>(Vector<Type>&, const scalar);                                    \
-    template Vector<Type> take<Type>(const Vector<Type>&, localIdx, localIdx);                     \
+    template Vector<Type> take<Type>(const Vector<Type>&, std::pair<localIdx, localIdx>);          \
     template void add<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \
     template void add<Type>(Vector<Type>&, const Vector<std::type_identity_t<Type>>&);             \
     template void sub<Type>(Vector<Type>&, const std::type_identity_t<Type>&);                     \

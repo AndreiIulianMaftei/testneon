@@ -286,22 +286,15 @@ TEMPLATE_TEST_CASE("take", "[template]", NeoN::scalar, NeoN::Vec3)
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
 
+
+    auto one = NeoN::one<TestType>();
     NeoN::Vector<TestType> a(
-        exec,
-        {1.0 * NeoN::one<TestType>(),
-         2.0 * NeoN::one<TestType>(),
-         3.0 * NeoN::one<TestType>(),
-         4.0 * NeoN::one<TestType>(),
-         5.0 * NeoN::one<TestType>(),
-         6.0 * NeoN::one<TestType>()}
+        exec, {1.0 * one, 2.0 * one, 3.0 * one, 4.0 * one, 5.0 * one, 6.0 * one}
     );
 
-    NeoN::Vector<TestType> aExp(
-        exec,
-        {2.0 * NeoN::one<TestType>(), 3.0 * NeoN::one<TestType>(), 4.0 * NeoN::one<TestType>()}
-    );
+    NeoN::Vector<TestType> aExp(exec, {2.0 * one, 3.0 * one, 4.0 * one});
 
-    auto takeRes = take(a, 1, 3);
+    auto takeRes = take(a, {1, 4});
 
     REQUIRE_THAT(takeRes, Equals(aExp, Approx {1e-12}));
 }

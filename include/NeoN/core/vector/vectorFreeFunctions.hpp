@@ -67,6 +67,6 @@ void setComponent(const Vector<scalar>& in, Vector<Vec3>& out);
  * @returns The resulting subset vector
  */
 template<typename ValueType>
-Vector<ValueType> take(const Vector<ValueType>& in, localIdx first, localIdx length);
+Vector<ValueType> take(const Vector<ValueType>& in, std::pair<localIdx, localIdx> range);
 
 } // namespace NeoN
