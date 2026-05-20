@@ -16,6 +16,7 @@ void surfaceIntegrate(
     View<const int> owners,
     View<const int> faceOwners,
     View<const ValueType> flux,
+    View<const ValueType> bFlux,
     View<const scalar> v,
     View<ValueType> res,
     const dsl::Coeff operatorScaling
@@ -35,10 +36,10 @@ void surfaceIntegrate(
 
     parallelFor(
         exec,
-        {nInternalFaces, nInternalFaces + nBoundaryFaces},
-        NEON_LAMBDA(const localIdx i) {
-            auto own = faceOwners[i - nInternalFaces];
-            Kokkos::atomic_add(&res[own], flux[i]);
+        {0, nBoundaryFaces},
+        NEON_LAMBDA(const localIdx bfi) {
+            auto own = faceOwners[bfi];
+            Kokkos::atomic_add(&res[own], bFlux[bfi]);
         },
         "surfaceIntegrateBoundaryFaces"
     );
@@ -58,6 +59,7 @@ void surfaceIntegrate(
         View<const int>,                                                                           \
         View<const int>,                                                                           \
         View<const int>,                                                                           \
+        View<const TYPENAME>,                                                                      \
         View<const TYPENAME>,                                                                      \
         View<const scalar>,                                                                        \
         View<TYPENAME>,                                                                            \

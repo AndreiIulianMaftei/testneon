@@ -23,16 +23,17 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     VolumeField<scalar> phi(exec, "phi", mesh, createCalculatedBCs<VolumeBoundary<scalar>>(mesh));
     fill(phi.internalVector(), 0.0);
 
-    const auto [boundaryFaceOwners, volPhi, faceOwners, faceNeighbors, faceFluxes, cellVolumes] =
-        views(
-            mesh.boundaryMesh().faceOwners(),
-            phi.internalVector(),
-            mesh.faceOwners(),
-            mesh.faceNeighbors(),
-            faceFlux.internalVector(),
-            mesh.cellVolumes()
-        );
+    const auto [boundaryFaceOwners, volPhi, faceOwners, faceNeighbors, cellVolumes] = views(
+        mesh.boundaryMesh().faceOwners(),
+        phi.internalVector(),
+        mesh.faceOwners(),
+        mesh.faceNeighbors(),
+        mesh.cellVolumes()
+    );
+    const auto faceFluxes = faceFlux.internalVector().view();
+    const auto bFaceFlux = faceFlux.boundaryData().value().view();
     auto nInternalFaces = mesh.nInternalFaces();
+    auto nBoundaryFaces = mesh.nBoundaryFaces();
 
     scalar maxCoNum = std::numeric_limits<scalar>::lowest();
     scalar meanCoNum = 0.0;
@@ -49,10 +50,10 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
 
     parallelFor(
         exec,
-        {nInternalFaces, faceFlux.size()},
-        NEON_LAMBDA(const localIdx i) {
-            auto own = boundaryFaceOwners[i - nInternalFaces];
-            scalar flux = Kokkos::sqrt(faceFluxes[i] * faceFluxes[i]);
+        {0, nBoundaryFaces},
+        NEON_LAMBDA(const localIdx bfi) {
+            auto own = boundaryFaceOwners[bfi];
+            scalar flux = Kokkos::sqrt(bFaceFlux[bfi] * bFaceFlux[bfi]);
             Kokkos::atomic_add(&volPhi[own], flux);
         },
         "computeCoNum::fluxBoundary"

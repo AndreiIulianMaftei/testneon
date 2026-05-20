@@ -22,6 +22,7 @@ void surfaceIntegrate(
     View<const int> owners,
     View<const int> faceOwners,
     View<const ValueType> flux,
+    View<const ValueType> bFlux,
     View<const scalar> v,
     View<ValueType> res,
     const dsl::Coeff operatorScaling
@@ -61,6 +62,7 @@ public:
             mesh.faceOwners().view(),
             mesh.boundaryMesh().faceOwners().view(),
             this->flux_.internalVector().view(),
+            this->flux_.boundaryData().value().view(),
             mesh.cellVolumes().view(),
             tmpsource.view(),
             operatorScaling

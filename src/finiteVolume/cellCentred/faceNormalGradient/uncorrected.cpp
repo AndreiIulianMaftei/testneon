@@ -22,15 +22,17 @@ void computeFaceNormalGrad(
     const auto [owners, neighbors, boundaryFaceOwners] =
         views(mesh.faceOwners(), mesh.faceNeighbors(), mesh.boundaryMesh().faceOwners());
 
-
-    const auto [phif, phi, phiBCValue, nonOrthDeltaCoeffs] = views(
+    const auto [phif, phifB, phi, phiBCValue, nonOrthDeltaCoeffs, nonOrthDeltaCoeffsB] = views(
         surfaceVector.internalVector(),
+        surfaceVector.boundaryData().value(),
         volVector.internalVector(),
         volVector.boundaryData().value(),
-        geometryScheme->nonOrthDeltaCoeffs().internalVector()
+        geometryScheme->nonOrthDeltaCoeffs().internalVector(),
+        geometryScheme->nonOrthDeltaCoeffs().boundaryData().value()
     );
 
     auto nInternalFaces = mesh.nInternalFaces();
+    auto nBoundaryFaces = mesh.nBoundaryFaces();
 
     NeoN::parallelFor(
         exec,
@@ -43,12 +45,10 @@ void computeFaceNormalGrad(
 
     NeoN::parallelFor(
         exec,
-        {nInternalFaces, phif.size()},
-        NEON_LAMBDA(const localIdx facei) {
-            auto faceBCI = facei - nInternalFaces;
-            auto own = boundaryFaceOwners[faceBCI];
-
-            phif[facei] = nonOrthDeltaCoeffs[facei] * (phiBCValue[faceBCI] - phi[own]);
+        {0, nBoundaryFaces},
+        NEON_LAMBDA(const localIdx bfi) {
+            auto own = boundaryFaceOwners[bfi];
+            phifB[bfi] = nonOrthDeltaCoeffsB[bfi] * (phiBCValue[bfi] - phi[own]);
         },
         "computeFaceNormalGradBoundary"
     );
