@@ -94,7 +94,7 @@ void registerUnstructuredMesh(nb::module_& m)
         )
         .def_prop_ro(
             "mag_face_areas",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::magFaceAreas, nb::const_),
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceAreas, nb::const_),
             nb::rv_policy::reference_internal,
             "Get the vector of face area magnitudes"
         )

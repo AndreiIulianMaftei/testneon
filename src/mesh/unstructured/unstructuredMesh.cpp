@@ -17,7 +17,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector cellCentres,
     vectorVector faceNormals,
     vectorVector faceCentres,
-    scalarVector magFaceAreas,
+    scalarVector faceAreas,
     labelVector faceOwner,
     labelVector faceNeighbour,
     localIdx nCells,
@@ -28,7 +28,7 @@ UnstructuredMesh::UnstructuredMesh(
     BoundaryMesh boundaryMesh
 )
     : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
-      faceNormals_(faceNormals), faceCentres_(faceCentres), magFaceAreas_(magFaceAreas),
+      faceNormals_(faceNormals), faceCentres_(faceCentres), faceAreas_(faceAreas),
       faceOwner_(faceOwner), faceNeighbour_(faceNeighbour), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
       nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
@@ -40,7 +40,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector cellCentres,
     vectorVector faceNormals,
     vectorVector faceCentres,
-    scalarVector magFaceAreas,
+    scalarVector faceAreas,
     labelVector faceOwner,
     labelVector faceNeighbour,
     localIdx nCells,
@@ -57,7 +57,7 @@ UnstructuredMesh::UnstructuredMesh(
         cellCentres,
         faceNormals,
         faceCentres,
-        magFaceAreas,
+        faceAreas,
         faceOwner,
         faceNeighbour,
         nCells,
@@ -90,9 +90,9 @@ const vectorVector& UnstructuredMesh::faceNormals() const { return faceNormals_;
 
 vectorVector& UnstructuredMesh::faceNormals() { return faceNormals_; }
 
-const scalarVector& UnstructuredMesh::magFaceAreas() const { return magFaceAreas_; }
+const scalarVector& UnstructuredMesh::faceAreas() const { return faceAreas_; }
 
-scalarVector& UnstructuredMesh::magFaceAreas() { return magFaceAreas_; }
+scalarVector& UnstructuredMesh::faceAreas() { return faceAreas_; }
 
 const labelVector& UnstructuredMesh::faceOwner() const { return faceOwner_; }
 
@@ -129,7 +129,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
     vectorVector faceCentresVec3s(
         exec, {{0.0, 0.5, 0.0}, {0.5, 1.0, 0.0}, {1.0, 0.5, 0.0}, {0.5, 0.0, 0.0}}
     );
-    scalarVector magFaceAreas(exec, {1, 1, 1, 1});
+    scalarVector faceAreas(exec, {1, 1, 1, 1});
 
     BoundaryMesh boundaryMesh(
         exec,
@@ -137,7 +137,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         faceCentresVec3s,                                                               // cf
         faceAreasVec3s,                                                                 // cn,
         faceAreasVec3s,                                                                 // sf,
-        magFaceAreas,                                                                   // magSf,
+        faceAreas,                                                                      // magSf,
         faceAreasVec3s,                                                                 // nf,
         {exec, {{-0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}}}, // delta
         {exec, {1, 1, 1, 1}},                                                           // weights
@@ -150,7 +150,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         {exec, {{0.5, 0.5, 0.0}}},                            // cellCentres
         faceAreasVec3s,
         faceCentresVec3s,
-        magFaceAreas,
+        faceAreas,
         {exec, {0, 0, 0, 0}}, // faceOwner
         {exec, {}},           // faceNeighbour,
         1,                    // nCells

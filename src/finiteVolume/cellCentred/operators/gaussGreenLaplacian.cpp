@@ -26,7 +26,7 @@ void computeLaplacianExp(
         views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
 
     const auto [result, faceArea, fnGrad, vol] =
-        views(lapPhi, mesh.magFaceAreas(), faceNormalGrad.internalVector(), mesh.cellVolumes());
+        views(lapPhi, mesh.faceAreas(), faceNormalGrad.internalVector(), mesh.cellVolumes());
 
     auto nInternalFaces = mesh.nInternalFaces();
 
@@ -105,7 +105,7 @@ void computeLaplacianBoundImpl(
     auto gammaV = gamma.internalVector().view();
 
     const auto [magFaceArea, surfFaceCells, deltaCoeffs] = views(
-        mesh.magFaceAreas(),
+        mesh.faceAreas(),
         mesh.boundaryMesh().faceCells(),
         faceNormalGradient.deltaCoeffs().internalVector()
     );
@@ -181,9 +181,7 @@ void computeLaplacianIntImpl(
         views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
 
     const auto [gammaV, deltaCoeffs, magFaceArea] = views(
-        gamma.internalVector(),
-        faceNormalGradient.deltaCoeffs().internalVector(),
-        mesh.magFaceAreas()
+        gamma.internalVector(), faceNormalGradient.deltaCoeffs().internalVector(), mesh.faceAreas()
     );
 
     auto values = ls.matrix().values().view();

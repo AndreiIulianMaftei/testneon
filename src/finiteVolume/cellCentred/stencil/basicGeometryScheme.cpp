@@ -103,7 +103,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
 
 
     const auto [cf, cellCentre, faceAreaVec3, faceArea] =
-        views(mesh_.faceCentres(), mesh_.cellCentres(), mesh_.faceNormals(), mesh_.magFaceAreas());
+        views(mesh_.faceCentres(), mesh_.cellCentres(), mesh_.faceNormals(), mesh_.faceAreas());
 
     auto nonOrthDeltaCoeff = nonOrthDeltaCoeffs.internalVector().view();
     fill(nonOrthDeltaCoeffs.internalVector(), 0.0);

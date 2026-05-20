@@ -13,7 +13,7 @@ BoundaryMesh::BoundaryMesh(
     vectorVector faceCenters,
     vectorVector cn,
     vectorVector faceNormals,
-    scalarVector magSf,
+    scalarVector faceAreas,
     vectorVector nf,
     vectorVector delta,
     scalarVector weights,
@@ -21,7 +21,7 @@ BoundaryMesh::BoundaryMesh(
     std::vector<localIdx> offset
 )
     : exec_(exec), faceCells_(faceCells), faceCenters_(faceCenters), Cn_(cn),
-      faceNormals_(faceNormals), magSf_(magSf), nf_(nf), delta_(delta), weights_(weights),
+      faceNormals_(faceNormals), faceAreas_(faceAreas), nf_(nf), delta_(delta), weights_(weights),
       deltaCoeffs_(deltaCoeffs), offset_(offset) {};
 
 // Accessor methods
@@ -64,11 +64,11 @@ View<const Vec3> BoundaryMesh::faceNormals(const localIdx i) const
     return extractSubView(faceNormals_, offset_, i);
 }
 
-const scalarVector& BoundaryMesh::magSf() const { return magSf_; }
+const scalarVector& BoundaryMesh::faceAreas() const { return faceAreas_; }
 
-View<const scalar> BoundaryMesh::magSf(const localIdx i) const
+View<const scalar> BoundaryMesh::faceAreas(const localIdx i) const
 {
-    return extractSubView(magSf_, offset_, i);
+    return extractSubView(faceAreas_, offset_, i);
 }
 
 const vectorVector& BoundaryMesh::nf() const { return nf_; }

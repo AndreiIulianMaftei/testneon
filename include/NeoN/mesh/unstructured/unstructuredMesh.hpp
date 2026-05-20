@@ -40,7 +40,7 @@ public:
      * @param cellCentres The field of cell centres in the mesh.
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
-     * @param magFaceAreas The field of magnitudes of face areas.
+     * @param faceAreas The field of face areas.
      * @param faceOwner The field of face owner cells.
      * @param faceNeighbour The field of face neighbour cells.
      * @param nCells The number of cells in the mesh.
@@ -57,7 +57,7 @@ public:
         vectorVector cellCentres,
         vectorVector faceNormals,
         vectorVector faceCentres,
-        scalarVector magFaceAreas,
+        scalarVector faceAreas,
         labelVector faceOwner,
         labelVector faceNeighbour,
         localIdx nCells,
@@ -77,7 +77,7 @@ public:
      * @param cellCentres The field of cell centres in the mesh.
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
-     * @param magFaceAreas The field of magnitudes of face areas.
+     * @param faceAreas The field of face areas.
      * @param faceOwner The list of face owner cells.
      * @param faceNeighbour The list of face neighbour cells.
      * @param nCells The number of cells in the mesh.
@@ -93,7 +93,7 @@ public:
         vectorVector cellCentres,
         vectorVector faceNormals,
         vectorVector faceCentres,
-        scalarVector magFaceAreas,
+        scalarVector faceAreas,
         labelVector faceOwner,
         labelVector faceNeighbour,
         localIdx nCells,
@@ -145,12 +145,12 @@ public:
     vectorVector& faceNormals();
 
     /**
-     * @brief Get the field of magnitudes of face areas.
+     * @brief Get the field of face areas.
      *
-     * @return The field of magnitudes of face areas.
+     * @return The field of face areas.
      */
-    const scalarVector& magFaceAreas() const;
-    scalarVector& magFaceAreas();
+    const scalarVector& faceAreas() const;
+    scalarVector& faceAreas();
 
     /**
      * @brief Get the field of face owner cells.
@@ -262,9 +262,9 @@ private:
     vectorVector faceCentres_;
 
     /**
-     * @brief Vector of magnitudes of face areas.
+     * @brief Vector of face areas.
      */
-    scalarVector magFaceAreas_;
+    scalarVector faceAreas_;
 
     /**
      * @brief Vector of face owner cells.
