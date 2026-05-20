@@ -177,20 +177,8 @@ void computeLaplacianIntImpl(
     const UnstructuredMesh& mesh = phi.mesh();
     const auto exec = phi.exec();
     const auto matIt = ls.faceToMatrixAddress();
-<<<<<<< HEAD
     const auto [ownV, neiV, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceCells());
-=======
-    const auto [ownV, neiV, surfFaceCells, diagOffs, ownOffs, neiOffs, rowOffs] = views(
-        mesh.faceOwner(),
-        mesh.faceNeighbour(),
-        mesh.boundaryMesh().faceOwners(),
-        matIt->diagOffset(),
-        matIt->ownerOffset(),
-        matIt->neighbourOffset(),
-        matIt->sparsityPattern()->rowOffs()
-    );
->>>>>>> 899799e805 (Rename faceCells of BoundaryMesh to faceOwners)
+        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
 
     const auto [gammaV, deltaCoeffs, magFaceArea] = views(
         gamma.internalVector(), faceNormalGradient.deltaCoeffs().internalVector(), mesh.faceAreas()
