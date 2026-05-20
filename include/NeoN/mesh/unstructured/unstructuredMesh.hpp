@@ -20,7 +20,7 @@ namespace NeoN
  *
  * The UnstructuredMesh class stores the data and provides access to the
  * properties of an unstructured mesh. It contains information such as mesh
- * points, cell volumes, cell centres, face areas, face centres, face owner
+ * points, cell volumes, cell centers, face areas, face centers, face owner
  * cells, face neighbour cells, and boundary information. It also provides
  * methods to retrieve the number of cells, internal faces, boundary faces,
  * boundaries, and faces in the mesh. Additionally, it includes a boundary mesh
@@ -37,9 +37,9 @@ public:
      * @param exec
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
-     * @param cellCenters The field of cell centres in the mesh.
+     * @param cellCenters The field of cell centers in the mesh.
      * @param faceNormals The field of face normal vectors.
-     * @param faceCenters The field of face centres.
+     * @param faceCenters The field of face centers.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
      * @param faceNeighbors The list of labels of face neighbor cells.
@@ -74,9 +74,9 @@ public:
      *
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
-     * @param cellCenters The field of cell centres in the mesh.
+     * @param cellCenters The field of cell centers in the mesh.
      * @param faceNormals The field of face normal vectors.
-     * @param faceCenters The field of face centres.
+     * @param faceCenters The field of face centers.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
      * @param faceNeighbors The list of labels of face neighbor cells.
@@ -121,17 +121,17 @@ public:
     scalarVector& cellVolumes();
 
     /**
-     * @brief Get the field of cell centres in the mesh.
+     * @brief Get the field of cell centers in the mesh.
      *
-     * @return The field of cell centres in the mesh.
+     * @return The field of cell centers in the mesh.
      */
     const vectorVector& cellCenters() const;
     vectorVector& cellCenters();
 
     /**
-     * @brief Get the field of face centres.
+     * @brief Get the field of face centers.
      *
-     * @return The field of face centres.
+     * @return The field of face centers.
      */
     const vectorVector& faceCenters() const;
     vectorVector& faceCenters();
@@ -244,7 +244,7 @@ private:
     scalarVector cellVolumes_;
 
     /**
-     * @brief Vector of cell centres in the mesh.
+     * @brief Vector of cell centers in the mesh.
      */
     vectorVector cellCenters_;
 
@@ -257,7 +257,7 @@ private:
     vectorVector faceNormals_;
 
     /**
-     * @brief Vector of face centres.
+     * @brief Vector of face centers.
      */
     vectorVector faceCenters_;
 

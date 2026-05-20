@@ -42,8 +42,8 @@ inline constexpr bool
  * @ref Catch::Approx with a configurable absolute tolerance.
  *
  * This predicate is intended for use with @ref EqualsMatcher and
- * @ref Equals when comparing vector-valued fields (e.g. cell centres,
- * face centres, geometric quantities).
+ * @ref Equals when comparing vector-valued fields (e.g. cell centers,
+ * face centers, geometric quantities).
  *
  * Each component of the vector is compared independently using the same
  * absolute tolerance.

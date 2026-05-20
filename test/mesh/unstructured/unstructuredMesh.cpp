@@ -49,11 +49,11 @@ TEST_CASE("Unstructured Mesh")
         auto hostPoints = mesh.points().copyToHost();
         REQUIRE(hostPoints.size() == 20);
 
-        // Verify cell centres at (i+0.5)*0.25, 0.5, 0.5
-        auto cellCentresExp = std::vector<NeoN::Vec3> {
+        // Verify cell centers at (i+0.5)*0.25, 0.5, 0.5
+        auto cellCentersExp = std::vector<NeoN::Vec3> {
             {0.125, 0.5, 0.5}, {0.375, 0.5, 0.5}, {0.625, 0.5, 0.5}, {0.875, 0.5, 0.5}
         };
-        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentersExp, Approx {1e-12}));
 
         // Verify face owners (x-direction)
         auto faceOwnerExp = std::vector<NeoN::label> {0, 1, 2, 0, 3};
@@ -68,7 +68,7 @@ TEST_CASE("Unstructured Mesh")
         auto faceCellsExp = std::vector<NeoN::localIdx> {0, 3};
         REQUIRE_THAT(mesh.boundaryMesh().faceOwners(), Equals(faceCellsExp, EqualInt()));
 
-        // // Verify neighbor cell centres
+        // // Verify neighbor cell centers
         auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
         REQUIRE_THAT(mesh.boundaryMesh().ownerCellCenters(), Equals(cnExp, Approx {1e-12}));
 
@@ -107,11 +107,11 @@ TEST_CASE("Unstructured Mesh")
         auto cellVolumesExp = {0.25, 0.25, 0.25, 0.25};
         REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, Approx(1e-12)));
 
-        // Verify cell centres (z should be 0.5, halfway through the slab)
-        auto cellCentresExp = std::vector<NeoN::Vec3> {
+        // Verify cell centers (z should be 0.5, halfway through the slab)
+        auto cellCentersExp = std::vector<NeoN::Vec3> {
             {0.25, 0.25, 0.5}, {0.75, 0.25, 0.5}, {0.25, 0.75, 0.5}, {0.75, 0.75, 0.5}
         };
-        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentersExp, Approx {1e-12}));
 
         // Verify the number of neighbouring cells for boundary faces
         // 4 patches: left(2), right(2), bottom(2), top(2)
@@ -178,7 +178,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, Approx(1e-12)));
     }
 
-    SECTION("2D mesh patch face centres lie on correct planes (3x2) " + execName)
+    SECTION("2D mesh patch face centers lie on correct planes (3x2) " + execName)
     {
         // Domain: [xmin, xmax] x [ymin, ymax] (one cell thick in z)
         // Boundary patches and the planes they must lie on:
@@ -202,7 +202,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[3] - offset[2] == 3); // bottom
         REQUIRE(offset[4] - offset[3] == 3); // top
 
-        // Verify face centres for each patch
+        // Verify face centers for each patch
         auto faceCentersExp = std::vector<NeoN::Vec3> {
             {xmin, 0.5, 0.5},
             {xmin, 1.5, 0.5}, // left
@@ -245,10 +245,10 @@ TEST_CASE("Unstructured Mesh")
         auto cellVolumesExp = {0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125};
         REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, Approx(1e-12)));
 
-        // Cell centres at 0.25 increments
+        // Cell centers at 0.25 increments
         // cell(0,0,0) → (0.25, 0.25, 0.25)
         // cell(1,1,1) = k*nx*ny + j*nx + i = 1*4 + 1*2 + 1 = 7 → (0.75, 0.75, 0.75)
-        auto cellCentresExp = std::vector<NeoN::Vec3> {
+        auto cellCentersExp = std::vector<NeoN::Vec3> {
             {0.25, 0.25, 0.25},
             {0.75, 0.25, 0.25},
             {0.25, 0.75, 0.25},
@@ -258,7 +258,7 @@ TEST_CASE("Unstructured Mesh")
             {0.25, 0.75, 0.75},
             {0.75, 0.75, 0.75}
         };
-        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentresExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.cellCenters(), Equals(cellCentersExp, Approx {1e-12}));
 
         // Boundary delta: left boundary first face should have negative x delta
         auto hostBndDelta = mesh.boundaryMesh().delta().copyToHost();
@@ -292,7 +292,7 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE_THAT(mesh.cellVolumes(), Equals(cellVolumesExp, Approx(1e-12)));
     }
 
-    SECTION("3D mesh patch face centres lie on correct planes (3x2x4) " + execName)
+    SECTION("3D mesh patch face centers lie on correct planes (3x2x4) " + execName)
     {
         // Domain: [xmin, xmax] x [ymin, ymax] x [zmin, zmax]
         // Boundary patches and the planes they must lie on:
@@ -323,40 +323,40 @@ TEST_CASE("Unstructured Mesh")
         REQUIRE(offset[5] - offset[4] == 6);  // front
         REQUIRE(offset[6] - offset[5] == 6);  // back
 
-        // Verify face centres for each patch
+        // Verify face centers for each patch
         auto hostFaceCenters = bm.faceCenters().copyToHost();
 
-        // left (patch 0): all face centres on x = xmin plane
+        // left (patch 0): all face centers on x = xmin plane
         for (NeoN::localIdx f = offset[0]; f < offset[1]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][0] == Catch::Approx(xmin).margin(1e-10));
         }
 
-        // right (patch 1): all face centres on x = xmax plane
+        // right (patch 1): all face centers on x = xmax plane
         for (NeoN::localIdx f = offset[1]; f < offset[2]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][0] == Catch::Approx(xmax).margin(1e-10));
         }
 
-        // bottom (patch 2): all face centres on y = ymin plane
+        // bottom (patch 2): all face centers on y = ymin plane
         for (NeoN::localIdx f = offset[2]; f < offset[3]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][1] == Catch::Approx(ymin).margin(1e-10));
         }
 
-        // top (patch 3): all face centres on y = ymax plane
+        // top (patch 3): all face centers on y = ymax plane
         for (NeoN::localIdx f = offset[3]; f < offset[4]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][1] == Catch::Approx(ymax).margin(1e-10));
         }
 
-        // front (patch 4): all face centres on z = zmin plane
+        // front (patch 4): all face centers on z = zmin plane
         for (NeoN::localIdx f = offset[4]; f < offset[5]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][2] == Catch::Approx(zmin).margin(1e-10));
         }
 
-        // back (patch 5): all face centres on z = zmax plane
+        // back (patch 5): all face centers on z = zmax plane
         for (NeoN::localIdx f = offset[5]; f < offset[6]; ++f)
         {
             REQUIRE(hostFaceCenters.view()[f][2] == Catch::Approx(zmax).margin(1e-10));

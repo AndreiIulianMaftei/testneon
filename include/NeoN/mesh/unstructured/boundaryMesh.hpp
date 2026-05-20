@@ -18,7 +18,7 @@ namespace NeoN
  *
  * The BoundaryMesh class stores information about the boundary faces and their
  * properties in an unstructured mesh. It provides access to various fields such
- * as face cells, face centres, face normals, face areas normals, magnitudes of
+ * as face cells, face centers, face normals, face areas normals, magnitudes of
  * face areas normals, delta vectors, weights, delta coefficients, and offsets.
  *
  * The class also provides getter methods to access the individual fields and
@@ -35,7 +35,7 @@ public:
      *
      * @param exec The executor used for computations.
      * @param faceOwners A list of labels of owner cells of boundary faces.
-     * @param faceCenters A field of face centres.
+     * @param faceCenters A field of face centers.
      * @param ownerCellCenters A field of centers of owner cells of boundary faces.
      * @param faceNormals A field of face normal vectors.
      * @param faceAreas A field of face areas.
@@ -79,17 +79,17 @@ public:
     View<const label> faceOwners(const localIdx i) const;
 
     /**
-     * @brief Get the field of face centres.
+     * @brief Get the field of face centers.
      *
-     * @return A constant reference to the field of face centres.
+     * @return A constant reference to the field of face centers.
      */
     const vectorVector& faceCenters() const;
 
     /**
-     * @brief Get a view of face centres for a specific boundary face.
+     * @brief Get a view of face centers for a specific boundary face.
      *
      * @param i The index of the boundary face.
-     * @return A view of face centres for the specified boundary face.
+     * @return A view of face centers for the specified boundary face.
      */
     View<const Vec3> faceCenters(const localIdx i) const;
 
@@ -222,7 +222,7 @@ private:
     labelVector faceOwners_;
 
     /**
-     * @brief Vector of face centres.
+     * @brief Vector of face centers.
      */
     vectorVector faceCenters_;
 
