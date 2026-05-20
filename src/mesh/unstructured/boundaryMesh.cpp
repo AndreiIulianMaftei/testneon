@@ -9,7 +9,7 @@ namespace NeoN
 
 BoundaryMesh::BoundaryMesh(
     const Executor& exec,
-    labelVector faceCells,
+    labelVector faceOwners,
     vectorVector faceCenters,
     vectorVector cn,
     vectorVector faceNormals,
@@ -20,12 +20,12 @@ BoundaryMesh::BoundaryMesh(
     scalarVector deltaCoeffs,
     std::vector<localIdx> offset
 )
-    : exec_(exec), faceCells_(faceCells), faceCenters_(faceCenters), Cn_(cn),
+    : exec_(exec), faceOwners_(faceOwners), faceCenters_(faceCenters), Cn_(cn),
       faceNormals_(faceNormals), faceAreas_(faceAreas), nf_(nf), delta_(delta), weights_(weights),
       deltaCoeffs_(deltaCoeffs), offset_(offset) {};
 
 // Accessor methods
-const labelVector& BoundaryMesh::faceCells() const { return faceCells_; }
+const labelVector& BoundaryMesh::faceOwners() const { return faceOwners_; }
 
 
 template<typename ValueType>
@@ -38,9 +38,9 @@ extractSubView(const Vector<ValueType>& vec, const std::vector<localIdx>& offs, 
 }
 
 
-View<const label> BoundaryMesh::faceCells(const localIdx i) const
+View<const label> BoundaryMesh::faceOwners(const localIdx i) const
 {
-    return extractSubView(faceCells_, offset_, i);
+    return extractSubView(faceOwners_, offset_, i);
 }
 
 const vectorVector& BoundaryMesh::faceCenters() const { return faceCenters_; }

@@ -140,7 +140,7 @@ BoundaryMesh generateBoundaryData(
     FaceData& faces
 )
 {
-    std::vector<label> bndFaceCells(static_cast<size_t>(nBoundaryFaces));
+    std::vector<label> bndFaceOwners(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndCf(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndCn(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndSf(static_cast<size_t>(nBoundaryFaces));
@@ -167,7 +167,7 @@ BoundaryMesh generateBoundaryData(
         faces.magnitudes[fi] = magA;
         faces.owner[fi] = ciLabel;
 
-        bndFaceCells[sz] = ciLabel;
+        bndFaceOwners[sz] = ciLabel;
         bndCf[sz] = faceCentre;
         bndCn[sz] = centres[ciSizeT];
         bndSf[sz] = area;
@@ -287,7 +287,7 @@ BoundaryMesh generateBoundaryData(
 
     BoundaryMesh boundaryMesh(
         exec,
-        {exec, bndFaceCells},
+        {exec, bndFaceOwners},
         {exec, bndCf},
         {exec, bndCn},
         {exec, bndSf},

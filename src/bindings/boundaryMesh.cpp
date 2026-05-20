@@ -137,7 +137,7 @@ void registerBoundaryMesh(nb::module_& m)
         .def(
             "__repr__",
             [](const NeoN::BoundaryMesh& bm)
-            { return "<BoundaryMesh with " + std::to_string(bm.faceCells().size()) + " faces>"; }
+            { return "<BoundaryMesh with " + std::to_string(bm.faceOwners().size()) + " faces>"; }
         );
 }
 

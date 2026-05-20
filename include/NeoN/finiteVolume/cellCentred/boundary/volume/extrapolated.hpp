@@ -34,7 +34,7 @@ void extrapolateValue(
         domainVector.boundaryData().value(),
         domainVector.boundaryData().valueFraction(),
         domainVector.boundaryData().refValue(),
-        mesh.boundaryMesh().faceCells()
+        mesh.boundaryMesh().faceOwners()
     );
 
 

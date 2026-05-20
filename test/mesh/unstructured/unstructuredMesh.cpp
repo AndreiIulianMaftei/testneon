@@ -66,7 +66,7 @@ TEST_CASE("Unstructured Mesh")
         // Verify boundary mesh: first 2 boundary faces are xmin/xmax
         // Verify neighbouring cell for boundary faces
         auto faceCellsExp = std::vector<NeoN::localIdx> {0, 3};
-        REQUIRE_THAT(mesh.boundaryMesh().faceCells(), Equals(faceCellsExp, EqualInt()));
+        REQUIRE_THAT(mesh.boundaryMesh().faceOwners(), Equals(faceCellsExp, EqualInt()));
 
         // // Verify neighbor cell centres
         auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
@@ -116,7 +116,7 @@ TEST_CASE("Unstructured Mesh")
         // Verify the number of neighbouring cells for boundary faces
         // 4 patches: left(2), right(2), bottom(2), top(2)
         auto& bm = mesh.boundaryMesh();
-        REQUIRE(bm.faceCells().size() == 8);
+        REQUIRE(bm.faceOwners().size() == 8);
 
         // Verify boundary delta vectors
         // Left boundary: delta.x should be negative (face at x=0, cell centre at x=0.25)

@@ -20,7 +20,7 @@ namespace NeoN::finiteVolume::cellCentred
 ** @param nBoundaryFaces - number of boundary faces
 ** @param neighbour - mapping from face id to neighbour cell id
 ** @param owner - mapping from face id to owner cell id
-** @param faceCells - mapping from boundary face id to owner cell id
+** @param faceOwners - mapping from boundary face id to owner cell id
 ** @param faceFlux - flux on cell faces
 ** @param phiF - flux on cell faces
 ** @param v - cell volumes
@@ -34,7 +34,7 @@ void computeDiv(
     localIdx nBoundaryFaces,
     View<const localIdx> neighbour,
     View<const localIdx> owner,
-    View<const localIdx> faceCells,
+    View<const localIdx> faceOwners,
     View<const scalar> faceFlux,
     View<const ValueType> phiF,
     View<const scalar> v,
@@ -70,7 +70,7 @@ void computeDiv(
         exec,
         {nInternalFaces, nInternalFaces + nBoundaryFaces},
         NEON_LAMBDA(const localIdx i) {
-            auto own = faceCells[i - nInternalFaces];
+            auto own = faceOwners[i - nInternalFaces];
             ValueType valueOwn = faceFlux[i] * phiF[i];
             Kokkos::atomic_add(&res[own], valueOwn); // boundary face: F_f outward from owner
         },
@@ -114,7 +114,7 @@ void computeDivExp(
         nBoundaryFaces,
         mesh.faceNeighbour().view(),
         mesh.faceOwner().view(),
-        mesh.boundaryMesh().faceCells().view(),
+        mesh.boundaryMesh().faceOwners().view(),
         faceFlux.internalVector().view(),
         phif.internalVector().view(),
         mesh.cellVolumes().view(),
@@ -153,7 +153,7 @@ void computeDivBoundImp(
     const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
 
     const auto [ownV, deltaCoeffs] =
-        views(mesh.boundaryMesh().faceCells(), mesh.boundaryMesh().deltaCoeffs());
+        views(mesh.boundaryMesh().faceOwners(), mesh.boundaryMesh().deltaCoeffs());
 
     auto values = ls.matrix().values().view();
 
@@ -229,7 +229,7 @@ void computeDivIntImp(
         weights.internalVector(),
         mesh.faceOwner(),
         mesh.faceNeighbour(),
-        mesh.boundaryMesh().faceCells()
+        mesh.boundaryMesh().faceOwners()
     );
     auto values = ls.matrix().values().view();
 

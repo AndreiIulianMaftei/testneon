@@ -34,7 +34,7 @@ void computeGrad(
     auto surfGradPhi = out.view();
 
     const auto [surfFaceCells, sBSf, surfPhif, surfOwner, surfNeighbour, faceAreaS, surfV] = views(
-        mesh.boundaryMesh().faceCells(),
+        mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().faceNormals(),
         phif.internalVector(),
         mesh.faceOwner(),
@@ -102,7 +102,7 @@ void computeBoundaryGrad(
                 phi.internalVector(),
                 phi.boundaryData().value(),
                 phi.boundaryData().refGrad(),
-                mesh.boundaryMesh().faceCells(),
+                mesh.boundaryMesh().faceOwners(),
                 mesh.boundaryMesh().deltaCoeffs(),
                 mesh.boundaryMesh().nf()
             );
@@ -243,7 +243,7 @@ void computeGradTensor(
         mesh.faceNeighbour(),
         mesh.faceNormals(),
         mesh.cellVolumes(),
-        mesh.boundaryMesh().faceCells()
+        mesh.boundaryMesh().faceOwners()
     );
 
     const localIdx nInt = mesh.nInternalFaces();
@@ -317,7 +317,7 @@ void computeBoundaryGradTensor(const VolumeField<Vec3>& u, VolumeField<Tensor>& 
         u.internalVector(),
         u.boundaryData().value(),
         u.boundaryData().refGrad(),
-        mesh.boundaryMesh().faceCells(),
+        mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().deltaCoeffs(),
         mesh.boundaryMesh().nf()
     );

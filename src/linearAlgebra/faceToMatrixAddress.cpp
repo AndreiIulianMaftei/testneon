@@ -66,10 +66,15 @@ void setBoundarySparsityPatternImpl(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceCells().size();
+    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
     const auto diagOffsV = diagOffs.view();
+<<<<<<< HEAD
     const auto faceCellsV = mesh.boundaryMesh().faceCells().view();
     auto rowIdxV = rowIdx.view();
+=======
+    const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
+    auto bRowOffsV = bRowOffs.view();
+>>>>>>> 899799e805 (Rename faceCells of BoundaryMesh to faceOwners)
     auto bColIdxV = bColIdx.view();
     parallelFor(
         exec,
@@ -203,6 +208,10 @@ createSparsityPatternFaceToMatrixAddress(const UnstructuredMesh& mesh)
     using IndexType = typename SparsityType::SparsityIndexType;
     const auto exec = mesh.exec();
     const auto nInternalFaces = mesh.nInternalFaces();
+<<<<<<< HEAD
+=======
+    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
+>>>>>>> 899799e805 (Rename faceCells of BoundaryMesh to faceOwners)
     const auto nCells = mesh.nCells();
     Array<uint8_t> diagOffs(exec, nCells, 0);
     Array<uint8_t> ownOffs(exec, nInternalFaces, 0);

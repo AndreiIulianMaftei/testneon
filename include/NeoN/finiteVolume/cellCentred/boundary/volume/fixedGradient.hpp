@@ -35,7 +35,7 @@ void setGradientValue(
         domainVector.boundaryData().value(),
         domainVector.boundaryData().valueFraction(),
         domainVector.boundaryData().refValue(),
-        mesh.boundaryMesh().faceCells(),
+        mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().deltaCoeffs()
     );
 
