@@ -20,7 +20,7 @@ inline void applySymmetry(
     Field<scalar>& domainVector, const UnstructuredMesh& mesh, std::pair<size_t, size_t> range
 )
 {
-    auto [refValueV, valueV, internalValuesV, faceCellsV] = views(
+    auto [refValueV, valueV, internalValuesV, boundaryFaceOwnersV] = views(
         domainVector.boundaryData().refValue(),
         domainVector.boundaryData().value(),
         domainVector.internalVector(),
@@ -31,7 +31,7 @@ inline void applySymmetry(
         domainVector.exec(),
         range,
         NEON_LAMBDA(const localIdx i) {
-            const localIdx owner = faceCellsV[i];
+            const localIdx owner = boundaryFaceOwnersV[i];
             const scalar v = internalValuesV[owner];
 
             refValueV[i] = v;
@@ -46,7 +46,7 @@ inline void applySymmetry(
     Field<Vec3>& domainVector, const UnstructuredMesh& mesh, std::pair<size_t, size_t> range
 )
 {
-    auto [refValueV, valueV, internalValuesV, faceCellsV, nHatV] = views(
+    auto [refValueV, valueV, internalValuesV, boundaryFaceOwnersV, faceUnitNormalsV] = views(
         domainVector.boundaryData().refValue(),
         domainVector.boundaryData().value(),
         domainVector.internalVector(),
@@ -58,8 +58,8 @@ inline void applySymmetry(
         domainVector.exec(),
         range,
         NEON_LAMBDA(const localIdx i) {
-            const localIdx owner = faceCellsV[i];
-            const Vec3 n = nHatV[i];
+            const localIdx owner = boundaryFaceOwnersV[i];
+            const Vec3 n = faceUnitNormalsV[i];
 
             Vec3 v = internalValuesV[owner];
             const scalar vn = v & n; // dot product

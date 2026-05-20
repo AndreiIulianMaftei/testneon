@@ -141,11 +141,11 @@ BoundaryMesh generateBoundaryData(
 )
 {
     std::vector<label> bndFaceOwners(static_cast<size_t>(nBoundaryFaces));
-    std::vector<Vec3> bndCf(static_cast<size_t>(nBoundaryFaces));
-    std::vector<Vec3> bndCn(static_cast<size_t>(nBoundaryFaces));
-    std::vector<Vec3> bndSf(static_cast<size_t>(nBoundaryFaces));
-    std::vector<scalar> bndMagSf(static_cast<size_t>(nBoundaryFaces));
-    std::vector<Vec3> bndNf(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndFaceCenters(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndCellCenters(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndFaceNormals(static_cast<size_t>(nBoundaryFaces));
+    std::vector<scalar> bndFaceAreas(static_cast<size_t>(nBoundaryFaces));
+    std::vector<Vec3> bndFaceUnitNormals(static_cast<size_t>(nBoundaryFaces));
     std::vector<Vec3> bndDelta(static_cast<size_t>(nBoundaryFaces));
     std::vector<scalar> bndWeights(static_cast<size_t>(nBoundaryFaces), 1.0);
     std::vector<scalar> bndDeltaCoeffs(static_cast<size_t>(nBoundaryFaces));
@@ -168,11 +168,11 @@ BoundaryMesh generateBoundaryData(
         faces.owner[fi] = ciLabel;
 
         bndFaceOwners[sz] = ciLabel;
-        bndCf[sz] = faceCentre;
-        bndCn[sz] = centers[ciSizeT];
-        bndSf[sz] = area;
-        bndMagSf[sz] = magA;
-        bndNf[sz] = normal;
+        bndFaceCenters[sz] = faceCentre;
+        bndCellCenters[sz] = centers[ciSizeT];
+        bndFaceNormals[sz] = area;
+        bndFaceAreas[sz] = magA;
+        bndFaceUnitNormals[sz] = normal;
         bndDelta[sz] = delta;
         bndDeltaCoeffs[sz] = 1.0 / mag(delta);
     };
@@ -288,11 +288,11 @@ BoundaryMesh generateBoundaryData(
     BoundaryMesh boundaryMesh(
         exec,
         {exec, bndFaceOwners},
-        {exec, bndCf},
-        {exec, bndCn},
-        {exec, bndSf},
-        {exec, bndMagSf},
-        {exec, bndNf},
+        {exec, bndFaceCenters},
+        {exec, bndCellCenters},
+        {exec, bndFaceNormals},
+        {exec, bndFaceAreas},
+        {exec, bndFaceUnitNormals},
         {exec, bndDelta},
         {exec, bndWeights},
         {exec, bndDeltaCoeffs},

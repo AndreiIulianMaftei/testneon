@@ -12,8 +12,8 @@ template<typename ValueType>
 void surfaceIntegrate(
     const Executor& exec,
     localIdx nInternalFaces,
-    View<const int> neighbour,
-    View<const int> owner,
+    View<const int> neighbors,
+    View<const int> owners,
     View<const int> faceOwners,
     View<const ValueType> flux,
     View<const scalar> v,
@@ -27,8 +27,8 @@ void surfaceIntegrate(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Kokkos::atomic_add(&res[owner[i]], flux[i]);
-            Kokkos::atomic_sub(&res[neighbour[i]], flux[i]);
+            Kokkos::atomic_add(&res[owners[i]], flux[i]);
+            Kokkos::atomic_sub(&res[neighbors[i]], flux[i]);
         },
         "surfaceIntegrateInternalFaces"
     );

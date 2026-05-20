@@ -18,7 +18,7 @@ namespace NeoN::finiteVolume::cellCentred
 ** @param exec The executor
 ** @param nInternalFaces - number of internal faces
 ** @param nBoundaryFaces - number of boundary faces
-** @param neighbour - mapping from face id to neighbour cell id
+** @param neighbors - mapping from face id to neighbors cell id
 ** @param owner - mapping from face id to owner cell id
 ** @param faceOwners - mapping from boundary face id to owner cell id
 ** @param faceFlux - flux on cell faces
@@ -32,8 +32,8 @@ void computeDiv(
     const Executor& exec,
     localIdx nInternalFaces,
     localIdx nBoundaryFaces,
-    View<const localIdx> neighbour,
-    View<const localIdx> owner,
+    View<const localIdx> neighbors,
+    View<const localIdx> owners,
     View<const localIdx> faceOwners,
     View<const scalar> faceFlux,
     View<const ValueType> phiF,
@@ -47,12 +47,12 @@ void computeDiv(
     // Green-Gauss divergence theorem: ∇·(F φ)_C = (1/V_C) * sum_f F_f * φ_f
     //
     // F_f = faceFlux[f] is the signed scalar flux through face f.
-    // S_f points from owner to neighbour by construction, so F_f = U · S_f:
-    //   F_f > 0 → flux leaving the owner cell and entering the neighbour cell.
+    // S_f points from owner to neighbor by construction, so F_f = U · S_f:
+    //   F_f > 0 → flux leaving the owner cell and entering the neighbor cell.
     //
     // The DIVERGENCE at a cell measures net outward flux, so:
     //   owner cell:     F_f is outward (S_f points away from owner) → +F_f * φ_f  (add)
-    //   neighbour cell: F_f is inward  (S_f points into neighbour)  → −F_f * φ_f  (subtract)
+    //   neighbor cell: F_f is inward  (S_f points into neighbor)  → −F_f * φ_f  (subtract)
     //
     // This computes +∇·(F φ) (positive divergence form).
     parallelFor(
@@ -60,8 +60,8 @@ void computeDiv(
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
             ValueType flux = faceFlux[i] * phiF[i];
-            Kokkos::atomic_add(&res[owner[i]], flux);     // F_f outward from owner
-            Kokkos::atomic_sub(&res[neighbour[i]], flux); // F_f inward to neighbour
+            Kokkos::atomic_add(&res[owners[i]], flux);    // F_f outward from owner
+            Kokkos::atomic_sub(&res[neighbors[i]], flux); // F_f inward to neighbor
         },
         "sumFluxesInternal"
     );
@@ -246,16 +246,16 @@ void computeDivIntImp(
             auto neiCoeff = coeff[neiRow];
 
             // Conservative Gauss-Green divergence assembly.
-            // S_f points from owner to neighbour by construction, so F_f < 0 means
-            // flux leaves the owner cell and enters the neighbour cell.
+            // S_f points from owner to neighbor by construction, so F_f < 0 means
+            // flux leaves the owner cell and enters the neighbor cell.
             //
             // Decompose face flux via linear interpolation:
             //   ownFluxContrib = w * F_f     — part attributed to the owner cell value
-            //   neiFluxContrib = (1-w) * F_f — part attributed to the neighbour cell value
+            //   neiFluxContrib = (1-w) * F_f — part attributed to the neighbor cell value
             auto ownFluxContrib = -fluxV[facei] * weightsV[facei] * one<ValueType>();
             auto neiFluxContrib = +fluxV[facei] * (1.0 - weightsV[facei]) * one<ValueType>();
 
-            // triangular coefficients - neighbour -> lower, owner -> upper
+            // triangular coefficients - neighbor -> lower, owner -> upper
             values[ma.lowerIdx(neiRow, facei)] += ownFluxContrib * neiCoeff;
             values[ma.upperIdx(ownRow, facei)] += neiFluxContrib * ownCoeff;
 
