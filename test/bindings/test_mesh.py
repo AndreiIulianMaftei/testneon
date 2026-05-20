@@ -69,7 +69,7 @@ def test_boundary_mesh_fields(executor):
     assert bm.face_cells().size() == n_bfaces
     assert bm.faceCenters().size() == n_bfaces
     assert bm.faceNormals().size() == n_bfaces
-    bm.cn()
+    bm.ownerCellCenters()
     bm.mag_sf()
     bm.nf()
     bm.delta()

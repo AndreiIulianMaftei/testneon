@@ -70,7 +70,7 @@ TEST_CASE("Unstructured Mesh")
 
         // // Verify neighbor cell centres
         auto cnExp = std::vector<NeoN::Vec3> {{0.125, 0.5, 0.5}, {0.875, 0.5, 0.5}};
-        REQUIRE_THAT(mesh.boundaryMesh().cn(), Equals(cnExp, Approx {1e-12}));
+        REQUIRE_THAT(mesh.boundaryMesh().ownerCellCenters(), Equals(cnExp, Approx {1e-12}));
 
         // // Verify delta vectors
         auto deltaExp = std::vector<NeoN::Vec3> {{-0.125, 0.0, 0.0}, {0.125, 0.0, 0.0}};

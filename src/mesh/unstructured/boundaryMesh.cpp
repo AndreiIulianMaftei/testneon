@@ -11,7 +11,7 @@ BoundaryMesh::BoundaryMesh(
     const Executor& exec,
     labelVector faceOwners,
     vectorVector faceCenters,
-    vectorVector cn,
+    vectorVector ownerCellCenters,
     vectorVector faceNormals,
     scalarVector faceAreas,
     vectorVector nf,
@@ -20,9 +20,9 @@ BoundaryMesh::BoundaryMesh(
     scalarVector deltaCoeffs,
     std::vector<localIdx> offset
 )
-    : exec_(exec), faceOwners_(faceOwners), faceCenters_(faceCenters), Cn_(cn),
-      faceNormals_(faceNormals), faceAreas_(faceAreas), nf_(nf), delta_(delta), weights_(weights),
-      deltaCoeffs_(deltaCoeffs), offset_(offset) {};
+    : exec_(exec), faceOwners_(faceOwners), faceCenters_(faceCenters),
+      ownerCellCenters_(ownerCellCenters), faceNormals_(faceNormals), faceAreas_(faceAreas),
+      nf_(nf), delta_(delta), weights_(weights), deltaCoeffs_(deltaCoeffs), offset_(offset) {};
 
 // Accessor methods
 const labelVector& BoundaryMesh::faceOwners() const { return faceOwners_; }
@@ -50,11 +50,11 @@ View<const Vec3> BoundaryMesh::faceCenters(const localIdx i) const
     return extractSubView(faceCenters_, offset_, i);
 }
 
-const vectorVector& BoundaryMesh::cn() const { return Cn_; }
+const vectorVector& BoundaryMesh::ownerCellCenters() const { return ownerCellCenters_; }
 
-View<const Vec3> BoundaryMesh::cn(const localIdx i) const
+View<const Vec3> BoundaryMesh::ownerCellCenters(const localIdx i) const
 {
-    return extractSubView(Cn_, offset_, i);
+    return extractSubView(ownerCellCenters_, offset_, i);
 }
 
 const vectorVector& BoundaryMesh::faceNormals() const { return faceNormals_; }
