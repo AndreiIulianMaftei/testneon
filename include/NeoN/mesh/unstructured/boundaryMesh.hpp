@@ -34,8 +34,7 @@ public:
      * @brief Constructor for the BoundaryMesh class.
      *
      * @param exec The executor used for computations.
-     * @param faceOwners A list of the neighboring cells of each boundary
-     * face.
+     * @param faceOwners A list of owner cells of boundary faces.
      * @param faceCenters A field of face centres.
      * @param Cn A field of neighbor cell centers.
      * @param faceNormals A field of face normal vectors.
@@ -63,19 +62,19 @@ public:
 
 
     /**
-     * @brief Get the field of face cells.
+     * @brief Get the field of owner cells of boundary faces.
      *
-     * @return A constant reference to the field of face cells.
+     * @return A constant reference to the field of owner cells.
      */
     const labelVector& faceOwners() const;
 
     // TODO either dont mix return types, ie dont use view and Vector
     // for functions with same name
     /**
-     * @brief Get a view of face cells for a specific boundary face.
+     * @brief Get a view of owner cells for a specific boundary face.
      *
      * @param i The index of the boundary face.
-     * @return A view of face cells for the specified boundary face.
+     * @return A view of owner cells for the specified boundary face.
      */
     View<const label> faceOwners(const localIdx i) const;
 
@@ -216,9 +215,9 @@ private:
     const Executor exec_;
 
     /**
-     * @brief Vector of face cells.
+     * @brief Vector of face owners.
      *
-     * A field with the neighboring cells of each boundary face.
+     * A field with the owner cells of boundary faces.
      */
     labelVector faceOwners_;
 
