@@ -11,14 +11,27 @@
 
 using Operator = NeoN::dsl::Operator;
 
-TEMPLATE_TEST_CASE("SourceTerm::sourceTerm", "[bench]", NeoN::scalar, NeoN::Vec3)
+/**@brief Benchmark the source term operator for explicit and implicit evaluation.
+ *
+ * Constructs a scalar coefficient field coeff and a volume field phi, then
+ * benchmarks explicit evaluation into a source vector and implicit assembly
+ * into a linear system.
+ *
+ * @tparam TestType Field value type (e.g. NeoN::scalar, NeoN::Vec3)
+ * @param execName    Name of the executor, used as benchmark label
+ * @param exec        Executor on which all fields and operations run
+ * @param mesh        Unstructured mesh over which the operator is applied
+ * @param sectionName Catch2 section label, typically the mesh size string (e.g. "256x256")
+ */
+template<typename TestType>
+void runSourceTermBenchmark(
+    const std::string& execName,
+    const NeoN::Executor& exec,
+    NeoN::UnstructuredMesh& mesh,
+    const std::string& sectionName
+)
 {
-    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
-    auto [execName, exec] = GENERATE(allAvailableExecutor());
-
-    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
-
-    // Create a scalar field coeff and initialise with 1.0
+    // Source coeff
     auto coeffBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
     fvcc::VolumeField<NeoN::scalar> coeff(exec, "coeff", mesh, coeffBCs);
     NeoN::fill(coeff.internalVector(), 2.0);
@@ -32,26 +45,50 @@ TEMPLATE_TEST_CASE("SourceTerm::sourceTerm", "[bench]", NeoN::scalar, NeoN::Vec3
     NeoN::fill(phi.boundaryData().value(), NeoN::zero<TestType>());
     phi.correctBoundaryConditions();
 
-    // capture the value of size as section name
-    DYNAMIC_SECTION("" << size)
+    DYNAMIC_SECTION(sectionName + " - Explicit")
     {
-        SECTION("Explicit")
-        {
-            auto op = fvcc::SourceTerm<TestType>(Operator::Type::Explicit, coeff, phi);
+        auto op = fvcc::SourceTerm<TestType>(Operator::Type::Explicit, coeff, phi);
 
-            NeoN::Vector<TestType> source(exec, phi.size(), NeoN::zero<TestType>());
+        NeoN::Vector<TestType> source(exec, phi.size(), NeoN::zero<TestType>());
 
-            BENCHMARK(std::string(execName) + "_explicit") { op.explicitOperation(source); };
-        }
-
-        SECTION("Implicit")
-        {
-            // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls = la::createEmptyLinearSystem<TestType>(mesh);
-
-            auto op = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
-
-            BENCHMARK(std::string(execName) + "_implicit") { op.implicitOperation(ls); };
-        }
+        BENCHMARK(execName + "_explicit") { op.explicitOperation(source); };
     }
+
+    DYNAMIC_SECTION(sectionName + " - Implicit")
+    {
+        // Build sparsity pattern and allocate linear system once - output goes to ls
+        auto ls = la::createEmptyLinearSystem<TestType>(mesh);
+
+        auto op = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
+
+        BENCHMARK(execName + "_implicit") { op.implicitOperation(ls); };
+    }
+}
+
+TEMPLATE_TEST_CASE("SourceTerm::sourceTerm2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(256, 512, 1024);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::UnstructuredMesh mesh = NeoN::create2DUniformMesh(exec, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName =
+        std::to_string(nCellsPerDim) + "x" + std::to_string(nCellsPerDim);
+
+    runSourceTermBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
+}
+
+TEMPLATE_TEST_CASE("SourceTerm::sourceTerm3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(32, 64, 128);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::UnstructuredMesh mesh =
+        NeoN::create3DUniformMesh(exec, nCellsPerDim, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName = std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim);
+
+    runSourceTermBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }

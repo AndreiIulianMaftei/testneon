@@ -13,7 +13,7 @@ using Operator = NeoN::dsl::Operator;
 
 /**@brief helper function to produce assembled linear system
 ** Assemble a diagonally-dominant linear system from a 1D laplacian.
-**The laplacian implicit operation produces a valid CSR matrix with non-zero
+** The laplacian implicit operation produces a valid CSR matrix with non-zero
 ** diagonals, making it suitable for both the diagonal solver and iterative solvers.
 */
 template<typename ValueType>

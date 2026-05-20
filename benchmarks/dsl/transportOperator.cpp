@@ -14,19 +14,32 @@
 #include "NeoN/dsl/implicit.hpp"
 #include "NeoN/dsl/expression.hpp"
 
-TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN::Vec3)
+/**@brief Benchmark the combined transport operator for explicit and implicit time integration.
+ *
+ * Assembles the full transport equation ddt(phi) + div(faceFlux, phi) + laplacian(gamma, phi)
+ * + source(coeff, phi) and benchmarks explicit evaluation as well as implicit assembly using
+ * BDF1 and BDF2 time schemes.
+ *
+ * @tparam TestType Field value type (e.g. NeoN::scalar, NeoN::Vec3)
+ * @param execName  Name of the executor, used as benchmark label
+ * @param exec      Executor on which all fields and operations run
+ * @param mesh      Unstructured mesh over which the operators are applied
+ * @param collectionName Name of the VectorCollection used to register phi with time levels
+ * @param sectionName    Catch2 section label, typically the mesh size string (e.g. "256x256")
+ */
+template<typename TestType>
+void runTransportBenchmark(
+    const std::string& execName,
+    const NeoN::Executor& exec,
+    NeoN::UnstructuredMesh& mesh,
+    const std::string& collectionName,
+    const std::string& sectionName
+)
 {
-    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
-    auto [execName, exec] = GENERATE(allAvailableExecutor());
-
-    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
-
-    // -------------------------
-    // Time setup (ddt)
-    // -------------------------
     NeoN::Database db;
-    fvcc::VectorCollection& fieldCollection =
-        fvcc::VectorCollection::instance(db, "benchVectorCollection");
+
+    fvcc::VectorCollection& fieldCollection = fvcc::VectorCollection::instance(db, collectionName);
+
     fvcc::VolumeField<TestType>& phi = fieldCollection.registerVector<fvcc::VolumeField<TestType>>(
         CreateVector<TestType> {.name = "phi", .mesh = mesh, .timeIndex = 1}
     );
@@ -42,7 +55,6 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
     const NeoN::scalar dt = 0.5;
 
     // Boundary fields
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
     auto coeffBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<NeoN::scalar>>(mesh);
 
@@ -60,7 +72,7 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
     NeoN::fill(coeff.boundaryData().value(), 0.0);
     coeff.correctBoundaryConditions();
 
-    DYNAMIC_SECTION("" << size)
+    auto makeFvSchemes = [&]()
     {
         NeoN::Dictionary fvSchemes;
         NeoN::Dictionary divSchemes;
@@ -77,62 +89,103 @@ TEMPLATE_TEST_CASE("TransportOperator::transport", "[bench]", NeoN::scalar, NeoN
             )
         );
         fvSchemes.insert("laplacianSchemes", lapSchemes);
+        return fvSchemes;
+    };
 
-        SECTION("Explicit")
+    DYNAMIC_SECTION(sectionName + " - Explicit")
+    {
+        NeoN::Vector<TestType> rhs(exec, phi.size(), NeoN::zero<TestType>());
+
+        // Build Explicit Expression
+        auto expr = NeoN::dsl::exp::ddt(phi) + NeoN::dsl::exp::div(faceFlux, phi)
+                  + NeoN::dsl::exp::laplacian(gamma, phi) + NeoN::dsl::exp::source(coeff, phi);
+
+        expr.read(makeFvSchemes());
+
+        BENCHMARK(execName + "_explicit")
         {
-            NeoN::Vector<TestType> rhs(exec, phi.size(), NeoN::zero<TestType>());
+            // rhs += ddt(phi)
+            expr.explicitOperation(rhs, t, dt);
 
-            // Build Explicit Expression
-            auto expr = NeoN::dsl::exp::ddt(phi) + NeoN::dsl::exp::div(faceFlux, phi)
-                      + NeoN::dsl::exp::laplacian(gamma, phi) + NeoN::dsl::exp::source(coeff, phi);
-
-            expr.read(fvSchemes);
-
-            BENCHMARK(std::string(execName) + "_explicit_combined")
-            {
-                // rhs += ddt(phi)
-                expr.explicitOperation(rhs, t, dt);
-
-                // rhs += div(faceFlux, phi) + laplacian(gamma, phi) + source(coeff, phi)
-                expr.explicitOperation(rhs);
-            };
-        }
-
-        SECTION("Implicit_Euler")
-        {
-            NeoN::Dictionary ddtSchemes;
-            ddtSchemes.insert("ddt(phi)", std::string("BDF1"));
-            fvSchemes.insert("ddtSchemes", ddtSchemes);
-
-            // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls1 = la::createEmptyLinearSystem<TestType>(mesh);
-
-            // Build Implicit Expression - First order
-            auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
-                      + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
-
-            expr.read(fvSchemes);
-
-            BENCHMARK(std::string(execName) + "_implicit_Euler") { expr.assemble(t, dt, ls1); };
-        }
-
-        SECTION("Implicit_BDF2")
-        {
-            // Select implicit ddt scheme (example: BDF2).
-            NeoN::Dictionary ddtSchemes;
-            ddtSchemes.insert("ddt(phi)", std::string("BDF2"));
-            fvSchemes.insert("ddtSchemes", ddtSchemes);
-
-            // Build sparsity pattern and allocate linear system once - output goes to ls
-            auto ls2 = la::createEmptyLinearSystem<TestType>(mesh);
-
-            // Build Implicit Expression - Second order
-            auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
-                      + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
-
-            expr.read(fvSchemes);
-
-            BENCHMARK(std::string(execName) + "_implicit_BDF2") { expr.assemble(t, dt, ls2); };
-        }
+            // rhs += div(faceFlux, phi) + laplacian(gamma, phi) + source(coeff, phi)
+            expr.explicitOperation(rhs);
+        };
     }
+
+    DYNAMIC_SECTION(sectionName + " - Implicit_Euler")
+    {
+        auto fvSchemes = makeFvSchemes();
+        NeoN::Dictionary ddtSchemes;
+        ddtSchemes.insert("ddt(phi)", std::string("BDF1"));
+        fvSchemes.insert("ddtSchemes", ddtSchemes);
+
+        // Build sparsity pattern and allocate linear system once - output goes to ls
+        auto ls = la::createEmptyLinearSystem<TestType>(mesh);
+
+        // Build Implicit Expression - First order
+        auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
+                  + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
+
+        expr.read(fvSchemes);
+
+        BENCHMARK(execName + "_implicit_Euler") { expr.assemble(t, dt, ls); };
+    }
+
+    DYNAMIC_SECTION(sectionName + " - Implicit_BDF2")
+    {
+        // Select implicit ddt scheme (BDF2)
+        auto fvSchemes = makeFvSchemes();
+        NeoN::Dictionary ddtSchemes;
+        ddtSchemes.insert("ddt(phi)", std::string("BDF2"));
+        fvSchemes.insert("ddtSchemes", ddtSchemes);
+
+        // Build sparsity pattern and allocate linear system once - output goes to ls
+        auto ls = la::createEmptyLinearSystem<TestType>(mesh);
+
+        // Ensure oldTimeLevel >= 2 to confirm true BDF2
+        NF_ASSERT(
+            oldTimeLevel(phi) >= 2,
+            std::format("Expected oldTimeLevel(phi) >= 2 but got {}", oldTimeLevel(phi))
+        );
+
+        // Build Implicit Expression - Second order
+        auto expr = NeoN::dsl::imp::ddt(phi) + NeoN::dsl::imp::div(faceFlux, phi)
+                  + NeoN::dsl::imp::laplacian(gamma, phi) + NeoN::dsl::imp::source(coeff, phi);
+
+        expr.read(fvSchemes);
+
+        BENCHMARK(execName + "_implicit_BDF2") { expr.assemble(t, dt, ls); };
+    }
+}
+
+TEMPLATE_TEST_CASE("TransportOperator::transport2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(256, 512, 1024);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::UnstructuredMesh mesh = NeoN::create2DUniformMesh(exec, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName =
+        std::to_string(nCellsPerDim) + "x" + std::to_string(nCellsPerDim);
+
+    runTransportBenchmark<TestType>(
+        std::string(execName), exec, mesh, "benchVectorCollection2D", sectionName
+    );
+}
+
+TEMPLATE_TEST_CASE("TransportOperator::transport3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(32, 64, 128);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::UnstructuredMesh mesh =
+        NeoN::create3DUniformMesh(exec, nCellsPerDim, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName = std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim);
+
+    runTransportBenchmark<TestType>(
+        std::string(execName), exec, mesh, "benchVectorCollection3D", sectionName
+    );
 }

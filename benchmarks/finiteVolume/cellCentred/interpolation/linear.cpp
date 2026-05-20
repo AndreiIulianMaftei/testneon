@@ -15,41 +15,63 @@ using NeoN::finiteVolume::cellCentred::SurfaceInterpolation;
 using NeoN::finiteVolume::cellCentred::VolumeField;
 using NeoN::finiteVolume::cellCentred::SurfaceField;
 
-TEMPLATE_TEST_CASE("linear", "[bench]", NeoN::scalar, NeoN::Vec3)
+/**@brief Benchmark linear surface interpolation from a volume field to a surface field.
+ *
+ * Constructs a volume field initialised to one and benchmarks the Gauss-linear
+ * interpolation onto the mesh faces.
+ *
+ * @tparam TestType Field value type (e.g. NeoN::scalar, NeoN::Vec3)
+ * @param execName    Name of the executor, used as benchmark label
+ * @param exec        Executor on which all fields and operations run
+ * @param mesh        Unstructured mesh over which the interpolation is applied
+ * @param sectionName Catch2 section label, typically the mesh size string (e.g. "256x256")
+ */
+template<typename TestType>
+void runLinearBenchmark(
+    const std::string& execName,
+    const NeoN::Executor& exec,
+    NeoN::UnstructuredMesh& mesh,
+    const std::string& sectionName
+)
 {
-    auto [execName, exec] = GENERATE(allAvailableExecutor());
     NeoN::Input input = NeoN::TokenList({std::string("linear")});
 
-    SECTION("2D")
+    auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
+    auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
+    auto in = VolumeField<TestType>(exec, "in", mesh, {});
+    auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
+    NeoN::fill(in.internalVector(), NeoN::one<TestType>());
+
+    DYNAMIC_SECTION(sectionName)
     {
-        auto nCellsPerDim = GENERATE(256, 512, 1024);
-        NeoN::UnstructuredMesh mesh = NeoN::create2DUniformMesh(exec, nCellsPerDim, nCellsPerDim);
-        auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
-        auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
-        auto in = VolumeField<TestType>(exec, "in", mesh, {});
-        auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
-        NeoN::fill(in.internalVector(), NeoN::one<TestType>());
-
-        DYNAMIC_SECTION(nCellsPerDim << "x" << nCellsPerDim)
-        {
-            BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
-        }
+        BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
     }
+}
 
-    SECTION("3D")
-    {
-        auto nCellsPerDim = GENERATE(32, 64, 128);
-        NeoN::UnstructuredMesh mesh =
-            NeoN::create3DUniformMesh(exec, nCellsPerDim, nCellsPerDim, nCellsPerDim);
-        auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
-        auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
-        auto in = VolumeField<TestType>(exec, "in", mesh, {});
-        auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
-        NeoN::fill(in.internalVector(), NeoN::one<TestType>());
+TEMPLATE_TEST_CASE("linear2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(256, 512, 1024);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
 
-        DYNAMIC_SECTION(nCellsPerDim << "x" << nCellsPerDim << "x" << nCellsPerDim)
-        {
-            BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
-        }
-    }
+    NeoN::UnstructuredMesh mesh = NeoN::create2DUniformMesh(exec, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName =
+        std::to_string(nCellsPerDim) + "x" + std::to_string(nCellsPerDim);
+
+    runLinearBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
+}
+
+TEMPLATE_TEST_CASE("linear3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+{
+    auto nCellsPerDim = GENERATE(32, 64, 128);
+    auto [execName, exec] = GENERATE(allAvailableExecutor());
+
+    NeoN::UnstructuredMesh mesh =
+        NeoN::create3DUniformMesh(exec, nCellsPerDim, nCellsPerDim, nCellsPerDim);
+
+    const std::string sectionName = std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim) + "x"
+                                  + std::to_string(nCellsPerDim);
+
+    runLinearBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
