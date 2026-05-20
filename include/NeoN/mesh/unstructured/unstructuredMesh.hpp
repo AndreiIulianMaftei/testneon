@@ -38,7 +38,7 @@ public:
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
      * @param cellCentres The field of cell centres in the mesh.
-     * @param faceNormals The field of area face normals.
+     * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param magFaceAreas The field of magnitudes of face areas.
      * @param faceOwner The field of face owner cells.
@@ -75,7 +75,7 @@ public:
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
      * @param cellCentres The field of cell centres in the mesh.
-     * @param faceNormals The field of area face normals.
+     * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param magFaceAreas The field of magnitudes of face areas.
      * @param faceOwner The list of face owner cells.
@@ -137,9 +137,9 @@ public:
     vectorVector& faceCentres();
 
     /**
-     * @brief Get the field of area face normals.
+     * @brief Get the field of face normal vectors.
      *
-     * @return The field of area face normals.
+     * @return The field of face normal vectors.
      */
     const vectorVector& faceNormals() const;
     vectorVector& faceNormals();
@@ -249,9 +249,9 @@ private:
     vectorVector cellCentres_;
 
     /**
-     * @brief Vector of area face normals.
+     * @brief Vector of face normal vectors.
      *
-     * The area face normals are defined as the normal vector to the face
+     * The face normal vectors are defined as the normal vector to the face
      * with magnitude equal to the face area.
      */
     vectorVector faceNormals_;

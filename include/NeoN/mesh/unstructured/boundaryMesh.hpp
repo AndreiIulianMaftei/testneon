@@ -38,7 +38,7 @@ public:
      * face.
      * @param faceCenters A field of face centres.
      * @param Cn A field of neighbor cell centers.
-     * @param faceNormals A field of face areas normals.
+     * @param faceNormals A field of face normal vectors.
      * @param magSf A field of magnitudes of face areas normals.
      * @param nf A field of face unit normals.
      * @param delta A field of delta vectors.
