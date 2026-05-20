@@ -24,7 +24,7 @@ namespace NeoN::bindings
 void registerUnstructuredMesh(nb::module_& m)
 {
     // unstructured Mesh
-    // geometric data (cell volumes, centres, face areas, etc.) and topological
+    // geometric data (cell volumes, centers, face areas, etc.) and topological
     // connectivity (face owners, neighbors). It also contains a BoundaryMesh
     nb::class_<NeoN::UnstructuredMesh>(
         m, "UnstructuredMesh", "Unstructured mesh with cells, faces, and boundaries"
@@ -47,12 +47,12 @@ void registerUnstructuredMesh(nb::module_& m)
                 NeoN::BoundaryMesh>(),
             "points"_a,
             "cell_volumes"_a,
-            "cell_centres"_a,
+            "cell_centers"_a,
+            "face_normals"_a,
+            "face_centers"_a,
             "face_areas"_a,
-            "face_centres"_a,
-            "mag_face_areas"_a,
-            "face_owner"_a,
-            "face_neighbour"_a,
+            "face_owners"_a,
+            "face_neighbors"_a,
             "n_cells"_a,
             "n_internal_faces"_a,
             "n_boundary_faces"_a,
@@ -75,39 +75,39 @@ void registerUnstructuredMesh(nb::module_& m)
             "Get the vector of cell volumes"
         )
         .def_prop_ro(
-            "cell_centres",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::cellCentres, nb::const_),
+            "cell_centers",
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::cellCenters, nb::const_),
             nb::rv_policy::reference_internal,
-            "Get the vector of cell centres"
+            "Get the vector of cell centers"
         )
         .def_prop_ro(
-            "face_centres",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceCentres, nb::const_),
+            "face_centers",
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceCenters, nb::const_),
             nb::rv_policy::reference_internal,
-            "Get the vector of face centres"
+            "Get the vector of face centers"
         )
         .def_prop_ro(
-            "face_areas",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceAreas, nb::const_),
+            "face_normals",
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceNormals, nb::const_),
             nb::rv_policy::reference_internal,
             "Get the vector of face area normals"
         )
         .def_prop_ro(
-            "mag_face_areas",
+            "face_areas",
             nb::overload_cast<>(&NeoN::UnstructuredMesh::faceAreas, nb::const_),
             nb::rv_policy::reference_internal,
             "Get the vector of face area magnitudes"
         )
 
         .def_prop_ro(
-            "face_owner",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceOwner, nb::const_),
+            "face_owners",
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceOwners, nb::const_),
             nb::rv_policy::reference_internal,
             "Get the vector of face owner cell indices"
         )
         .def_prop_ro(
-            "face_neighbour",
-            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceNeighbour, nb::const_),
+            "face_neighbors",
+            nb::overload_cast<>(&NeoN::UnstructuredMesh::faceNeighbors, nb::const_),
             nb::rv_policy::reference_internal,
             "Get the vector of face neighbor cell indices"
         )
