@@ -26,7 +26,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
     const auto [surfFaceCells, volPhi, surfOwner, surfNeighbour, surfFaceFlux, surfV] = views(
         mesh.boundaryMesh().faceOwners(),
         phi.internalVector(),
-        mesh.faceOwner(),
+        mesh.faceOwners(),
         mesh.faceNeighbour(),
         faceFlux.internalVector(),
         mesh.cellVolumes()

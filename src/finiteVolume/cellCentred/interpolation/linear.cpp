@@ -24,7 +24,7 @@ void computeLinearInterpolation(
     const auto [srcS, weightS, ownerS, neighS, boundS] = views(
         src.internalVector(),
         weights.internalVector(),
-        dst.mesh().faceOwner(),
+        dst.mesh().faceOwners(),
         dst.mesh().faceNeighbour(),
         src.boundaryData().value()
     );

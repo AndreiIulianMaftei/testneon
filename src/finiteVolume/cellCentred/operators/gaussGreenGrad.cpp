@@ -37,7 +37,7 @@ void computeGrad(
         mesh.boundaryMesh().faceOwners(),
         mesh.boundaryMesh().faceNormals(),
         phif.internalVector(),
-        mesh.faceOwner(),
+        mesh.faceOwners(),
         mesh.faceNeighbour(),
         mesh.faceNormals(),
         mesh.cellVolumes()
@@ -239,7 +239,7 @@ void computeGradTensor(
 
     const auto [UfAll, owner, nei, SfAll, V, bFaceCells] = views(
         uf.internalVector(),
-        mesh.faceOwner(),
+        mesh.faceOwners(),
         mesh.faceNeighbour(),
         mesh.faceNormals(),
         mesh.cellVolumes(),

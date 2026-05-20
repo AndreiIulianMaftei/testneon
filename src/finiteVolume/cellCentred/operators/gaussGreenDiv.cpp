@@ -113,7 +113,7 @@ void computeDivExp(
         nInternalFaces,
         nBoundaryFaces,
         mesh.faceNeighbour().view(),
-        mesh.faceOwner().view(),
+        mesh.faceOwners().view(),
         mesh.boundaryMesh().faceOwners().view(),
         faceFlux.internalVector().view(),
         phif.internalVector().view(),
@@ -227,7 +227,7 @@ void computeDivIntImp(
     const auto [fluxV, weightsV, ownV, neiV, surfFaceCells] = views(
         faceFlux.internalVector(),
         weights.internalVector(),
-        mesh.faceOwner(),
+        mesh.faceOwners(),
         mesh.faceNeighbour(),
         mesh.boundaryMesh().faceOwners()
     );

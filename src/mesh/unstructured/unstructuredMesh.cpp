@@ -18,7 +18,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector faceAreas,
-    labelVector faceOwner,
+    labelVector faceOwners,
     labelVector faceNeighbour,
     localIdx nCells,
     localIdx nInternalFaces,
@@ -29,7 +29,7 @@ UnstructuredMesh::UnstructuredMesh(
 )
     : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
       faceNormals_(faceNormals), faceCentres_(faceCentres), faceAreas_(faceAreas),
-      faceOwner_(faceOwner), faceNeighbour_(faceNeighbour), nCells_(nCells),
+      faceOwners_(faceOwners), faceNeighbour_(faceNeighbour), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
       nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
 {}
@@ -41,7 +41,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector faceNormals,
     vectorVector faceCentres,
     scalarVector faceAreas,
-    labelVector faceOwner,
+    labelVector faceOwners,
     labelVector faceNeighbour,
     localIdx nCells,
     localIdx nInternalFaces,
@@ -51,14 +51,14 @@ UnstructuredMesh::UnstructuredMesh(
     BoundaryMesh boundaryMesh
 )
     : UnstructuredMesh(
-        faceOwner.exec(),
+        faceOwners.exec(),
         points,
         cellVolumes,
         cellCentres,
         faceNormals,
         faceCentres,
         faceAreas,
-        faceOwner,
+        faceOwners,
         faceNeighbour,
         nCells,
         nInternalFaces,
@@ -94,9 +94,9 @@ const scalarVector& UnstructuredMesh::faceAreas() const { return faceAreas_; }
 
 scalarVector& UnstructuredMesh::faceAreas() { return faceAreas_; }
 
-const labelVector& UnstructuredMesh::faceOwner() const { return faceOwner_; }
+const labelVector& UnstructuredMesh::faceOwners() const { return faceOwners_; }
 
-labelVector& UnstructuredMesh::faceOwner() { return faceOwner_; }
+labelVector& UnstructuredMesh::faceOwners() { return faceOwners_; }
 
 const labelVector& UnstructuredMesh::faceNeighbour() const { return faceNeighbour_; }
 
@@ -151,7 +151,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         faceAreasVec3s,
         faceCentresVec3s,
         faceAreas,
-        {exec, {0, 0, 0, 0}}, // faceOwner
+        {exec, {0, 0, 0, 0}}, // faceOwners
         {exec, {}},           // faceNeighbour,
         1,                    // nCells
         0,                    // nInternalFaces,

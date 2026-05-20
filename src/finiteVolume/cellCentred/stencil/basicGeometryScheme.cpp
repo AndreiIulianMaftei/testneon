@@ -15,7 +15,7 @@ BasicGeometryScheme::BasicGeometryScheme(const UnstructuredMesh& mesh)
 
 void BasicGeometryScheme::updateWeights(const Executor& exec, SurfaceField<scalar>& weights)
 {
-    const auto owner = mesh_.faceOwner().view();
+    const auto owner = mesh_.faceOwners().view();
     const auto neighbour = mesh_.faceNeighbour().view();
 
     const auto cf = mesh_.faceCentres().view();
@@ -61,7 +61,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
 )
 {
     const auto [owner, neighbour, surfFaceCells] =
-        views(mesh_.faceOwner(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceOwners());
+        views(mesh_.faceOwners(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceOwners());
 
 
     const auto [cf, cellCentre] = views(mesh_.faceCentres(), mesh_.cellCentres());
@@ -99,7 +99,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
 )
 {
     const auto [owner, neighbour, surfFaceCells] =
-        views(mesh_.faceOwner(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceOwners());
+        views(mesh_.faceOwners(), mesh_.faceNeighbour(), mesh_.boundaryMesh().faceOwners());
 
 
     const auto [cf, cellCentre, faceAreaVec3, faceArea] =

@@ -23,7 +23,7 @@ void computeLaplacianExp(
     SurfaceField<ValueType> faceNormalGrad = faceNormalGradient.faceNormalGrad(phi);
 
     const auto [owner, neighbour, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
+        views(mesh.faceOwners(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
 
     const auto [result, faceArea, fnGrad, vol] =
         views(lapPhi, mesh.faceAreas(), faceNormalGrad.internalVector(), mesh.cellVolumes());
@@ -178,7 +178,7 @@ void computeLaplacianIntImpl(
     const auto exec = phi.exec();
     const auto matIt = ls.faceToMatrixAddress();
     const auto [ownV, neiV, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
+        views(mesh.faceOwners(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
 
     const auto [gammaV, deltaCoeffs, magFaceArea] = views(
         gamma.internalVector(), faceNormalGradient.deltaCoeffs().internalVector(), mesh.faceAreas()

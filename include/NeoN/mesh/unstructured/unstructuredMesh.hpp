@@ -41,7 +41,7 @@ public:
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
-     * @param faceOwner The field of face owner cells.
+     * @param faceOwners The field of face owner cells.
      * @param faceNeighbour The field of face neighbour cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
@@ -58,7 +58,7 @@ public:
         vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector faceAreas,
-        labelVector faceOwner,
+        labelVector faceOwners,
         labelVector faceNeighbour,
         localIdx nCells,
         localIdx nInternalFaces,
@@ -70,7 +70,7 @@ public:
 
     /**
      * @brief Constructor for the UnstructuredMesh class.
-     * @note executor is determined from faceOwner
+     * @note executor is determined from faceOwners
      *
      * @param points The field of mesh points.
      * @param cellVolumes The field of cell volumes in the mesh.
@@ -78,7 +78,7 @@ public:
      * @param faceNormals The field of face normal vectors.
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
-     * @param faceOwner The list of face owner cells.
+     * @param faceOwners The list of face owner cells.
      * @param faceNeighbour The list of face neighbour cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
@@ -94,7 +94,7 @@ public:
         vectorVector faceNormals,
         vectorVector faceCentres,
         scalarVector faceAreas,
-        labelVector faceOwner,
+        labelVector faceOwners,
         labelVector faceNeighbour,
         localIdx nCells,
         localIdx nInternalFaces,
@@ -157,8 +157,8 @@ public:
      *
      * @return The field of face owner cells.
      */
-    const labelVector& faceOwner() const;
-    labelVector& faceOwner();
+    const labelVector& faceOwners() const;
+    labelVector& faceOwners();
 
     /**
      * @brief Get the field of face neighbour cells.
@@ -269,7 +269,7 @@ private:
     /**
      * @brief Vector of face owner cells.
      */
-    labelVector faceOwner_;
+    labelVector faceOwners_;
 
     /**
      * @brief Vector of face neighbour cells.

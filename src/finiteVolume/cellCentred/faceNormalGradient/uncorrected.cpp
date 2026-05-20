@@ -20,7 +20,7 @@ void computeFaceNormalGrad(
     const auto& exec = surfaceVector.exec();
 
     const auto [owner, neighbour, surfFaceCells] =
-        views(mesh.faceOwner(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
+        views(mesh.faceOwners(), mesh.faceNeighbour(), mesh.boundaryMesh().faceOwners());
 
 
     const auto [phif, phi, phiBCValue, nonOrthDeltaCoeffs] = views(
