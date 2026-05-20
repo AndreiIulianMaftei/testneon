@@ -27,7 +27,7 @@ std::pair<scalar, scalar> computeCoNum(const SurfaceField<scalar>& faceFlux, con
         mesh.boundaryMesh().faceOwners(),
         phi.internalVector(),
         mesh.faceOwners(),
-        mesh.faceNeighbour(),
+        mesh.faceNeighbors(),
         faceFlux.internalVector(),
         mesh.cellVolumes()
     );

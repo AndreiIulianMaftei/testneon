@@ -24,7 +24,7 @@ void computeUpwindInterpolation(
         src.internalVector(),
         weights.internalVector(),
         dst.mesh().faceOwners(),
-        dst.mesh().faceNeighbour(),
+        dst.mesh().faceNeighbors(),
         src.boundaryData().value(),
         flux.internalVector()
     );
@@ -69,7 +69,7 @@ void computeUpwindInterpolationWeights(
         weights.internalVector(),
         weights.boundaryData().value(),
         src.mesh().faceOwners(),
-        src.mesh().faceNeighbour(),
+        src.mesh().faceNeighbors(),
         flux.internalVector()
     );
     auto nInternalFaces = src.mesh().nInternalFaces();

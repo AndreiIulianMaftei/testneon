@@ -25,7 +25,7 @@ void computeLinearInterpolation(
         src.internalVector(),
         weights.internalVector(),
         dst.mesh().faceOwners(),
-        dst.mesh().faceNeighbour(),
+        dst.mesh().faceNeighbors(),
         src.boundaryData().value()
     );
     auto nInternalFaces = dst.mesh().nInternalFaces();

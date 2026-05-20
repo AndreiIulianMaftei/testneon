@@ -61,7 +61,7 @@ TEST_CASE("Unstructured Mesh")
 
         // Verify face neighbours (x-direction)
         auto faceNeighbourExp = std::vector<NeoN::label> {1, 2, 3};
-        REQUIRE_THAT(mesh.faceNeighbour(), Equals(faceNeighbourExp, EqualInt()));
+        REQUIRE_THAT(mesh.faceNeighbors(), Equals(faceNeighbourExp, EqualInt()));
 
         // Verify boundary mesh: first 2 boundary faces are xmin/xmax
         // Verify neighbouring cell for boundary faces

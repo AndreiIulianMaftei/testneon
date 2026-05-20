@@ -57,7 +57,7 @@ public:
         surfaceIntegrate<ValueType>(
             exec,
             nInternalFaces,
-            mesh.faceNeighbour().view(),
+            mesh.faceNeighbors().view(),
             mesh.faceOwners().view(),
             mesh.boundaryMesh().faceOwners().view(),
             this->flux_.internalVector().view(),

@@ -19,7 +19,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector faceCentres,
     scalarVector faceAreas,
     labelVector faceOwners,
-    labelVector faceNeighbour,
+    labelVector faceNeighbors,
     localIdx nCells,
     localIdx nInternalFaces,
     localIdx nBoundaryFaces,
@@ -29,7 +29,7 @@ UnstructuredMesh::UnstructuredMesh(
 )
     : exec_(exec), points_(points), cellVolumes_(cellVolumes), cellCentres_(cellCentres),
       faceNormals_(faceNormals), faceCentres_(faceCentres), faceAreas_(faceAreas),
-      faceOwners_(faceOwners), faceNeighbour_(faceNeighbour), nCells_(nCells),
+      faceOwners_(faceOwners), faceNeighbors_(faceNeighbors), nCells_(nCells),
       nInternalFaces_(nInternalFaces), nBoundaryFaces_(nBoundaryFaces), nBoundaries_(nBoundaries),
       nFaces_(nFaces), boundaryMesh_(boundaryMesh), stencilDataBase_()
 {}
@@ -42,7 +42,7 @@ UnstructuredMesh::UnstructuredMesh(
     vectorVector faceCentres,
     scalarVector faceAreas,
     labelVector faceOwners,
-    labelVector faceNeighbour,
+    labelVector faceNeighbors,
     localIdx nCells,
     localIdx nInternalFaces,
     localIdx nBoundaryFaces,
@@ -59,7 +59,7 @@ UnstructuredMesh::UnstructuredMesh(
         faceCentres,
         faceAreas,
         faceOwners,
-        faceNeighbour,
+        faceNeighbors,
         nCells,
         nInternalFaces,
         nBoundaryFaces,
@@ -98,9 +98,9 @@ const labelVector& UnstructuredMesh::faceOwners() const { return faceOwners_; }
 
 labelVector& UnstructuredMesh::faceOwners() { return faceOwners_; }
 
-const labelVector& UnstructuredMesh::faceNeighbour() const { return faceNeighbour_; }
+const labelVector& UnstructuredMesh::faceNeighbors() const { return faceNeighbors_; }
 
-labelVector& UnstructuredMesh::faceNeighbour() { return faceNeighbour_; }
+labelVector& UnstructuredMesh::faceNeighbors() { return faceNeighbors_; }
 
 localIdx UnstructuredMesh::nCells() const { return nCells_; }
 
@@ -152,7 +152,7 @@ UnstructuredMesh createSingleCellMesh(const Executor exec)
         faceCentresVec3s,
         faceAreas,
         {exec, {0, 0, 0, 0}}, // faceOwners
-        {exec, {}},           // faceNeighbour,
+        {exec, {}},           // faceNeighbors,
         1,                    // nCells
         0,                    // nInternalFaces,
         4,                    // nBoundaryFaces,

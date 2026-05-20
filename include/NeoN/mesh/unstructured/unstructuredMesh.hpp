@@ -42,7 +42,7 @@ public:
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
-     * @param faceNeighbour The field of face neighbour cells.
+     * @param faceNeighbors The field of face neighbour cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
      * @param nBoundaryFaces The number of boundary faces in the mesh.
@@ -59,7 +59,7 @@ public:
         vectorVector faceCentres,
         scalarVector faceAreas,
         labelVector faceOwners,
-        labelVector faceNeighbour,
+        labelVector faceNeighbors,
         localIdx nCells,
         localIdx nInternalFaces,
         localIdx nBoundaryFaces,
@@ -79,7 +79,7 @@ public:
      * @param faceCentres The field of face centres.
      * @param faceAreas The field of face areas.
      * @param faceOwners The list of labels of face owner cells.
-     * @param faceNeighbour The list of face neighbour cells.
+     * @param faceNeighbors The list of face neighbour cells.
      * @param nCells The number of cells in the mesh.
      * @param nInternalFaces The number of internal faces in the mesh.
      * @param nBoundaryFaces The number of boundary faces in the mesh.
@@ -95,7 +95,7 @@ public:
         vectorVector faceCentres,
         scalarVector faceAreas,
         labelVector faceOwners,
-        labelVector faceNeighbour,
+        labelVector faceNeighbors,
         localIdx nCells,
         localIdx nInternalFaces,
         localIdx nBoundaryFaces,
@@ -165,8 +165,8 @@ public:
      *
      * @return The field of face neighbour cells.
      */
-    const labelVector& faceNeighbour() const;
-    labelVector& faceNeighbour();
+    const labelVector& faceNeighbors() const;
+    labelVector& faceNeighbors();
 
     /**
      * @brief Get the number of cells in the mesh.
@@ -274,7 +274,7 @@ private:
     /**
      * @brief Vector of face neighbour cells.
      */
-    labelVector faceNeighbour_;
+    labelVector faceNeighbors_;
 
     /**
      * @brief Number of cells in the mesh.

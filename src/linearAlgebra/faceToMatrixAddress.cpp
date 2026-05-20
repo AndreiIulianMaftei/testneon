@@ -102,7 +102,7 @@ void setSparsityPatternFaceToMatrixAddressSerial(
     // start with one to include the diagonal
     auto nFacesPerCellH = Vector<localIdx>(SerialExecutor {}, nCells, 1);
     auto [neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH] =
-        copyToHosts(neiOffs, ownOffs, diagOffs, mesh.faceOwners(), mesh.faceNeighbour());
+        copyToHosts(neiOffs, ownOffs, diagOffs, mesh.faceOwners(), mesh.faceNeighbors());
 
     auto [nFacesPerCellHV, neiOffsetHV, ownOffsetHV, diagOffsetHV, faceOwnHV, faceNeiHV] =
         views(nFacesPerCellH, neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH);

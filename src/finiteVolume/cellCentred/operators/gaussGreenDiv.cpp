@@ -112,7 +112,7 @@ void computeDivExp(
         exec,
         nInternalFaces,
         nBoundaryFaces,
-        mesh.faceNeighbour().view(),
+        mesh.faceNeighbors().view(),
         mesh.faceOwners().view(),
         mesh.boundaryMesh().faceOwners().view(),
         faceFlux.internalVector().view(),
@@ -228,7 +228,7 @@ void computeDivIntImp(
         faceFlux.internalVector(),
         weights.internalVector(),
         mesh.faceOwners(),
-        mesh.faceNeighbour(),
+        mesh.faceNeighbors(),
         mesh.boundaryMesh().faceOwners()
     );
     auto values = ls.matrix().values().view();
