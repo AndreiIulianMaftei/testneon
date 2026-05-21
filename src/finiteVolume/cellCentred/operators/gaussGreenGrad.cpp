@@ -245,8 +245,8 @@ void computeGradTensor(
         mesh.cellVolumes(),
         mesh.boundaryMesh().faceOwners()
     );
-    const auto UfInt = uf.internalVector().view();
-    const auto UfBound = uf.boundaryData().value().view();
+    const auto ufInt = uf.internalVector().view();
+    const auto ufBound = uf.boundaryData().value().view();
 
     const localIdx nInt = mesh.nInternalFaces();
     const localIdx nBnd = mesh.nBoundaryFaces();
@@ -256,7 +256,7 @@ void computeGradTensor(
         {0, nInt},
         NEON_LAMBDA(const localIdx f) {
             const Vec3 sf = SfAll[f];
-            const Vec3 faceU = UfInt[f];
+            const Vec3 faceU = ufInt[f];
             const auto o = owner[f];
             const auto n = nei[f];
             // gradU(row,col) += Sf[col] * U[row]  (Gauss-Green)
@@ -280,7 +280,7 @@ void computeGradTensor(
             const auto o = bFaceCells[bi];
             // TODO Issue #515
             const Vec3 sf = SfAll[nInt + bi];
-            const Vec3 faceU = UfBound[bi];
+            const Vec3 faceU = ufBound[bi];
             for (size_t row = 0; row < 3; ++row)
             {
                 for (size_t col = 0; col < 3; ++col)

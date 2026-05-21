@@ -43,7 +43,7 @@ class LimitedCorrected :
     using Base =
         FaceNormalGradientFactory<ValueType>::template Register<LimitedCorrected<ValueType>>;
 
-    static constexpr scalar defaultLimitCoeff = 0.333;
+    static constexpr scalar DEFAULT_LIMIT_COEFF = 0.333;
 
 public:
 
@@ -53,7 +53,7 @@ public:
 
     LimitedCorrected(const Executor& exec, const UnstructuredMesh& mesh)
         : Base(exec, mesh), geometryScheme_(GeometryScheme::readOrCreate(mesh)),
-          limitCoeff_(defaultLimitCoeff) {};
+          limitCoeff_(DEFAULT_LIMIT_COEFF) {};
 
     static std::string name() { return "limitedCorrected"; }
 
@@ -101,7 +101,7 @@ private:
             {
                 return dict.get<scalar>("limitCoeff");
             }
-            return defaultLimitCoeff;
+            return DEFAULT_LIMIT_COEFF;
         }
         // TokenList: coefficient follows the scheme name (already consumed by factory)
         auto& tl = std::get<NeoN::TokenList>(inputs);

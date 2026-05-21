@@ -117,7 +117,8 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrBH = fluxCorr.boundaryData().value().copyToHost();
 
-            for (NeoN::localIdx i = 0; i < nBndFaces; ++i) {
+            for (NeoN::localIdx i = 0; i < nBndFaces; ++i)
+            {
                 REQUIRE(corrBH.view()[i] == Catch::Approx(0.0).margin(1e-12));
             }
         }
@@ -133,7 +134,8 @@ TEST_CASE("timeIntegration: ddtPhiCorr on single-cell mesh", "[timeIntegration][
             auto fluxCorr = fvcc::ddtFluxCorr(u, flux, dt, scheme);
             auto corrBH = fluxCorr.boundaryData().value().copyToHost();
 
-            for (NeoN::localIdx i = 0; i < nBndFaces; ++i) {
+            for (NeoN::localIdx i = 0; i < nBndFaces; ++i)
+            {
                 REQUIRE(
                     corrBH.view()[i]
                     == Catch::Approx(expected[static_cast<size_t>(i)]).margin(1e-12)
