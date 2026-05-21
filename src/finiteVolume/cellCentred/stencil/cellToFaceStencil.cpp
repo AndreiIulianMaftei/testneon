@@ -44,7 +44,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeInternalStencil() 
             localIdx neigh = faceNeighbors[facei];
 
             const auto segIdxOwn = Kokkos::atomic_fetch_inc(&nFacesPerCellView[owner]);
-            const auto segIdxNei = Kokkos::atomic_fetch_inc(&nFacesPerCellView[neighbour]);
+            const auto segIdxNei = Kokkos::atomic_fetch_inc(&nFacesPerCellView[neigh]);
 
             auto segOwn = segment[owner] + segIdxOwn;
             auto segNei = segment[neigh] + segIdxNei;

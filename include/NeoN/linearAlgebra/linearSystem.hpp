@@ -6,6 +6,7 @@
 
 #include "NeoN/core/vector/vector.hpp"
 #include "NeoN/core/dictionary.hpp"
+#include "NeoN/core/copyTo.hpp"
 #include "NeoN/linearAlgebra/matrix.hpp"
 #include "NeoN/linearAlgebra/cooSparsityPattern.hpp"
 #include "NeoN/linearAlgebra/csrSparsityPattern.hpp"
@@ -58,7 +59,8 @@ template<
     typename ValueType,
     typename SystemMatrixType = CSRMatrix<ValueType, localIdx>,
     typename BoundaryMatrixType = COOMatrix<ValueType, localIdx>>
-class LinearSystem
+class LinearSystem :
+    public NeoN::SupportsCopyTo<LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType>>
 {
 
     void validate()
@@ -123,13 +125,14 @@ public:
 
     [[nodiscard]] const Vector<ValueType>& boundaryRhs() const { return boundaryRhs_; }
 
-    [[nodiscard]] LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType> copyToHost() const
+    [[nodiscard]] LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType>
+    copyToExecutor(Executor exec) const override
     {
         return {
-            matrix_.copyToHost(),
-            rhs_.copyToHost(),
-            boundaryMatrix_.copyToHost(),
-            boundaryRhs_.copyToHost()
+            matrix_.copyToExecutor(exec),
+            rhs_.copyToExecutor(exec),
+            boundaryMatrix_.copyToExecutor(exec),
+            boundaryRhs_.copyToExecutor(exec)
         };
     }
 
