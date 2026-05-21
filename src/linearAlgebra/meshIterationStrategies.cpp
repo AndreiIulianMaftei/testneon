@@ -76,10 +76,8 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
     Vector<scalar> iFaceSigns(exec, ninternalFaceConnections);
     Vector<localIdx> matrixColumnIdx(exec, ninternalFaceConnections);
 
-    const auto [ownOffs, neiOffs] = views(
-        faceToMatrixAddress->ownerOffset(),
-        faceToMatrixAddress->neighbourOffset()
-    );
+    const auto [ownOffs, neiOffs] =
+        views(faceToMatrixAddress->ownerOffset(), faceToMatrixAddress->neighbourOffset());
 
     const auto [ownerV, neighbourV] = views(owner, neighbour);
     const auto [matrixRowOffs] = views(sparsityPattern->rowOffs());
@@ -87,7 +85,7 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
     auto [iFaceNeighboursV, iFaceSignsV, matrixColumnIdxV] =
         views(iFaceNeighbours, iFaceSigns, matrixColumnIdx);
 
-    auto [cellFacesValues, cellFacesSegments] = cellFaces.views();
+    auto [cellFacesValues, cellFacesSegments] = cellInternalFaces.views();
 
     parallelFor(
         exec,
@@ -124,7 +122,7 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
     );
 
     return std::make_shared<CellBasedData>(
-        mesh.nCells(), cellFaces, faceNeighbour, faceSign, matrixColumnIdx
+        mesh.nCells(), cellInternalFaces, iFaceNeighbours, iFaceSigns, matrixColumnIdx
     );
 }
 

@@ -9,6 +9,7 @@
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
 #include "NeoN/finiteVolume/cellCentred/operators/divOperator.hpp"
 #include "NeoN/finiteVolume/cellCentred/interpolation/surfaceInterpolation.hpp"
+#include "NeoN/linearAlgebra/meshIterationStrategies.hpp"
 
 namespace NeoN::finiteVolume::cellCentred
 {
@@ -106,7 +107,8 @@ public:
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling) const override
     {
-        if (dynamic_cast<const CellBased*>(ls.getMeshIterator()) != nullptr)
+        if (dynamic_cast<const la::CellBasedIterator*>(ls.getMeshIterator()->get().get())
+            != nullptr)
         {
             NF_ERROR_EXIT("CellBased iteration not implemented");
         }
