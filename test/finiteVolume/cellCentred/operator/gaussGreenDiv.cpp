@@ -193,7 +193,9 @@ TEST_CASE("DivOperator implicit boundary contributions are accumulated")
     }
 }
 
-TEST_CASE("Face based and cellbased iteration give same results")
+TEMPLATE_TEST_CASE(
+    "Face based and cellbased iteration give same results", "[template]", NeoN::scalar
+)
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
 
@@ -212,10 +214,19 @@ TEST_CASE("Face based and cellbased iteration give same results")
     auto cellIterator = std::make_shared<NeoN::la::CellBasedIterator>();
     auto lsCellBased = NeoN::la::createEmptyLinearSystem<NeoN::scalar>(mesh, cellIterator);
 
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "sf", mesh, volumeBCs);
+    Catch::randomizeVector(phi);
+    phi.correctBoundaryConditions();
+
     dsl::SpatialOperator divOp = dsl::imp::div(faceFlux, phi);
     divOp.read(input);
     divOp.implicitOperation(lsFaceBased);
     divOp.implicitOperation(lsCellBased);
+
+    REQUIRE_THAT(
+        lsFaceBased.matrix().values(), Equals(lsCellBased.matrix().values(), Approx {1e-12})
+    );
 }
 
 } // namespace NeoN
