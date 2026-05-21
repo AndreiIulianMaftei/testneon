@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <memory>
+#include <string>
+
 #include "NeoN/core/segmentedVector.hpp"
 
 #include "NeoN/linearAlgebra/csrSparsityPattern.hpp"

@@ -66,18 +66,17 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
     // Count faces per cell (owner and neighbour contributions)
     auto exec = mesh.exec();
     auto cellToFaceStencil = finiteVolume::cellCentred::CellToFaceStencil(mesh);
-    auto cellFaces = cellToFaceStencil.computeInternalStencil();
+    auto cellInternalFaces = cellToFaceStencil.computeInternalStencil();
     auto owner = mesh.faceOwners();
     auto neighbour = mesh.faceNeighbors();
 
     // Pre-compute face neighbour, sign, and matrix column indices
-    const auto totalFaceConnections = cellFaces.size();
-    Vector<localIdx> faceNeighbour(exec, totalFaceConnections);
-    Vector<scalar> faceSign(exec, totalFaceConnections);
-    Vector<localIdx> matrixColumnIdx(exec, totalFaceConnections);
+    const auto ninternalFaceConnections = cellInternalFaces.size();
+    Vector<localIdx> iFaceNeighbours(exec, ninternalFaceConnections);
+    Vector<scalar> iFaceSigns(exec, ninternalFaceConnections);
+    Vector<localIdx> matrixColumnIdx(exec, ninternalFaceConnections);
 
-    const auto [diagOffs, ownOffs, neiOffs] = views(
-        faceToMatrixAddress->diagOffset(),
+    const auto [ownOffs, neiOffs] = views(
         faceToMatrixAddress->ownerOffset(),
         faceToMatrixAddress->neighbourOffset()
     );
@@ -85,8 +84,8 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
     const auto [ownerV, neighbourV] = views(owner, neighbour);
     const auto [matrixRowOffs] = views(sparsityPattern->rowOffs());
 
-    auto [faceNeighbourV, faceSignV, matrixColumnIdxV] =
-        views(faceNeighbour, faceSign, matrixColumnIdx);
+    auto [iFaceNeighboursV, iFaceSignsV, matrixColumnIdxV] =
+        views(iFaceNeighbours, iFaceSigns, matrixColumnIdx);
 
     auto [cellFacesValues, cellFacesSegments] = cellFaces.views();
 
@@ -106,8 +105,8 @@ std::shared_ptr<CellBasedIterator::CellBasedData> CellBasedIterator::computeCell
                 const auto isOwner = (own == celli);
                 const auto neiCell = isOwner ? nei : own;
 
-                faceNeighbourV[startIdx + i] = neiCell;
-                faceSignV[startIdx + i] = isOwner ? 1.0 : -1.0;
+                iFaceNeighboursV[startIdx + i] = neiCell;
+                iFaceSignsV[startIdx + i] = isOwner ? 1.0 : -1.0;
 
                 // Compute matrix column index
                 const auto rowStart = matrixRowOffs[celli];

@@ -106,9 +106,9 @@ public:
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling) const override
     {
-        if (ls.getMeshIterator()->name() == "CellBased")
+        if (dynamic_cast<const CellBased*>(ls.getMeshIterator()) != nullptr)
         {
-            NF_ERROR_EXIT("Cellbased iteration not implemented");
+            NF_ERROR_EXIT("CellBased iteration not implemented");
         }
         const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
         computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);

@@ -65,7 +65,14 @@ class LinearSystem
     {
         NF_ASSERT(matrix_.exec() == rhs_.exec(), "Executors are not the same");
         NF_ASSERT(matrix_.nRows() == rhs_.size(), "Matrix and RHS size mismatch");
-        NF_ASSERT(meshIteratorContext_ != nullptr, "");
+        NF_ASSERT(
+            meshIteratorContext_ != nullptr,
+            "Mesh iterator context must be set before validating the linear system"
+        );
+        NF_ASSERT(
+            meshIteratorContext_->get() != nullptr,
+            "Mesh iterator strategy must be set before validating the linear system"
+        );
         // NF_ASSERT(
         //     boundaryMatrix_.nRows() == boundaryRhs_.size(), "BMatrix.nRows() !=
         //     boundaryRHS.size()"
