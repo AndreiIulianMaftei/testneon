@@ -42,6 +42,15 @@ void computeLaplacianBoundImpl(
 );
 
 template<typename ValueType>
+void computeLaplacianNonOrthCorrImpl(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& gamma,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff coeff,
+    const FaceNormalGradient<ValueType>& faceNormalGradient
+);
+
+template<typename ValueType>
 class GaussGreenLaplacian :
     public LaplacianOperatorFactory<ValueType>::template Register<GaussGreenLaplacian<ValueType>>
 {
@@ -64,18 +73,16 @@ public:
         VolumeField<ValueType>& lapPhi,
         const SurfaceField<scalar>& gamma,
         const VolumeField<ValueType>& phi,
-        const dsl::Coeff operatorScaling
+        const dsl::Coeff coeff
     ) override
     {
         computeLaplacianExp<ValueType>(
-            faceNormalGradient_, gamma, phi, lapPhi.internalVector(), operatorScaling
+            faceNormalGradient_, gamma, phi, lapPhi.internalVector(), coeff
         );
     };
 
     virtual VolumeField<ValueType> laplacian(
-        const SurfaceField<scalar>& gamma,
-        const VolumeField<ValueType>& phi,
-        const dsl::Coeff operatorScaling
+        const SurfaceField<scalar>& gamma, const VolumeField<ValueType>& phi, const dsl::Coeff coeff
     ) const override
     {
         std::string name = "laplacian(" + gamma.name + "," + phi.name + ")";
@@ -88,7 +95,7 @@ public:
         NeoN::fill(lapPhi.internalVector(), zero<ValueType>());
         NeoN::fill(lapPhi.boundaryData().value(), zero<ValueType>());
         computeLaplacianExp<ValueType>(
-            faceNormalGradient_, gamma, phi, lapPhi.internalVector(), operatorScaling
+            faceNormalGradient_, gamma, phi, lapPhi.internalVector(), coeff
         );
         return lapPhi;
     };
@@ -97,21 +104,22 @@ public:
         Vector<ValueType>& lapPhi,
         const SurfaceField<scalar>& gamma,
         const VolumeField<ValueType>& phi,
-        const dsl::Coeff operatorScaling
+        const dsl::Coeff coeff
     ) override
     {
-        computeLaplacianExp<ValueType>(faceNormalGradient_, gamma, phi, lapPhi, operatorScaling);
+        computeLaplacianExp<ValueType>(faceNormalGradient_, gamma, phi, lapPhi, coeff);
     };
 
     virtual void laplacian(
         la::LinearSystem<ValueType>& ls,
         const SurfaceField<scalar>& gamma,
         const VolumeField<ValueType>& phi,
-        const dsl::Coeff operatorScaling
+        const dsl::Coeff coeff
     ) override
     {
-        computeLaplacianIntImpl(ls, gamma, phi, operatorScaling, faceNormalGradient_);
-        computeLaplacianBoundImpl(ls, gamma, phi, operatorScaling, faceNormalGradient_);
+        computeLaplacianIntImpl(ls, gamma, phi, coeff, faceNormalGradient_);
+        computeLaplacianBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
+        computeLaplacianNonOrthCorrImpl(ls, gamma, phi, coeff, faceNormalGradient_);
     };
 
     std::unique_ptr<LaplacianOperatorFactory<ValueType>> clone() const override

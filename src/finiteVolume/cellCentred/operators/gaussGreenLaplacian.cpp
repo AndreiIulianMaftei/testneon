@@ -165,6 +165,49 @@ void computeLaplacianBoundImpl(
 }
 
 template<typename ValueType>
+void computeLaplacianNonOrthCorrImpl(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& gamma,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff coeff,
+    const FaceNormalGradient<ValueType>& faceNormalGradient
+)
+{
+    if (!faceNormalGradient.hasImplicitCorrection()) return;
+
+    const UnstructuredMesh& mesh = phi.mesh();
+    const auto exec = phi.exec();
+    const auto nInternalFaces = mesh.nInternalFaces();
+
+    const auto [ownV, neiV] = views(mesh.faceOwners(), mesh.faceNeighbors());
+    const auto [gammaV, magFaceArea] = views(gamma.internalVector(), mesh.faceAreas());
+
+    SurfaceField<ValueType> corrField(
+        exec, "snGradCorr", mesh, createCalculatedBCs<SurfaceBoundary<ValueType>>(mesh)
+    );
+    faceNormalGradient.implicitCorrection(phi, corrField);
+
+    const auto corrV = corrField.internalVector().view();
+    auto rhs = ls.rhs().view();
+
+    // Non-orthogonal correction (deferred correction) for corrected / limitedCorrected snGrad:
+    //   rhs[own] += corr[f] * γ_f * |S_f| * coeff[own]
+    //   rhs[nei] -= corr[f] * γ_f * |S_f| * coeff[nei]
+    parallelFor(
+        exec,
+        {0, nInternalFaces},
+        NEON_LAMBDA(const localIdx facei) {
+            auto corrFlux = corrV[facei] * gammaV[facei] * magFaceArea[facei];
+            auto own = ownV[facei];
+            auto nei = neiV[facei];
+            Kokkos::atomic_add(&rhs[own], corrFlux * coeff[own]);
+            Kokkos::atomic_sub(&rhs[nei], corrFlux * coeff[nei]);
+        },
+        "computeLaplacianImplicitCorrection"
+    );
+}
+
+template<typename ValueType>
 void computeLaplacianIntImpl(
     la::LinearSystem<ValueType>& ls,
     const SurfaceField<scalar>& gamma,
@@ -222,6 +265,8 @@ void computeLaplacianIntImpl(
     template void computeLaplacianIntImpl<                                                                                                                        \
         TYPENAME>(la::LinearSystem<TYPENAME>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&); \
     template void computeLaplacianBoundImpl<                                                                                                                      \
+        TYPENAME>(la::LinearSystem<TYPENAME>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&); \
+    template void computeLaplacianNonOrthCorrImpl<                                                                                                                \
         TYPENAME>(la::LinearSystem<TYPENAME>&, const SurfaceField<scalar>&, const VolumeField<TYPENAME>&, const dsl::Coeff, const FaceNormalGradient<TYPENAME>&)
 
 NN_DECLARE_COMPUTE_IMP_LAP(scalar);
