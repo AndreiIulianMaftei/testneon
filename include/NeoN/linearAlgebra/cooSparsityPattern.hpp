@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "NeoN/core/copyTo.hpp"
 #include "NeoN/core/vector/vector.hpp"
 #include "NeoN/linearAlgebra/sparsityView.hpp"
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
@@ -19,7 +20,7 @@ namespace NeoN::la
  * of sparsity patterns from a given unstructured mesh
  */
 template<typename IndexType>
-class CooSparsityPattern
+class CooSparsityPattern : public NeoN::SupportsCopyTo<CooSparsityPattern<IndexType>>
 {
 
     void validate() const;
@@ -33,22 +34,12 @@ public:
 
     CooSparsityPattern(Vector<IndexType>&& colIdx, Vector<IndexType>&& rowIdxs, Dimensions dim);
 
-    [[nodiscard]] CooSparsityPattern copyToHost() const
-    {
-        return CooSparsityPattern<IndexType>(
-            colIdxs_.copyToExecutor(SerialExecutor()),
-            rowIdxs_.copyToExecutor(SerialExecutor()),
-            dimensions_
-        );
-    }
-
-    [[nodiscard]] CooSparsityPattern copyToExecutor(Executor dstExec) const
+    [[nodiscard]] CooSparsityPattern copyToExecutor(Executor dstExec) const override
     {
         return CooSparsityPattern<IndexType>(
             colIdxs_.copyToExecutor(dstExec), rowIdxs_.copyToExecutor(dstExec), dimensions_
         );
     }
-
 
     ~CooSparsityPattern() = default;
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "NeoN/core/array.hpp"
+#include "NeoN/core/copyTo.hpp"
 #include "NeoN/linearAlgebra/cooSparsityPattern.hpp"
 #include "NeoN/linearAlgebra/csrSparsityPattern.hpp"
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
@@ -70,7 +71,7 @@ struct FaceToMatrixView
  * the Matrix, not by this class; this class only borrows a view of the row offsets.
  *
  */
-class FaceToMatrixAddress
+class FaceToMatrixAddress : public NeoN::SupportsCopyTo<FaceToMatrixAddress>
 {
     void validate() const;
 
@@ -112,7 +113,7 @@ public:
     FaceToMatrixAddress(const FaceToMatrixAddress& mi);
 
 
-    FaceToMatrixAddress copyToExecutor(Executor dstExec) const
+    [[nodiscard]] FaceToMatrixAddress copyToExecutor(Executor dstExec) const override
     {
         return {
             ownerOffset_.copyToExecutor(dstExec),

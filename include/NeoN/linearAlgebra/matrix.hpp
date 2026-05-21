@@ -67,7 +67,7 @@ struct MatrixView
  * @tparam IndexType The index type of the rows and columns.
  */
 template<typename ValueType, typename SparsityType>
-class Matrix
+class Matrix : public NeoN::SupportsCopyTo<Matrix<ValueType, SparsityType>>
 {
 
     void validate()
@@ -192,21 +192,7 @@ public:
      * @param dstExec The destination executor.
      * @return A copy of the matrix on the destination executor.
      */
-    [[nodiscard]] Matrix<ValueType, SparsityType> copyToExecutor(Executor dstExec) const
-    {
-        if (dstExec == values_.exec())
-        {
-            return *this;
-        }
-        return {
-            values_.copyToExecutor(dstExec),
-            std::make_shared<const SparsityType>(this->sparsityPattern_->copyToExecutor(dstExec)),
-            (faceToMatrixAddress_) ? std::make_shared<const FaceToMatrixAddress>(
-                this->faceToMatrixAddress_->copyToExecutor(dstExec)
-            )
-                                   : nullptr
-        };
-    }
+    [[nodiscard]] Matrix<ValueType, SparsityType> copyToExecutor(Executor dstExec) const override;
 
     /**
      * @brief Get a reference to column indices vector.
@@ -220,28 +206,6 @@ public:
     [[nodiscard]] std::shared_ptr<const FaceToMatrixAddress> faceToMatrixAddress() const
     {
         return faceToMatrixAddress_;
-    }
-
-    /**
-     * @brief Copy the matrix to the host.
-     * @return A copy of the matrix on the host.
-     */
-    [[nodiscard]] Matrix<ValueType, SparsityType> copyToHost() const
-    {
-        if constexpr (std::is_same_v<typename SparsityType::SparsityIndexType, localIdx>)
-        {
-            if (faceToMatrixAddress_)
-            {
-                auto hostSp = std::make_shared<const SparsityType>(sparsityPattern_->copyToHost());
-                auto hostFtma = std::make_shared<const FaceToMatrixAddress>(
-                    faceToMatrixAddress_->ownerOffset().copyToHost(),
-                    faceToMatrixAddress_->neighbourOffset().copyToHost(),
-                    faceToMatrixAddress_->diagOffset().copyToHost()
-                );
-                return {values_.copyToHost(), hostSp, hostFtma};
-            }
-        }
-        return copyToExecutor(SerialExecutor());
     }
 
     /**

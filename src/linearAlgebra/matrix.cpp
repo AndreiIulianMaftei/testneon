@@ -37,6 +37,25 @@ Vector<ValueType> Matrix<ValueType, SparsityType>::diag() const
 }
 
 
+template<typename ValueType, typename SparsityType>
+Matrix<ValueType, SparsityType> Matrix<ValueType, SparsityType>::copyToExecutor(Executor dstExec
+) const
+{
+    if (dstExec == values_.exec())
+    {
+        return *this;
+    }
+    return {
+        values_.copyToExecutor(dstExec),
+        std::make_shared<const SparsityType>(this->sparsityPattern_->copyToExecutor(dstExec)),
+        (faceToMatrixAddress_) ? std::make_shared<const FaceToMatrixAddress>(
+            this->faceToMatrixAddress_->copyToExecutor(dstExec)
+        )
+                               : nullptr
+    };
+}
+
+
 // Free functions
 
 template<typename ValueType, typename IndexType>
@@ -246,12 +265,13 @@ void scaledInverseDiag(
     );
 }
 
-#define NN_DECLARE_CSRMATRIX(VALUETYPE, INTEGERTYPE)                                               \
+#define NN_DECLARE_MATRIX(VALUETYPE, INTEGERTYPE)                                                  \
     template class Matrix<VALUETYPE, la::CsrSparsityPattern<INTEGERTYPE>>;                         \
+    template class Matrix<VALUETYPE, la::CooSparsityPattern<INTEGERTYPE>>;                         \
     template Vector<VALUETYPE>                                                                     \
     upper<VALUETYPE, INTEGERTYPE>(const CSRMatrix<VALUETYPE, INTEGERTYPE>&)
 
-NN_DECLARE_CSRMATRIX(scalar, localIdx);
-NN_DECLARE_CSRMATRIX(Vec3, int);
+NN_DECLARE_MATRIX(scalar, localIdx);
+NN_DECLARE_MATRIX(Vec3, localIdx);
 
 }

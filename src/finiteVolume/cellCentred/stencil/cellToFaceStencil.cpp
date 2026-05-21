@@ -41,13 +41,13 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeInternalStencil() 
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
             localIdx owner = faceOwners[facei];
-            localIdx neighbour = faceNeighbors[facei];
+            localIdx neigh = faceNeighbors[facei];
 
             const auto segIdxOwn = Kokkos::atomic_fetch_inc(&nFacesPerCellView[owner]);
-            const auto segIdxNei = Kokkos::atomic_fetch_inc(&nFacesPerCellView[neighbour]);
+            const auto segIdxNei = Kokkos::atomic_fetch_inc(&nFacesPerCellView[neigh]);
 
             auto segOwn = segment[owner] + segIdxOwn;
-            auto segNei = segment[neighbour] + segIdxNei;
+            auto segNei = segment[neigh] + segIdxNei;
 
             stencilValues[segOwn] = facei;
             stencilValues[segNei] = facei;
