@@ -278,6 +278,7 @@ void computeGradTensor(
         {0, nBnd},
         NEON_LAMBDA(const localIdx bi) {
             const auto o = bFaceCells[bi];
+            // TODO Issue #515
             const Vec3 sf = SfAll[nInt + bi];
             const Vec3 faceU = UfBound[bi];
             for (size_t row = 0; row < 3; ++row)

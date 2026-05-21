@@ -84,6 +84,7 @@ void BasicGeometryScheme::updateDeltaCoeffs(
         {0, mesh_.nBoundaryFaces()},
         NEON_LAMBDA(const localIdx bfi) {
             auto own = surfFaceCells[bfi];
+            // TODO Issue #515
             Vec3 cellToCellDist = faceCenters[nInternalFaces + bfi] - cellCenters[own];
             deltaCoeffB[bfi] = 1.0 / mag(cellToCellDist);
         },
@@ -126,6 +127,7 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
         {0, mesh_.nBoundaryFaces()},
         NEON_LAMBDA(const localIdx bfi) {
             auto own = surfFaceCells[bfi];
+            // TODO Issue #515
             Vec3 cellToCellDist = faceCenters[nInternalFaces + bfi] - cellCenters[own];
             Vec3 faceNormal =
                 1 / faceArea[nInternalFaces + bfi] * faceAreaVec3[nInternalFaces + bfi];

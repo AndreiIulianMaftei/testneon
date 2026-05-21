@@ -67,10 +67,11 @@ inline void ddtFluxCorrBDF1Kernel(
 
     // Boundary faces
     {
-        auto outBV = fluxCorr.boundaryData().value().view();
-        auto flux0BV = flux0.boundaryData().value().view();
-        auto uf0BV = uf0.boundaryData().value().view();
-        auto SfV = mesh.faceNormals().view();
+        auto [outBV, flux0BV, uf0BV] = views(
+            fluxCorr.boundaryData().value(),
+            flux0.boundaryData().value(),
+            uf0.boundaryData().value()
+        );
         parallelFor(
             exec,
             {size_t(0), static_cast<size_t>(nBoundaryFaces)},
