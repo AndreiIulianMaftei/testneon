@@ -43,6 +43,7 @@ target_sources(
           "linearAlgebra/faceToMatrixAddress.cpp"
           "linearAlgebra/cooSparsityPattern.cpp"
           "linearAlgebra/csrSparsityPattern.cpp"
+          "linearAlgebra/meshIterationStrategies.cpp"
           "mesh/unstructured/boundaryMesh.cpp"
           "mesh/unstructured/unstructuredMesh.cpp"
           "mesh/unstructured/uniformMeshDataGenerator.cpp"
