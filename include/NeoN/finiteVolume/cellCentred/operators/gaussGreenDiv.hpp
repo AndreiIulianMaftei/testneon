@@ -14,6 +14,7 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
+
 template<typename ValueType>
 void computeDivExp(
     const SurfaceField<scalar>& faceFlux,
@@ -23,23 +24,19 @@ void computeDivExp(
     const dsl::Coeff operatorScaling
 );
 
-template<typename ValueType>
-void computeDivIntImp(
-    la::LinearSystem<ValueType>& ls,
-    const SurfaceField<scalar>& faceFlux,
-    const VolumeField<ValueType>& phi,
-    const SurfaceField<scalar>& weights,
-    const dsl::Coeff operatorScaling
-);
+#define NN_DEFINE_IMPLICIT_DIV_IMPL(FUNCTION)                                                      \
+    template<typename ValueType>                                                                   \
+    void FUNCTION(                                                                                 \
+        la::LinearSystem<ValueType>& ls,                                                           \
+        const SurfaceField<scalar>& faceFlux,                                                      \
+        const VolumeField<ValueType>& phi,                                                         \
+        const SurfaceField<scalar>& weights,                                                       \
+        const dsl::Coeff operatorScaling                                                           \
+    )
 
-template<typename ValueType>
-void computeDivBoundImp(
-    la::LinearSystem<ValueType>& ls,
-    const SurfaceField<scalar>& faceFlux,
-    const VolumeField<ValueType>& phi,
-    const SurfaceField<scalar>& weights,
-    const dsl::Coeff operatorScaling
-);
+NN_DEFINE_IMPLICIT_DIV_IMPL(computeDivIntImp);
+NN_DEFINE_IMPLICIT_DIV_IMPL(computeDivIntCellBasedImp);
+NN_DEFINE_IMPLICIT_DIV_IMPL(computeDivBoundImp);
 
 /* @brief
  *
@@ -107,13 +104,15 @@ public:
         const VolumeField<ValueType>& phi,
         const dsl::Coeff operatorScaling) const override
     {
+        const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
         if (dynamic_cast<const la::CellBasedIterator*>(ls.getMeshIterator()->get().get())
             != nullptr)
         {
-            NF_ERROR_EXIT("CellBased iteration not implemented");
         }
-        const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
-        computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);
+        else
+        {
+            computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);
+        }
         computeDivBoundImp(ls, faceFlux, phi, weights, operatorScaling);
     };
 

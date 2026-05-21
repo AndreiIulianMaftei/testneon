@@ -266,6 +266,31 @@ void computeDivIntImp(
     );
 };
 
+template<typename ValueType>
+void computeDivIntCellBasedImp(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const SurfaceField<scalar>& weights,
+    const dsl::Coeff coeff
+)
+{
+    const UnstructuredMesh& mesh = phi.mesh();
+    const auto nInternalFaces = mesh.nInternalFaces();
+    const auto exec = phi.exec();
+
+    const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
+
+    const auto [fluxV, weightsV, ownV, neiV, surfFaceCells] = views(
+        faceFlux.internalVector(),
+        weights.internalVector(),
+        mesh.faceOwners(),
+        mesh.faceNeighbors(),
+        mesh.boundaryMesh().faceOwners()
+    );
+    auto values = ls.matrix().values().view();
+}
+
 #define NN_DECLARE_COMPUTE_IMP_DIV(TYPENAME)                                                       \
     template void computeDivIntImp<TYPENAME>(                                                      \
         la::LinearSystem<TYPENAME>&,                                                               \
