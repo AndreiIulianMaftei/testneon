@@ -51,7 +51,7 @@ class MeshIteratorContext
 public:
 
     /** @brief Replaces the active strategy. */
-    void setStrategy(std::shared_ptr<MeshIterationStrategy> strategy_);
+    void setStrategy(std::shared_ptr<MeshIterationStrategy> strategy);
 
     /** @brief Returns the active strategy, or nullptr if none has been set. */
     std::shared_ptr<MeshIterationStrategy> get() const;

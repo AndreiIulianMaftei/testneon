@@ -14,8 +14,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeInternalStencil() 
 {
     const auto exec = mesh_.exec();
     const auto nCells = mesh_.nCells();
-    const auto [faceOwners, faceNeighbors] =
-        views(mesh_.faceOwners(), mesh_.faceNeighbors());
+    const auto [faceOwners, faceNeighbors] = views(mesh_.faceOwners(), mesh_.faceNeighbors());
 
     const auto nInternalFaces = mesh_.nInternalFaces();
 

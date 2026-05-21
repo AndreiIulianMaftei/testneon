@@ -10,9 +10,9 @@ namespace NeoN::la
 
 // MeshIteratorContext
 
-void MeshIteratorContext::setStrategy(std::shared_ptr<MeshIterationStrategy> strategy_)
+void MeshIteratorContext::setStrategy(std::shared_ptr<MeshIterationStrategy> strategyIn)
 {
-    strategy = std::move(strategy_);
+    strategy = std::move(strategyIn);
 }
 
 std::shared_ptr<MeshIterationStrategy> MeshIteratorContext::get() const
