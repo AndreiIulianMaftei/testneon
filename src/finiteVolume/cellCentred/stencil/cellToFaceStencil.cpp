@@ -18,30 +18,36 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeInternalStencil() 
 
     const auto nInternalFaces = mesh_.nInternalFaces();
 
-    Vector<localIdx> nFacesPerCell(exec, nCells, 0);
+    const SerialExecutor serialExec;
+    Vector<localIdx> nFacesPerCell(serialExec, nCells, 0);
     View<localIdx> nFacesPerCellView = nFacesPerCell.view();
 
+    auto hostFaceOwners = mesh_.faceOwners().copyToHost();
+    auto hostFaceNeighbors = mesh_.faceNeighbors().copyToHost();
+    const auto [hostFaceOwnersView, hostFaceNeighborsView] =
+        views(hostFaceOwners, hostFaceNeighbors);
+
     parallelFor(
-        exec,
+        serialExec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Kokkos::atomic_inc(&nFacesPerCellView[faceOwners[i]]);
-            Kokkos::atomic_inc(&nFacesPerCellView[faceNeighbors[i]]);
+            Kokkos::atomic_inc(&nFacesPerCellView[hostFaceOwnersView[i]]);
+            Kokkos::atomic_inc(&nFacesPerCellView[hostFaceNeighborsView[i]]);
         },
         "countFacesPerCellInternal"
     );
 
-    SegmentedVector<localIdx, localIdx> stencil(nFacesPerCell); // guessed
+    SegmentedVector<localIdx, localIdx> stencil(nFacesPerCell);
     auto [stencilValues, segment] = stencil.views();
 
     fill(nFacesPerCell, 0); // reset nFacesPerCell
 
     parallelFor(
-        exec,
+        serialExec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx facei) {
-            localIdx owner = faceOwners[facei];
-            localIdx neigh = faceNeighbors[facei];
+            localIdx owner = hostFaceOwnersView[facei];
+            localIdx neigh = hostFaceNeighborsView[facei];
 
             const auto segIdxOwn = Kokkos::atomic_fetch_inc(&nFacesPerCellView[owner]);
             const auto segIdxNei = Kokkos::atomic_fetch_inc(&nFacesPerCellView[neigh]);
@@ -55,7 +61,7 @@ SegmentedVector<localIdx, localIdx> CellToFaceStencil::computeInternalStencil() 
         "computeStencilInternal"
     );
 
-    return stencil;
+    return stencil.copyToExecutor(exec);
 }
 
 } // namespace NeoN::finiteVolume::cellCentred
