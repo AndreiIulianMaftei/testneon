@@ -89,3 +89,4 @@ uv.lock
 *.bck
 *log
 *.claude
+CLAUDE.md

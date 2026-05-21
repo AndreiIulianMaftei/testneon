@@ -33,25 +33,18 @@ void computeGrad(
 
     auto surfGradPhi = out.view();
 
-    const auto
-        [boundaryFaceOwners,
-         boundaryFaceNormals,
-         surfPhif,
-         faceOwners,
-         faceNeighbors,
-         faceNormals,
-         surfV] =
-            views(
-                mesh.boundaryMesh().faceOwners(),
-                mesh.boundaryMesh().faceNormals(),
-                phif.internalVector(),
-                mesh.faceOwners(),
-                mesh.faceNeighbors(),
-                mesh.faceNormals(),
-                mesh.cellVolumes()
-            );
+    const auto [boundaryFaceOwners, faceOwners, faceNeighbors, faceAreaS, surfV] = views(
+        mesh.boundaryMesh().faceOwners(),
+        mesh.faceOwners(),
+        mesh.faceNeighbors(),
+        mesh.faceNormals(),
+        mesh.cellVolumes()
+    );
+    const auto surfPhif = phif.internalVector().view();
+    const auto surfPhifB = phif.boundaryData().value().view();
 
     auto nInternalFaces = mesh.nInternalFaces();
+    auto nBoundaryFaces = mesh.nBoundaryFaces();
 
     // Green-Gauss gradient theorem: ∇φ_C = (1/V_C) * sum_f S_f * φ_f
     //
@@ -63,7 +56,7 @@ void computeGrad(
         exec,
         {0, nInternalFaces},
         NEON_LAMBDA(const localIdx i) {
-            Vec3 flux = faceNormals[i] * surfPhif[i];
+            Vec3 flux = faceAreaS[i] * surfPhif[i];
             Kokkos::atomic_add(&surfGradPhi[faceOwners[i]], flux);    // +S_f * φ_f
             Kokkos::atomic_sub(&surfGradPhi[faceNeighbors[i]], flux); // −S_f * φ_f
         },
@@ -73,10 +66,10 @@ void computeGrad(
     // Boundary faces: only the owner cell is on this rank.
     parallelFor(
         exec,
-        {nInternalFaces, surfPhif.size()},
-        NEON_LAMBDA(const localIdx i) {
-            auto own = boundaryFaceOwners[i - nInternalFaces];
-            Vec3 valueOwn = faceNormals[i] * surfPhif[i]; // +S_f * φ_f (S_f outward from owner)
+        {0, nBoundaryFaces},
+        NEON_LAMBDA(const localIdx bfi) {
+            auto own = boundaryFaceOwners[bfi];
+            Vec3 valueOwn = faceAreaS[nInternalFaces + bfi] * surfPhifB[bfi];
             Kokkos::atomic_add(&surfGradPhi[own], valueOwn);
         },
         "computeGradBoundary"
@@ -245,25 +238,25 @@ void computeGradTensor(
 
     auto gT = gradU.view();
 
-    const auto [UfAll, owner, nei, SfAll, V, bFaceCells] = views(
-        uf.internalVector(),
+    const auto [owner, nei, SfAll, V, bFaceCells] = views(
         mesh.faceOwners(),
         mesh.faceNeighbors(),
         mesh.faceNormals(),
         mesh.cellVolumes(),
         mesh.boundaryMesh().faceOwners()
     );
+    const auto ufInt = uf.internalVector().view();
+    const auto ufBound = uf.boundaryData().value().view();
 
     const localIdx nInt = mesh.nInternalFaces();
-    const localIdx nBnd = mesh.boundaryMesh().offset().back();
-    const localIdx nFaces = nInt + nBnd;
+    const localIdx nBnd = mesh.nBoundaryFaces();
 
     parallelFor(
         exec,
         {0, nInt},
         NEON_LAMBDA(const localIdx f) {
             const Vec3 sf = SfAll[f];
-            const Vec3 faceU = UfAll[f];
+            const Vec3 faceU = ufInt[f];
             const auto o = owner[f];
             const auto n = nei[f];
             // gradU(row,col) += Sf[col] * U[row]  (Gauss-Green)
@@ -282,12 +275,12 @@ void computeGradTensor(
 
     parallelFor(
         exec,
-        {nInt, nFaces},
-        NEON_LAMBDA(const localIdx f) {
-            const localIdx bi = f - nInt;
+        {0, nBnd},
+        NEON_LAMBDA(const localIdx bi) {
             const auto o = bFaceCells[bi];
-            const Vec3 sf = SfAll[f];
-            const Vec3 faceU = UfAll[f];
+            // TODO Issue #515
+            const Vec3 sf = SfAll[nInt + bi];
+            const Vec3 faceU = ufBound[bi];
             for (size_t row = 0; row < 3; ++row)
             {
                 for (size_t col = 0; col < 3; ++col)

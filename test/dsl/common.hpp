@@ -113,9 +113,9 @@ struct CreateSurfaceVector
     {
         using SF = NeoN::finiteVolume::cellCentred::SurfaceField<ValueType>;
 
-        // Face storage
+        // Face storage: internalVector holds only internal faces
         NeoN::Field<ValueType> domainField(
-            mesh.exec(), mesh.nTotalFaces(), mesh.boundaryMesh().offset()
+            mesh.exec(), mesh.nInternalFaces(), mesh.boundaryMesh().offset()
         );
         NeoN::fill(domainField.internalVector(), value);
         NeoN::fill(domainField.boundaryData().refValue(), value);
