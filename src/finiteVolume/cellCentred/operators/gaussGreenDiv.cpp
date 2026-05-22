@@ -127,18 +127,6 @@ void computeDivExp(
     );
 }
 
-#define NF_DECLARE_COMPUTE_EXP_DIV(TYPENAME)                                                       \
-    template void computeDivExp<TYPENAME>(                                                         \
-        const SurfaceField<scalar>&,                                                               \
-        const VolumeField<TYPENAME>&,                                                              \
-        const SurfaceInterpolation<TYPENAME>&,                                                     \
-        Vector<TYPENAME>&,                                                                         \
-        const dsl::Coeff                                                                           \
-    )
-
-NF_DECLARE_COMPUTE_EXP_DIV(scalar);
-NF_DECLARE_COMPUTE_EXP_DIV(Vec3);
-
 template<typename ValueType>
 void computeDivBoundImp(
     la::LinearSystem<ValueType>& ls,
@@ -266,24 +254,136 @@ void computeDivIntImp(
     );
 };
 
-#define NN_DECLARE_COMPUTE_IMP_DIV(TYPENAME)                                                       \
-    template void computeDivIntImp<TYPENAME>(                                                      \
-        la::LinearSystem<TYPENAME>&,                                                               \
-        const SurfaceField<scalar>&,                                                               \
-        const VolumeField<TYPENAME>&,                                                              \
-        const SurfaceField<scalar>&,                                                               \
-        const dsl::Coeff                                                                           \
-    );                                                                                             \
-    template void computeDivBoundImp<TYPENAME>(                                                    \
-        la::LinearSystem<TYPENAME>&,                                                               \
-        const SurfaceField<scalar>&,                                                               \
-        const VolumeField<TYPENAME>&,                                                              \
-        const SurfaceField<scalar>&,                                                               \
-        const dsl::Coeff                                                                           \
-    )
+template<typename ValueType>
+void computeDivIntCellBasedImp(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const SurfaceField<scalar>& weights,
+    const dsl::Coeff coeff
+)
+{
+    const auto exec = phi.exec();
 
-NN_DECLARE_COMPUTE_IMP_DIV(scalar);
-NN_DECLARE_COMPUTE_IMP_DIV(Vec3);
+    const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
+    auto iterator = std::dynamic_pointer_cast<la::CellBasedIterator>(ls.getMeshIterator()->get());
+
+    const auto [fluxV, weightsV] = views(faceFlux.internalVector(), weights.internalVector());
+
+    auto cellBasedData = iterator->getCellBasedData();
+    auto [cellFacesValues, cellFacesSegments] = cellBasedData->cellFaces.views();
+    auto faceSignV = cellBasedData->faceSign.view();
+    auto matrixColumnIdxV = cellBasedData->matrixColumnIdx.view();
+
+    auto values = ls.matrix().values().view();
+
+    parallelFor(
+        exec,
+        {0, iterator->size()},
+        NEON_LAMBDA(const localIdx celli) {
+            auto diagValue = zero<ValueType>();
+            const auto numFaces = cellFacesSegments[celli + 1] - cellFacesSegments[celli];
+            const auto startIdx = cellFacesSegments[celli];
+            const auto cellCoeff = coeff[celli];
+
+            for (localIdx i = 0; i < numFaces; ++i)
+            {
+                const auto faceIdx = cellFacesValues[startIdx + i];
+                const auto sign = faceSignV[startIdx + i];
+                const auto flux = fluxV[faceIdx];
+                const auto w = weightsV[faceIdx];
+
+                ValueType offDiag;
+                ValueType diagContrib;
+                if (sign > 0) // this cell is the owner: upper-triangle entry
+                {
+                    offDiag = flux * (1.0 - w) * cellCoeff * one<ValueType>();
+                    diagContrib = flux * w * cellCoeff * one<ValueType>();
+                }
+                else // this cell is the neighbor: lower-triangle entry
+                {
+                    offDiag = -flux * w * cellCoeff * one<ValueType>();
+                    diagContrib = -flux * (1.0 - w) * cellCoeff * one<ValueType>();
+                }
+
+                values[matrixColumnIdxV[startIdx + i]] += offDiag;
+                diagValue += diagContrib;
+            }
+
+            values[ma.diagIdx(celli)] += diagValue;
+        },
+        "fusedKernelCellBased::cellLoop"
+    );
+}
+
+template<typename ValueType>
+VolumeField<ValueType> GaussGreenDiv<ValueType>::div(
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff operatorScaling
+) const
+{
+    std::string name = "div(" + faceFlux.name + "," + phi.name + ")";
+    VolumeField<ValueType> divPhi(
+        this->exec_, name, this->mesh_, createCalculatedBCs<VolumeBoundary<ValueType>>(this->mesh_)
+    );
+    NeoN::fill(divPhi.internalVector(), zero<ValueType>());
+    NeoN::fill(divPhi.boundaryData().value(), zero<ValueType>());
+    computeDivExp<ValueType>(
+        faceFlux, phi, surfaceInterpolation_, divPhi.internalVector(), operatorScaling
+    );
+    return divPhi;
+}
+
+template<typename ValueType>
+void GaussGreenDiv<ValueType>::div(
+    VolumeField<ValueType>& divPhi,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff operatorScaling
+) const
+{
+    computeDivExp<ValueType>(
+        faceFlux, phi, surfaceInterpolation_, divPhi.internalVector(), operatorScaling
+    );
+}
+
+template<typename ValueType>
+void GaussGreenDiv<ValueType>::div(
+    Vector<ValueType>& divPhi,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff operatorScaling
+) const
+{
+    computeDivExp<ValueType>(faceFlux, phi, surfaceInterpolation_, divPhi, operatorScaling);
+}
+
+template<typename ValueType>
+void GaussGreenDiv<ValueType>::div(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff operatorScaling
+) const
+{
+    const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
+    if (auto* cellIter = dynamic_cast<la::CellBasedIterator*>(ls.getMeshIterator()->get().get()))
+    {
+        if (!cellIter->getCellBasedData())
+        {
+            cellIter->setComputeCellBasedData(
+                phi.mesh(), ls.matrix().sparsity(), ls.faceToMatrixAddress()
+            );
+        }
+        computeDivIntCellBasedImp(ls, faceFlux, phi, weights, operatorScaling);
+    }
+    else
+    {
+        computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);
+    }
+    computeDivBoundImp(ls, faceFlux, phi, weights, operatorScaling);
+}
 
 template class GaussGreenDiv<scalar>;
 template class GaussGreenDiv<Vec3>;
