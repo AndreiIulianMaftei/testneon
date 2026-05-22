@@ -12,10 +12,6 @@
 namespace NeoN::la
 {
 
-// ---------------------------------------------------------------------------
-// FaceToMatrixAddress
-// ---------------------------------------------------------------------------
-
 void FaceToMatrixAddress::validate() const
 {
     NF_ASSERT(ownerOffset_.exec() == neighbourOffset_.exec(), "Executors are not the same");
@@ -74,9 +70,10 @@ NeoN::Array<uint8_t>& FaceToMatrixAddress::neighbourOffset() { return neighbourO
 NeoN::Array<uint8_t>& FaceToMatrixAddress::diagOffset() { return diagOffset_; }
 
 // ---------------------------------------------------------------------------
-// Internal helpers
+// Internal helpers for building the sparsity data from a mesh
 // ---------------------------------------------------------------------------
 
+/** @brief */
 template<typename IndexType>
 void setBoundarySparsityPatternImpl(
     const UnstructuredMesh& mesh,
@@ -89,7 +86,6 @@ void setBoundarySparsityPatternImpl(
     const auto nBoundaryFaces = static_cast<std::size_t>(mesh.nBoundaryFaces());
     const auto diagOffsV = diagOffs.view();
     const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
-    const auto nBoundaryFaces = mesh.nBoundaryFaces();
     NF_ASSERT(nBoundaryFaces == rowIdx.size(), "Inconsistent size");
     NF_ASSERT(nBoundaryFaces == colIdx.size(), "Inconsistent size");
 
@@ -100,7 +96,8 @@ void setBoundarySparsityPatternImpl(
         {0, nBoundaryFaces},
         KOKKOS_LAMBDA(const localIdx bfacei) {
             localIdx celli = faceCellsV[bfacei];
-            colIdxV[bfacei] = celli + diagOffsV[celli];
+            colIdxV[bfacei] = celli + diagOffsV[celli]; // TODO the meaning of colIdxV  is
+                                                        // currently unused and undefined
             rowIdxV[bfacei] = celli;
         },
         "setSparsityPatternFaceToMatrixAddress::setBoundarySparsity"
@@ -110,7 +107,7 @@ void setBoundarySparsityPatternImpl(
 template<typename IndexType>
 void setProcBoundarySparsityPattern(
     const UnstructuredMesh& mesh,
-    const Array<uint8_t>& diagOffs,
+    const Array<uint8_t>&,
     Vector<IndexType>& rowIdx,
     Vector<IndexType>& colIdx
 )
@@ -129,6 +126,7 @@ void setProcBoundarySparsityPattern(
         exec,
         {0, nProcBoundaryFaces},
         KOKKOS_LAMBDA(const localIdx bfacei) {
+            // TODO compute colIdx
             rowIdxV[bfacei] = faceCellsV[bfacei + nBoundaryFaces];
         },
         "setSparsityPatternFaceToMatrixAddress::setProcBoundarySparsity"
@@ -145,10 +143,12 @@ void setSparsityPatternFaceToMatrixAddressSerial(
     Vector<IndexType>& colIdx
 )
 {
+    // TODO: currently the whole algorithm is performed in serial on the host
+    // move it to executor
     const auto nInternalFaces = mesh.nInternalFaces();
     auto nCells = mesh.nCells();
 
-    // Start with one to include the diagonal
+    // start with one to include the diagonal
     auto nFacesPerCellH = Vector<localIdx>(SerialExecutor {}, nCells, 1);
     auto [neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH] =
         copyToHosts(neiOffs, ownOffs, diagOffs, mesh.faceOwners(), mesh.faceNeighbors());
@@ -156,36 +156,48 @@ void setSparsityPatternFaceToMatrixAddressSerial(
     auto [nFacesPerCellHV, neiOffsetHV, ownOffsetHV, diagOffsetHV, faceOwnHV, faceNeiHV] =
         views(nFacesPerCellH, neiOffsetH, ownOffsetH, diagOffsetH, faceOwnH, faceNeiH);
 
-    // Accumulate number of non-zeros per row
+    // accumulate number non-zeros per row
+    // only the internalfaces define the sparsity pattern
+    // get the number of faces per cell to allocate the correct size
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
         KOKKOS_LAMBDA(const localIdx facei) {
+            // hit on performance on serial
             auto own = faceOwnHV[facei];
             auto nei = faceNeiHV[facei];
+
             Kokkos::atomic_inc(&nFacesPerCellHV[own]);
             Kokkos::atomic_inc(&nFacesPerCellHV[nei]);
         },
         "setSparsityPatternFaceToMatrixAddress::accumulateNonZeros"
     );
 
+    // get number of total non-zeros
     auto rowOffsH = rowOffs.copyToHost();
     auto rowOffsHV = rowOffsH.view();
     segmentsFromIntervals(nFacesPerCellH, rowOffsH);
     auto colIdxH = colIdx.copyToHost();
     auto colIdxHV = colIdxH.view();
-    fill(nFacesPerCellH, 0); // Reset nFacesPerCell
+    fill(nFacesPerCellH, 0); // reset nFacesPerCell
 
-    // Compute lower triangular part
+    // compute the lower triangular part of the matrix
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
         KOKKOS_LAMBDA(const localIdx facei) {
             auto nei = faceNeiHV[facei];
             auto own = faceOwnHV[facei];
+
+            // TODO this is probably inherently serial
+            // return the oldValues
+            // hit on performance on serial
             auto segIdxNei = Kokkos::atomic_fetch_add(&nFacesPerCellHV[nei], 1);
             neiOffsetHV[facei] = static_cast<uint8_t>(segIdxNei);
+
             auto startSegNei = rowOffsHV[nei];
+            // neighbour --> current cell
+            // colIdx for row[neighbour] stores owner as a column entry
             Kokkos::atomic_store(&colIdxHV[startSegNei + segIdxNei], own);
         },
         "setSparsityPatternFaceToMatrixAddress::computeLowerTriangular"
@@ -195,29 +207,36 @@ void setSparsityPatternFaceToMatrixAddressSerial(
         nFacesPerCellH,
         KOKKOS_LAMBDA(const localIdx celli) {
             auto nFaces = nFacesPerCellHV[celli];
+            // store number of lower entries as diagonal offset
             diagOffsetHV[celli] = static_cast<uint8_t>(nFaces);
             colIdxHV[rowOffsHV[celli] + nFaces] = celli;
             return nFaces + 1;
         }
     );
 
-    // Compute upper triangular part
+    // compute the upper triangular part of the matrix
     parallelFor(
         SerialExecutor {},
         {0, nInternalFaces},
         KOKKOS_LAMBDA(const localIdx facei) {
             auto nei = faceNeiHV[facei];
             auto own = faceOwnHV[facei];
+
+            // return the oldValues
+            // hit on performance on serial
             auto segIdxOwn =
                 static_cast<uint8_t>(Kokkos::atomic_fetch_add(&nFacesPerCellHV[own], 1));
             ownOffsetHV[facei] = segIdxOwn;
+
             auto startSegOwn = rowOffsHV[own];
+            // owner --> current cell
+            // colIdx --> needs to be store the neighbour
             Kokkos::atomic_store(&colIdxHV[startSegOwn + segIdxOwn], nei);
         },
         "setSparsityPatternFaceToMatrixAddress::computeUpperTriangular"
     );
 
-    // Copy results back to device
+    // NOTE copy back to device
     const auto exec = mesh.exec();
     ownOffs = ownOffsetH.copyToExecutor(exec);
     neiOffs = neiOffsetH.copyToExecutor(exec);
@@ -244,8 +263,9 @@ createSparsityPatternFaceToMatrixAddress(const UnstructuredMesh& mesh)
     auto sp = std::make_shared<const SparsityType>(
         std::move(colIdx), std::move(rowOffs), Dimensions {nCells, nCells}
     );
-    auto ftma = std::make_shared<const FaceToMatrixAddress>(ownOffs, neiOffs, diagOffs);
-    return {sp, ftma};
+    auto faceToMatrixAddress =
+        std::make_shared<const FaceToMatrixAddress>(ownOffs, neiOffs, diagOffs);
+    return {sp, faceToMatrixAddress};
 }
 
 // COO specialization: internal algorithm produces CSR-style rowOffs, so we must expand
@@ -284,25 +304,22 @@ createSparsityPatternFaceToMatrixAddress<CooSparsityPattern<localIdx>>(const Uns
     auto sp = std::make_shared<const CooSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(cooRowIdx), Dimensions {nCells, nCells}
     );
-    auto ftma = std::make_shared<const FaceToMatrixAddress>(ownOffs, neiOffs, diagOffs);
-    return {sp, ftma};
+    auto faceToMatrixAddress =
+        std::make_shared<const FaceToMatrixAddress>(ownOffs, neiOffs, diagOffs);
+    return {sp, faceToMatrixAddress};
 }
-
-// ---------------------------------------------------------------------------
-// createBoundarySparsityPattern specializations
-// ---------------------------------------------------------------------------
 
 template<>
 std::shared_ptr<const CooSparsityPattern<localIdx>>
 createBoundarySparsityPattern<CooSparsityPattern<localIdx>>(
-    const UnstructuredMesh& mesh, const FaceToMatrixAddress& ftma
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
 )
 {
     const auto exec = mesh.exec();
     const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
-    setBoundarySparsityPatternImpl(mesh, ftma.diagOffset(), rowIdx, colIdx);
+    setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
     return std::make_shared<const CooSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(rowIdx), Dimensions {mesh.nCells(), mesh.nCells()}
     );
@@ -311,14 +328,14 @@ createBoundarySparsityPattern<CooSparsityPattern<localIdx>>(
 template<>
 std::shared_ptr<const CsrSparsityPattern<localIdx>>
 createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
-    const UnstructuredMesh& mesh, const FaceToMatrixAddress& ftma
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
 )
 {
     const auto exec = mesh.exec();
     const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
-    setBoundarySparsityPatternImpl(mesh, ftma.diagOffset(), rowIdx, colIdx);
+    setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
     auto rowPtrs = rowsToRowOffs(rowIdx);
     return std::make_shared<const CsrSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(rowPtrs), Dimensions {mesh.nCells(), nBoundaryFaces}
@@ -331,4 +348,4 @@ template std::pair<
     std::shared_ptr<const FaceToMatrixAddress>>
 createSparsityPatternFaceToMatrixAddress<CsrSparsityPattern<localIdx>>(const UnstructuredMesh&);
 
-} // namespace NeoN::la
+}

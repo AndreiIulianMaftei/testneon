@@ -62,6 +62,40 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
         REQUIRE(linearSystem.rhs().size() == nCells);
     }
 
+    SECTION("construct zero initialized from sparsity with CSR matrix " + execName)
+    {
+        auto nCells = 10;
+        auto nFaces = 9;
+        auto nnz = nCells + 2 * nFaces;
+        auto mesh = create1DUniformMesh(exec, nCells);
+
+        using CSRMatrix = NeoN::la::CSRMatrix<scalar, localIdx>;
+
+        auto linearSystem = NeoN::la::createEmptyLinearSystem<scalar, CSRMatrix, CSRMatrix>(mesh);
+
+        REQUIRE(linearSystem.matrix().values().size() == nnz);
+        REQUIRE(linearSystem.matrix().colIdxs().size() == nnz);
+        REQUIRE(linearSystem.matrix().rowOffs().size() == nCells + 1);
+        REQUIRE(linearSystem.matrix().nRows() == nCells);
+        REQUIRE(linearSystem.rhs().size() == nCells);
+    }
+
+    SECTION("construct zero initialized from sparsity with COO matrix " + execName)
+    {
+        auto nCells = 10;
+        auto nFaces = 9;
+        auto nnz = nCells + 2 * nFaces;
+        auto mesh = create1DUniformMesh(exec, nCells);
+
+        using COOMatrix = NeoN::la::COOMatrix<scalar, localIdx>;
+
+        auto linearSystem = NeoN::la::createEmptyLinearSystem<scalar, COOMatrix, COOMatrix>(mesh);
+
+        REQUIRE(linearSystem.matrix().values().size() == nnz);
+        REQUIRE(linearSystem.matrix().colIdxs().size() == nnz);
+        REQUIRE(linearSystem.matrix().nRows() == nCells);
+        REQUIRE(linearSystem.rhs().size() == nCells);
+    }
 
     SECTION("view read/write " + execName)
     {

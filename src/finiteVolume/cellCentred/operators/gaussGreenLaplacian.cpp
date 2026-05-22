@@ -67,6 +67,7 @@ void computeLaplacianExp(
         {0, nBoundaryFaces},
         NEON_LAMBDA(const localIdx bfi) {
             auto own = boundaryFaceOwners[bfi];
+            // TODO Issue #515 faceArea should not contain boundary data
             ValueType valueOwn = faceArea[nInternalFaces + bfi] * fnGradB[bfi];
             Kokkos::atomic_add(&result[own], valueOwn);
         },
@@ -86,41 +87,41 @@ void computeLaplacianProcBoundImpl(
     la::LinearSystem<ValueType>& ls,
     const SurfaceField<scalar>& gamma,
     const VolumeField<ValueType>& phi,
-    const dsl::Coeff operatorScaling,
+    const dsl::Coeff coeff,
     const FaceNormalGradient<ValueType>& faceNormalGradient
 )
 {
     const auto exec = phi.exec();
     const auto& mesh = phi.mesh();
 
-    auto gammaV = gamma.internalVector().view();
-
-    const auto [deltaCoeffs, surfFaceCells] =
-        views(faceNormalGradient.deltaCoeffs().internalVector(), mesh.boundaryMesh().faceOwners());
-    const auto bcMagSf = mesh.boundaryMesh().faceAreas().view();
-
-    auto values = ls.matrix().values().view();
-    auto bValues = ls.nonLocalMatrix().values().view();
-
-    const auto nInternalFaces = mesh.nInternalFaces();
     const auto nBoundaryFaces = mesh.nBoundaryFaces();
+    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    if (nProcBoundaryFaces == 0) return;
     const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
 
-    auto totalFaces = gammaV.size();
+    const auto [bGammaV, bDeltaCoeffs, surfFaceCells] = views(
+        gamma.boundaryData().value(),
+        faceNormalGradient.deltaCoeffs().boundaryData().value(),
+        mesh.boundaryMesh().faceOwners()
+    );
+    const auto bcMagSf = mesh.boundaryMesh().faceAreas().view();
+    auto bValues = ls.offDiagonalMatrix().values().view();
+
+    auto values = ls.matrix().values().view();
+
     parallelFor(
         exec,
-        {nInternalFaces + nBoundaryFaces, totalFaces},
-        NEON_LAMBDA(const localIdx facei) {
-            auto bcfacei = facei - nInternalFaces;
-            auto bcfaceii = facei - (nInternalFaces + nBoundaryFaces);
+        {0, nProcBoundaryFaces},
+        NEON_LAMBDA(const localIdx procFacei) {
+            auto bcfacei = nBoundaryFaces + procFacei;
             auto cell = surfFaceCells[bcfacei];
-            auto c = operatorScaling[cell];
+            auto ownCoeff = coeff[cell];
 
-            auto flux = gammaV[facei] * bcMagSf[bcfacei] * deltaCoeffs[facei];
-            auto value = flux * c * one<ValueType>();
+            auto flux = bGammaV[bcfacei] * bcMagSf[bcfacei] * bDeltaCoeffs[bcfacei];
+            auto value = flux * ownCoeff * one<ValueType>();
 
             Kokkos::atomic_sub(&values[ma.diagIdx(cell)], value);
-            bValues[bcfaceii] += value;
+            bValues[procFacei] += value;
         },
         "computeInterfaceLaplacianCoefficients"
     );
@@ -171,7 +172,7 @@ void computeLaplacianBoundImpl(
 
             auto refValFrac = valueFraction[bfi];
             auto refGradFrac = 1.0 - refValFrac;
-
+            // TODO Issue #515 magFaceArea should not contain boundary data
             auto flux = bGammaV[bfi] * magFaceArea[nInternalFaces + bfi];
             auto fluxContrib =
                 flux * ownRowCoeff * refValFrac * bDeltaCoeffs[bfi] * one<ValueType>();
@@ -382,7 +383,6 @@ void GaussGreenLaplacian<ValueType>::laplacian(
     const dsl::Coeff coeff
 )
 {
-    computeLaplacianProcBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
     if (auto* cellIter = dynamic_cast<la::CellBasedIterator*>(ls.getMeshIterator()->get().get()))
     {
         if (!cellIter->getCellBasedData())
@@ -399,6 +399,7 @@ void GaussGreenLaplacian<ValueType>::laplacian(
     }
     computeLaplacianBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
     computeLaplacianNonOrthCorrImpl(ls, gamma, phi, coeff, faceNormalGradient_);
+    computeLaplacianProcBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
 }
 
 

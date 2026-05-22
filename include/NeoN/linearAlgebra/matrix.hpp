@@ -157,9 +157,7 @@ public:
      */
     [[nodiscard]] localIdx nNonZeros() const { return sparsityPattern_->nnz(); }
 
-    void reset()
-    { /* TODO: implement */
-    }
+    void reset() { values_ = ValueType {}; }
 
 
     /**

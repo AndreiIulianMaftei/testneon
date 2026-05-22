@@ -261,9 +261,6 @@ UnstructuredMesh create3DUniformMesh(
         exec, dim, p, cellCenters, nInternalFaces, nBoundaryFaces, offset, faces
     );
 
-    // Note: With the localIdx type (int32_t), the limit is 2 x 10^9 cells
-    const localIdx nCells = nx * ny * nz;
-
     UnstructuredMesh mesh(
         vectorVector(exec, std::move(points)),
         scalarVector(exec, std::move(cellVolumes)),

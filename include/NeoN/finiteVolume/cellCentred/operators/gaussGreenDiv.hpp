@@ -14,7 +14,6 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
-
 /* @brief
  *
  */
@@ -68,7 +67,9 @@ private:
     SurfaceInterpolation<ValueType> surfaceInterpolation_;
 };
 
-// FIXME is this needed?
+// Required on MSVC: without extern template, each TU (DLL and EXE) gets its own
+// instantiation of table() static local, so the DLL's addSubType() inserts into
+// a different map than the one the test binary queries.
 extern template class GaussGreenDiv<scalar>;
 extern template class GaussGreenDiv<Vec3>;
 

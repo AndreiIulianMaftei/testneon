@@ -5,9 +5,104 @@
 #include "NeoN/core/containerFreeFunctions.hpp"
 #include "NeoN/core/parallelAlgorithms.hpp"
 #include "NeoN/finiteVolume/cellCentred/stencil/basicGeometryScheme.hpp"
+#ifdef NF_WITH_MPI_SUPPORT
+#include "NeoN/core/mpi/environment.hpp"
+#include "NeoN/core/mpi/operators.hpp"
+#endif
 
 namespace NeoN::finiteVolume::cellCentred
 {
+
+#ifdef NF_WITH_MPI_SUPPORT
+namespace
+{
+
+/** @brief Returns the [start, end) face-index ranges of all processor boundary patches in
+ *  the order they appear in the boundary mesh offset array. */
+std::vector<std::pair<localIdx, localIdx>> collectProcPatchRanges(const UnstructuredMesh& mesh)
+{
+    const auto& bMesh = mesh.boundaryMesh();
+    const auto& off = bMesh.offset();
+    const auto nBounds = bMesh.nBoundaries();
+    const auto nProcPatches = bMesh.nProcBoundaryPatches();
+
+    std::vector<std::pair<localIdx, localIdx>> ranges;
+    ranges.reserve(static_cast<std::size_t>(nProcPatches));
+    for (localIdx i = nBounds - nProcPatches; i < nBounds; ++i)
+        ranges.push_back({off[static_cast<std::size_t>(i)], off[static_cast<std::size_t>(i + 1)]});
+    return ranges;
+}
+
+/** @brief Computes the face-normal projection of the owner-cell-to-face distance for each
+ *  processor boundary face, exchanges these distances with the neighbouring ranks via
+ *  non-blocking MPI, and returns the received neighbour distances as a device Vector of
+ *  size nProcBoundaryFaces. */
+Vector<scalar> exchangeProcOwnerDistance(const Executor& exec, const UnstructuredMesh& mesh)
+{
+    const auto& bMesh = mesh.boundaryMesh();
+    const auto nBoundaryFaces = mesh.nBoundaryFaces();
+    const auto nProcFaces = mesh.nProcBoundaryFaces();
+
+    auto bFaceCentersH = bMesh.faceCenters().copyToHost();
+    auto bFaceNormalsH = bMesh.faceNormals().copyToHost();
+    auto bFaceAreasH = bMesh.faceAreas().copyToHost();
+    auto bFaceOwnersH = bMesh.faceOwners().copyToHost();
+    auto cellCentersH = mesh.cellCenters().copyToHost();
+
+    const auto bFaceCenters = bFaceCentersH.view();
+    const auto bFaceNormals = bFaceNormalsH.view();
+    const auto bFaceAreas = bFaceAreasH.view();
+    const auto bFaceOwners = bFaceOwnersH.view();
+    const auto cellCenters = cellCentersH.view();
+
+    std::vector<scalar> dOwn(static_cast<std::size_t>(nProcFaces));
+    std::vector<scalar> dNei(static_cast<std::size_t>(nProcFaces), scalar(0));
+    for (localIdx i = 0; i < nProcFaces; ++i)
+    {
+        const localIdx bfi = nBoundaryFaces + i;
+        const Vec3 n = (1.0 / bFaceAreas[bfi]) * bFaceNormals[bfi];
+        dOwn[static_cast<std::size_t>(i)] =
+            std::abs(n & (bFaceCenters[bfi] - cellCenters[bFaceOwners[bfi]]));
+    }
+
+    const auto ranges = collectProcPatchRanges(mesh);
+    std::vector<MPI_Request> requests(2 * ranges.size(), MPI_REQUEST_NULL);
+    mpi::Environment mpiEnv;
+    for (std::size_t p = 0; p < ranges.size(); ++p)
+    {
+        const auto [rangeStart, rangeEnd] = ranges[p];
+        const localIdx patchOff = rangeStart - nBoundaryFaces;
+        const auto neighborRank = static_cast<mpi_label_t>(bMesh.neighbourRankForRange(ranges[p]));
+        const auto byteCount = static_cast<mpi_label_t>((rangeEnd - rangeStart) * sizeof(scalar));
+        mpi::isend<char>(
+            reinterpret_cast<const char*>(dOwn.data() + patchOff),
+            byteCount,
+            neighborRank,
+            0,
+            mpiEnv.comm(),
+            &requests[2 * p]
+        );
+        mpi::irecv<char>(
+            reinterpret_cast<char*>(dNei.data() + patchOff),
+            byteCount,
+            neighborRank,
+            0,
+            mpiEnv.comm(),
+            &requests[2 * p + 1]
+        );
+    }
+    if (!requests.empty())
+        MPI_Waitall(static_cast<int>(requests.size()), requests.data(), MPI_STATUSES_IGNORE);
+
+    Vector<scalar> result(SerialExecutor {}, nProcFaces, scalar(0));
+    auto resultView = result.view();
+    for (localIdx i = 0; i < nProcFaces; ++i)
+        resultView[i] = dNei[static_cast<std::size_t>(i)];
+    return result.copyToExecutor(exec);
+}
+
+} // anonymous namespace
+#endif
 
 BasicGeometryScheme::BasicGeometryScheme(const UnstructuredMesh& mesh)
     : GeometrySchemeFactory(mesh), mesh_(mesh)
@@ -136,6 +231,32 @@ void BasicGeometryScheme::updateNonOrthDeltaCoeffs(
         },
         "basicGeometricScheme::updateNonOrthDeltaCoeffsBoundary"
     );
+
+#ifdef NF_WITH_MPI_SUPPORT
+    const auto nBoundaryFaces = mesh_.nBoundaryFaces();
+    const auto nProcBoundaryFaces = mesh_.nProcBoundaryFaces();
+    if (nProcBoundaryFaces > 0)
+    {
+        const auto bFaceCenters = mesh_.boundaryMesh().faceCenters().view();
+        const auto bFaceNormals = mesh_.boundaryMesh().faceNormals().view();
+        const auto bFaceAreas = mesh_.boundaryMesh().faceAreas().view();
+        const auto dNei = exchangeProcOwnerDistance(exec, mesh_);
+        const auto dNeiView = dNei.view();
+        parallelFor(
+            exec,
+            {0, nProcBoundaryFaces},
+            NEON_LAMBDA(const localIdx procFacei) {
+                const localIdx bfi = nBoundaryFaces + procFacei;
+                const Vec3 n = (1.0 / bFaceAreas[bfi]) * bFaceNormals[bfi];
+                const Vec3 co = cellCenters[surfFaceCells[bfi]];
+                const scalar dOwn = std::abs(n & (bFaceCenters[bfi] - co));
+                nonOrthDeltaCoeffB[bfi] =
+                    1.0 / std::max(dOwn + dNeiView[procFacei], scalar(ROOTVSMALL));
+            },
+            "basicGeometricScheme::updateNonOrthDeltaCoeffsProcBoundary"
+        );
+    }
+#endif
 }
 
 

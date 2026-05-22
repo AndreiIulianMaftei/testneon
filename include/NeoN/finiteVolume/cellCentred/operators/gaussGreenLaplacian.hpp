@@ -72,7 +72,9 @@ private:
     FaceNormalGradient<ValueType> faceNormalGradient_;
 };
 
-// FIXME is this needed
+// Required on MSVC: without extern template, each TU (DLL and EXE) gets its own
+// instantiation of table() static local, so the DLL's addSubType() inserts into
+// a different map than the one the test binary queries.
 extern template class GaussGreenLaplacian<scalar>;
 extern template class GaussGreenLaplacian<Vec3>;
 

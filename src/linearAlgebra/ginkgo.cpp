@@ -276,7 +276,7 @@ createGkoMtxImpl(std::shared_ptr<const gko::Executor> exec, const CSRMatrix<Vec3
 
 template<typename IndexType>
 std::shared_ptr<const gko::LinOp>
-createGkoMtxImpl(std::shared_ptr<const gko::Executor> exec, const COOMatrix<Vec3, IndexType>& mtx)
+createGkoMtxImpl(std::shared_ptr<const gko::Executor>, const COOMatrix<Vec3, IndexType>&)
 {
     NF_THROW("createGkoMtxImpl: COOMatrix<Vec3> is not supported");
 }

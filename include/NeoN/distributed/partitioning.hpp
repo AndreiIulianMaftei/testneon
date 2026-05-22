@@ -63,6 +63,31 @@ oneDPartitionField(FieldType field, UnstructuredMesh& mesh, NeoN::mpi::Environme
     auto bcsPart = setProcessorBoundaryHelper(mesh, field.boundaryConditions(), mpiEnviron);
     FieldType ret(field.exec(), field.name + "Part", mesh, bcsPart);
     ret.internalVector() = internalVector;
+
+    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    if (nProcBoundaryFaces > 0)
+    {
+        const localIdx localSize =
+            static_cast<localIdx>(field.internalVector().size()) / mpiEnviron.sizeRank();
+        const localIdx firstIdx = mpiEnviron.rank() * mesh.nCells();
+        const auto nBoundaryFaces = mesh.nBoundaryFaces();
+        auto weightsH = mesh.boundaryMesh().weights().copyToHost();
+        auto globalInternalH = field.internalVector().copyToHost();
+        auto retBdH = ret.boundaryData().value().copyToHost();
+        const auto weightsHV = weightsH.view();
+        const auto globalInternalHV = globalInternalH.view();
+        auto retBdHV = retBdH.view();
+        for (localIdx procFacei = 0; procFacei < nProcBoundaryFaces; procFacei++)
+        {
+            const auto bcfacei = nBoundaryFaces + procFacei;
+            // weight > 0: owner side (right-facing) — neighbour is at firstIdx + localSize
+            // weight < 0: non-owner side (left-facing) — neighbour is at firstIdx - 1
+            const localIdx gIdx = weightsHV[bcfacei] > 0 ? firstIdx + localSize : firstIdx - 1;
+            retBdHV[bcfacei] = globalInternalHV[gIdx];
+        }
+        ret.boundaryData().value() = retBdH.copyToExecutor(field.exec());
+    }
+
     return ret;
 }
 

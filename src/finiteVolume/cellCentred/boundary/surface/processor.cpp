@@ -18,13 +18,13 @@ void setProcBoundaryValue(
 )
 {
     const auto iVector = domainVector.internalVector().view();
+    const auto nInternalFaces = static_cast<localIdx>(mesh.nInternalFaces());
 
-    auto [refGradient, value, valueFraction, refValue, faceCells] = views(
+    auto [refGradient, value, valueFraction, refValue] = views(
         domainVector.boundaryData().refGrad(),
         domainVector.boundaryData().value(),
         domainVector.boundaryData().valueFraction(),
-        domainVector.boundaryData().refValue(),
-        mesh.boundaryMesh().faceOwners()
+        domainVector.boundaryData().refValue()
     );
 
     NeoN::parallelFor(
@@ -32,7 +32,7 @@ void setProcBoundaryValue(
         range,
         NEON_LAMBDA(const localIdx i) {
             refGradient[i] = zero<ValueType>();
-            value[i] = iVector[faceCells[i]];
+            value[i] = iVector[nInternalFaces + i];
             valueFraction[i] = 0.0;
             refValue[i] = zero<ValueType>();
         },
