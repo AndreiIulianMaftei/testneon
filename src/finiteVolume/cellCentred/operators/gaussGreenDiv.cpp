@@ -263,7 +263,6 @@ void computeDivIntCellBasedImp(
     const dsl::Coeff coeff
 )
 {
-    const auto& mesh = phi.mesh();
     const auto exec = phi.exec();
 
     const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
