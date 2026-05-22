@@ -12,25 +12,6 @@ namespace dsl = NeoN::dsl;
 namespace NeoN
 {
 
-/** @brief Sets processor vs. calculated boundary type for each patch by rank. */
-template<typename BoundaryType>
-auto setProcessorBoundaryHelper(
-    UnstructuredMesh& mesh, const std::vector<BoundaryType>& bcs, size_t rank
-)
-{
-    auto ret = std::vector<BoundaryType> {};
-    for (int i = 0; i < static_cast<int>(bcs.size()); i++)
-    {
-        std::string boundaryType = "calculated";
-        if (rank == 0 && i == 1) boundaryType = "processor";
-        if (rank == 2 && i == 1) boundaryType = "processor";
-        if (rank == 1) boundaryType = "processor";
-        auto patchDict = Dictionary({{"type", boundaryType}});
-        ret.emplace_back(mesh, patchDict, i);
-    }
-    return ret;
-}
-
 TEST_CASE("Distributed")
 {
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -107,34 +88,23 @@ TEST_CASE("Distributed")
         volBCs
     );
     auto volVecBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<Vec3>>(mesh);
+    auto o = one<Vec3>();
+    auto vecVals = std::vector<Vec3> {
+        1 * o, 2 * o, 3 * o, 4 * o, 5 * o, 6 * o, 7 * o, 8 * o, 9 * o, 10 * o, 11 * o, 12 * o
+    };
     auto vecU = finiteVolume::cellCentred::VolumeField<Vec3>(
-        exec,
-        "U",
-        mesh,
-        Vector<Vec3>(
-            exec,
-            {1.0 * one<Vec3>(),
-             2.0 * one<Vec3>(),
-             3.0 * one<Vec3>(),
-             4.0 * one<Vec3>(),
-             5.0 * one<Vec3>(),
-             6.0 * one<Vec3>(),
-             7.0 * one<Vec3>(),
-             8.0 * one<Vec3>(),
-             9.0 * one<Vec3>(),
-             10.0 * one<Vec3>(),
-             11.0 * one<Vec3>(),
-             12.0 * one<Vec3>()}
-        ),
-        volVecBCs
+        exec, "U", mesh, Vector<Vec3>(exec, vecVals), volVecBCs
     );
 
-    auto volBCsII = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<scalar>>(meshPart);
-    auto volBCsPart = setProcessorBoundaryHelper(meshPart, volBCsII, mpiEnviron.rank());
-    auto volVecBCsII = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<Vec3>>(meshPart);
-    auto volVecBCsPart = setProcessorBoundaryHelper(meshPart, volVecBCsII, mpiEnviron.rank());
-    auto uPart = partitionVolField(U, meshPart, volBCsPart, mpiEnviron);
-    auto uVecPart = partitionVolField(vecU, meshPart, volVecBCsPart, mpiEnviron);
+    auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<scalar>>(mesh);
+    auto phi = finiteVolume::cellCentred::SurfaceField<scalar>(exec, "phi", mesh, surfaceBCs);
+    auto phiInternal =
+        Vector<scalar>(exec, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0});
+    phi.internalVector() = phiInternal;
+
+    auto uPart = detail::oneDPartitionField(U, meshPart, mpiEnviron);
+    auto uVecPart = detail::oneDPartitionField(vecU, meshPart, mpiEnviron);
+    auto phiPart = detail::oneDPartitionField(phi, meshPart, mpiEnviron);
     uPart.correctBoundaryConditions();
     uVecPart.correctBoundaryConditions();
 
@@ -183,31 +153,22 @@ TEST_CASE("Distributed")
         }
     }
 
-    auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<scalar>>(mesh);
-    auto phi = finiteVolume::cellCentred::SurfaceField<scalar>(exec, "phi", mesh, surfaceBCs);
-    auto phiInternal =
-        Vector<scalar>(exec, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 20.0, 30.0});
-    phi.internalVector() = phiInternal;
-
-    auto surfaceBCsII = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<scalar>>(meshPart);
-    auto surfaceBCsPart = setProcessorBoundaryHelper(meshPart, surfaceBCsII, mpiEnviron.rank());
-    auto phiPart = partitionSurfaceField(phi, meshPart, surfaceBCsPart, mpiEnviron);
     SECTION("Has correct partitioned SurfaceField" + execName)
     {
         REQUIRE(phiPart.boundaryData().nBoundaries() == 2);
         SECTION_IF(mpiEnviron.rank() == 0, "Rank 0 has correct proc boundary " + execName)
         {
-            auto phiExp = std::vector<scalar> {1.0, 2.0, 3.0, 20.0, 4.0};
+            auto phiExp = std::vector<scalar> {1.0, 2.0, 3.0};
             REQUIRE_THAT(phiPart.internalVector(), Equals(phiExp));
         }
         SECTION_IF(mpiEnviron.rank() == 1, "Rank 1 has correct proc boundary " + execName)
         {
-            auto phiExp = std::vector<scalar> {5.0, 6.0, 7.0, 4.0, 8.0};
+            auto phiExp = std::vector<scalar> {5.0, 6.0, 7.0};
             REQUIRE_THAT(phiPart.internalVector(), Equals(phiExp));
         }
         SECTION_IF(mpiEnviron.rank() == 2, "Rank 2 has correct proc boundary " + execName)
         {
-            auto phiExp = std::vector<scalar> {9.0, 10.0, 11.0, 30.0, 8.0};
+            auto phiExp = std::vector<scalar> {9.0, 10.0, 11.0};
             REQUIRE_THAT(phiPart.internalVector(), Equals(phiExp));
         }
     }

@@ -11,132 +11,63 @@
 namespace NeoN
 {
 
-/** @brief Returns the rank's slice of a VolumeField from a global 1D mesh.
- *
- *  Assumes 3 MPI ranks. Rank r owns cells [r*localCells, (r+1)*localCells).
- */
-template<typename FieldType, typename MeshType, typename BcType>
-FieldType partitionVolField(
-    FieldType field, const MeshType& mesh, BcType bcs, NeoN::mpi::Environment mpiEnviron
+namespace detail
+{
+
+/** @brief Set processor boundary types on a copy of the BC vector for a distributed mesh part. */
+template<typename BoundaryType>
+auto setProcessorBoundaryHelper(
+    UnstructuredMesh& mesh, const std::vector<BoundaryType>& bcs, NeoN::mpi::Environment mpiEnviron
 )
 {
-    localIdx localCells = mesh.nCells();
-    localIdx firstCell = 0;
-    localIdx lastCell = localCells;
-
-    if (mpiEnviron.rank() == 0)
+    const auto rank = mpiEnviron.rank();
+    const auto ranks = mpiEnviron.sizeRank();
+    const bool isMiddle = (rank > 0 && rank < ranks - 1);
+    auto ret = std::vector<BoundaryType> {};
+    for (int i = 0; i < static_cast<int>(bcs.size()); i++)
     {
-        lastCell = localCells;
+        // boundary index 1 is always the proc boundary for first/last ranks;
+        // middle ranks have all boundaries as proc.
+        const bool isProc = (i == 1) || isMiddle;
+        std::string boundaryType = isProc ? "processor" : "calculated";
+        auto patchDict = Dictionary({{"type", boundaryType}});
+        ret.emplace_back(mesh, patchDict, i);
     }
-    if (mpiEnviron.rank() >= 1 && mpiEnviron.rank() != mpiEnviron.sizeRank() - 1)
-    {
-        firstCell = localCells;
-        lastCell = localCells + localCells;
-    }
-
-    if (mpiEnviron.rank() == mpiEnviron.sizeRank() - 1)
-    {
-        firstCell = localCells + localCells;
-        lastCell = localCells + localCells + localCells;
-    }
-
-    auto internalVector = take(field.internalVector(), {firstCell, lastCell});
-
-    return {field.exec(), field.name + "Part", mesh, internalVector, bcs};
+    return ret;
 }
 
-/** @brief Returns the rank's slice of a SurfaceField from a global 1D mesh.
+/** @brief Extract the rank-local slice from a global internal vector for a 1D uniform partition.
  *
- *  Handles the two extra proc-boundary faces appended to each partition.
- *  Only works for exactly 3 MPI ranks.
+ *  localSize = globalVector.size() / nRanks  (integer division; works for both cells and faces
+ *              because proc-boundary faces between ranks are excluded from the global internal
+ * count) firstIdx  = rank * localMesh.nCells()
  */
-template<typename FieldType, typename MeshType, typename BcType>
-FieldType partitionSurfaceField(
-    FieldType field,
-    MeshType& mesh,
-    BcType bcs,
-    NeoN::mpi::Environment mpiEnviron,
-    bool flip = false
+template<typename ValueType>
+Vector<ValueType> partitionInternalVector(
+    const Vector<ValueType>& globalVector,
+    const UnstructuredMesh& localMesh,
+    NeoN::mpi::Environment mpiEnviron
 )
 {
-    auto exec = mesh.exec();
-    localIdx localCells = mesh.nCells();         // 4
-    localIdx localFaces = mesh.nInternalFaces(); // 3
-    localIdx firstFace = 0;
-    localIdx lastFace = localFaces;
+    const localIdx localSize = static_cast<localIdx>(globalVector.size()) / mpiEnviron.sizeRank();
+    const localIdx firstIdx = mpiEnviron.rank() * localMesh.nCells();
+    return take(globalVector, {firstIdx, firstIdx + localSize});
+}
 
-    localIdx firstBoundaryFace = 0;
-    localIdx secondBoundaryFace = 0;
-
-    scalar signLeft = 1.0;
-    scalar signRight = 1.0;
-
-    // FIXME this only works for 3 ranks
-    if (mpiEnviron.rank() == 0)
-    {
-        firstBoundaryFace = 3 * localFaces + 2;
-        secondBoundaryFace = localFaces;
-
-        if (flip)
-        {
-            signRight = -1.0;
-        }
-    }
-    if (mpiEnviron.rank() == 1)
-    {
-        firstFace = localFaces + 1;
-
-        firstBoundaryFace = localFaces;
-        secondBoundaryFace = firstBoundaryFace + localCells;
-
-        if (flip)
-        {
-            signLeft = -1.0;
-        }
-    }
-    if (mpiEnviron.rank() == 2)
-    {
-        firstFace = localCells + localCells;
-
-        firstBoundaryFace = 3 * localFaces + 3;
-        secondBoundaryFace = 2 * localFaces + 1;
-
-        if (flip)
-        {
-            signRight = -1.0;
-        }
-    }
-
-    lastFace = firstFace + localFaces + 2;
-
-    FieldType ret = {field.exec(), field.name + "Part", mesh, bcs};
-
-    NF_ASSERT(lastFace - firstFace == mesh.nTotalFaces(), "different size");
-
-    auto internalVector = take(field.internalVector(), {firstFace, lastFace});
-    auto outV = internalVector.view();
-    auto inV = field.internalVector().view();
-
-    NeoN::parallelFor(
-        exec,
-        {0, 1},
-        NEON_LAMBDA(const localIdx i) { outV[localFaces] = signLeft * inV[firstBoundaryFace]; },
-        "copyMap"
-    );
-
-    NeoN::parallelFor(
-        exec,
-        {0, 1},
-        NEON_LAMBDA(const localIdx i) {
-            outV[localFaces + 1] = signRight * inV[secondBoundaryFace];
-        },
-        "copyMap"
-    );
-
+/** @brief Partition a 1D field into the rank-local slice and replace boundary conditions. */
+template<typename FieldType>
+FieldType
+oneDPartitionField(FieldType field, UnstructuredMesh& mesh, NeoN::mpi::Environment mpiEnviron)
+{
+    auto internalVector = partitionInternalVector(field.internalVector(), mesh, mpiEnviron);
+    auto bcsPart = setProcessorBoundaryHelper(mesh, field.boundaryConditions(), mpiEnviron);
+    FieldType ret(field.exec(), field.name + "Part", mesh, bcsPart);
     ret.internalVector() = internalVector;
     return ret;
 }
 
+} // namespace detail
+
 } // namespace NeoN
 
-#endif // NF_WITH_MPI_SUPPORT
+#endif
