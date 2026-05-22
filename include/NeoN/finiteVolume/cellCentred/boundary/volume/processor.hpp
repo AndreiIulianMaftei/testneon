@@ -44,6 +44,24 @@ public:
     virtual void correctBoundaryCondition([[maybe_unused]] Field<ValueType>& domainVector) final
     {
         detail::setProcBoundaryValue(domainVector, mesh_, this->range());
+#ifdef NF_WITH_MPI_SUPPORT
+        const auto [rangeStart, rangeEnd] = this->range();
+        const auto& bm = mesh_.boundaryMesh();
+        const localIdx nInnerBoundaries = bm.nBoundaries() - bm.nProcBoundaryPatches();
+        const auto& offsets = bm.offset();
+        localIdx procPatchIdx = 0;
+        for (localIdx k = 0; k < static_cast<localIdx>(bm.neighbourRank().size()); k++)
+        {
+            if (offsets[static_cast<std::size_t>(nInnerBoundaries + k)] == rangeStart)
+            {
+                procPatchIdx = k;
+                break;
+            }
+        }
+        const int neighborRank =
+            static_cast<int>(bm.neighbourRank()[static_cast<std::size_t>(procPatchIdx)]);
+        domainVector.boundaryData().communicate(this->range(), neighborRank);
+#endif
     }
 
     static std::string name() { return "processor"; }

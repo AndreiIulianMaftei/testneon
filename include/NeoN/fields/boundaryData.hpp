@@ -12,6 +12,11 @@
 #include <vector>
 #include <utility>
 
+#ifdef NF_WITH_MPI_SUPPORT
+#include <mpi.h>
+#include "NeoN/core/mpi/environment.hpp"
+#endif
+
 namespace NeoN
 {
 
@@ -190,6 +195,41 @@ public:
         offset_ = std::move(rhs.offset_);
         return *this;
     }
+
+#ifdef NF_WITH_MPI_SUPPORT
+    void communicate(std::pair<localIdx, localIdx> range, int neighborRank)
+    {
+        const auto [rangeStart, rangeEnd] = range;
+        const localIdx patchSize = rangeEnd - rangeStart;
+
+        auto valH = value_.copyToHost();
+        std::vector<ValueType> sendBuf(static_cast<std::size_t>(patchSize));
+        std::vector<ValueType> recvBuf(static_cast<std::size_t>(patchSize));
+        for (localIdx k = 0; k < patchSize; k++)
+            sendBuf[static_cast<std::size_t>(k)] = valH.view()[rangeStart + k];
+
+        mpi::Environment mpiEnv;
+        MPI_Sendrecv(
+            sendBuf.data(),
+            static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+            MPI_BYTE,
+            neighborRank,
+            0,
+            recvBuf.data(),
+            static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+            MPI_BYTE,
+            neighborRank,
+            0,
+            mpiEnv.comm(),
+            MPI_STATUS_IGNORE
+        );
+
+        for (localIdx k = 0; k < patchSize; k++)
+            valH.view()[rangeStart + k] = recvBuf[static_cast<std::size_t>(k)];
+
+        value_ = valH.copyToExecutor(exec_);
+    }
+#endif
 
     /**
      * @brief Get the range for a given patchId

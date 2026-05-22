@@ -66,7 +66,7 @@ void setBoundarySparsityPatternImpl(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
+    const auto nBoundaryFaces = static_cast<std::size_t>(mesh.nBoundaryFaces());
     const auto diagOffsV = diagOffs.view();
     const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
     auto rowIdxV = rowIdx.view();
@@ -265,7 +265,7 @@ createBoundarySparsityPattern<CooSparsityPattern<localIdx>>(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
+    const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
     setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
@@ -281,7 +281,7 @@ createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
 )
 {
     const auto exec = mesh.exec();
-    const auto nBoundaryFaces = mesh.boundaryMesh().faceOwners().size();
+    const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nBoundaryFaces, 0);
     Vector<localIdx> colIdx(exec, nBoundaryFaces, 0);
     setBoundarySparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);

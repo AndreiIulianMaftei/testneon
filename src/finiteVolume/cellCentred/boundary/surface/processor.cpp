@@ -46,3 +46,9 @@ template void
 setProcBoundaryValue<Vec3>(Field<Vec3>&, const UnstructuredMesh&, std::pair<localIdx, localIdx>);
 
 } // namespace NeoN::finiteVolume::cellCentred::surfaceBoundary::detail
+
+namespace NeoN::finiteVolume::cellCentred::surfaceBoundary
+{
+template class Processor<scalar>;
+template class Processor<Vec3>;
+}
