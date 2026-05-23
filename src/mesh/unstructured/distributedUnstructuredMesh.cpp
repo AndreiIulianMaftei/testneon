@@ -126,6 +126,17 @@ UnstructuredMesh create1DUniformMeshPart(const Executor exec, const localIdx nCe
     return mesh;
 }
 
+/** @brief See declaration in communicationPattern.hpp for full documentation.
+ *
+ *  Implementation outline:
+ *  1. Build `sendCounts[r]` = faces this rank sends to rank r.
+ *  2. Build `buffer` of global cell indices (local owner cell + globalOffset)
+ *     for every processor boundary face.
+ *  3. Exchange `sendCounts` via `allToAll` to learn `recvCounts` per rank.
+ *  4. Exchange the global cell index buffer via `allToAllV` to populate
+ *     `recvIdx` — the list of global cells this rank will receive.
+ *  5. Return a `CommunicationPattern` with the collected data.
+ */
 CommunicationPattern computeCommunicationPattern(const UnstructuredMesh& mesh)
 {
     mpi::Environment mpiEnviron;
