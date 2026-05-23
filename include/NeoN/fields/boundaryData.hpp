@@ -14,7 +14,9 @@
 
 #ifdef NF_WITH_MPI_SUPPORT
 #include <mpi.h>
+#include <optional>
 #include "NeoN/core/mpi/environment.hpp"
+#include "NeoN/core/parallelAlgorithms.hpp"
 #endif
 
 namespace NeoN
@@ -216,36 +218,60 @@ public:
         const auto [rangeStart, rangeEnd] = range;
         const localIdx patchSize = rangeEnd - rangeStart;
 
-        auto valH = value_.copyToHost();
-
+        mpi::Environment mpiEnv;
         CommBuffer buf;
         buf.rangeStart = rangeStart;
         buf.patchSize = patchSize;
-        buf.sendBuf.resize(static_cast<std::size_t>(patchSize));
-        buf.recvBuf.resize(static_cast<std::size_t>(patchSize));
-        for (localIdx k = 0; k < patchSize; k++)
-            buf.sendBuf[static_cast<std::size_t>(k)] = valH.view()[rangeStart + k];
 
-        mpi::Environment mpiEnv;
         MPI_Request sendReq, recvReq;
-        MPI_Isend(
-            buf.sendBuf.data(),
-            static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-            MPI_BYTE,
-            neighborRank,
-            0,
-            mpiEnv.comm(),
-            &sendReq
-        );
-        MPI_Irecv(
-            buf.recvBuf.data(),
-            static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-            MPI_BYTE,
-            neighborRank,
-            0,
-            mpiEnv.comm(),
-            &recvReq
-        );
+        if (mpiEnv.gpuAwareMpi())
+        {
+            buf.deviceRecvBuf = Vector<ValueType>(exec_, patchSize, ValueType {});
+            MPI_Isend(
+                value_.data() + rangeStart,
+                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+                MPI_BYTE,
+                neighborRank,
+                0,
+                mpiEnv.comm(),
+                &sendReq
+            );
+            MPI_Irecv(
+                buf.deviceRecvBuf->data(),
+                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+                MPI_BYTE,
+                neighborRank,
+                0,
+                mpiEnv.comm(),
+                &recvReq
+            );
+        }
+        else
+        {
+            auto valH = value_.copyToHost();
+            buf.sendBuf.resize(static_cast<std::size_t>(patchSize));
+            buf.recvBuf.resize(static_cast<std::size_t>(patchSize));
+            for (localIdx k = 0; k < patchSize; k++)
+                buf.sendBuf[static_cast<std::size_t>(k)] = valH.view()[rangeStart + k];
+            MPI_Isend(
+                buf.sendBuf.data(),
+                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+                MPI_BYTE,
+                neighborRank,
+                0,
+                mpiEnv.comm(),
+                &sendReq
+            );
+            MPI_Irecv(
+                buf.recvBuf.data(),
+                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
+                MPI_BYTE,
+                neighborRank,
+                0,
+                mpiEnv.comm(),
+                &recvReq
+            );
+        }
         communicating_ = true;
         requests_.push_back(sendReq);
         requests_.push_back(recvReq);
@@ -271,13 +297,31 @@ public:
     {
         if (requests_.empty() || !communicating_) return;
         MPI_Waitall(static_cast<int>(requests_.size()), requests_.data(), MPI_STATUSES_IGNORE);
-        auto valH = value_.copyToHost();
-        for (const auto& buf : commBuffers_)
+        mpi::Environment mpiEnv;
+        if (mpiEnv.gpuAwareMpi())
         {
-            for (localIdx k = 0; k < buf.patchSize; k++)
-                valH.view()[buf.rangeStart + k] = buf.recvBuf[static_cast<std::size_t>(k)];
+            for (const auto& buf : commBuffers_)
+            {
+                auto srcView = buf.deviceRecvBuf->view();
+                auto dstView = value_.view();
+                const localIdx start = buf.rangeStart;
+                parallelFor(
+                    exec_,
+                    {0, buf.patchSize},
+                    KOKKOS_LAMBDA(const localIdx k) { dstView[start + k] = srcView[k]; }
+                );
+            }
         }
-        value_ = valH.copyToExecutor(exec_);
+        else
+        {
+            auto valH = value_.copyToHost();
+            for (const auto& buf : commBuffers_)
+            {
+                for (localIdx k = 0; k < buf.patchSize; k++)
+                    valH.view()[buf.rangeStart + k] = buf.recvBuf[static_cast<std::size_t>(k)];
+            }
+            value_ = valH.copyToExecutor(exec_);
+        }
         requests_.clear();
         communicating_ = false;
         commBuffers_.clear();
@@ -310,8 +354,9 @@ private:
 #ifdef NF_WITH_MPI_SUPPORT
     struct CommBuffer
     {
-        std::vector<ValueType> sendBuf;
-        std::vector<ValueType> recvBuf;
+        std::vector<ValueType> sendBuf;                 // host staging, used when !gpuAwareMpi
+        std::vector<ValueType> recvBuf;                 // host staging, used when !gpuAwareMpi
+        std::optional<Vector<ValueType>> deviceRecvBuf; // device buffer, used when gpuAwareMpi
         localIdx rangeStart;
         localIdx patchSize;
     };

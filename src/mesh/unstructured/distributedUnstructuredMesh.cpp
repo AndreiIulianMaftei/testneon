@@ -63,63 +63,63 @@ UnstructuredMesh create1DUniformMeshPart(const Executor exec, const localIdx nCe
     // Face center and normal for each boundary slot (2 slots regardless of rank).
     // For the last rank the boundary face ordering is [xmax, proc-left] — the
     // face data vectors are in that order too (swapped relative to rank-0/mid).
-    std::vector<Vec3> bcCfVec {{0.0, 0.0, 0.0}, {rightBoundary, 0.0, 0.0}};
-    std::vector<Vec3> bcSfVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
-    std::vector<Vec3> bcNfVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
+    std::vector<Vec3> bcFaceCentersVec {{0.0, 0.0, 0.0}, {rightBoundary, 0.0, 0.0}};
+    std::vector<Vec3> bcFaceNormalsVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
+    std::vector<Vec3> bcFaceUnitNormalsVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
     if (isLast)
     {
-        std::swap(bcCfVec[0], bcCfVec[1]);
-        std::swap(bcSfVec[0], bcSfVec[1]);
-        std::swap(bcNfVec[0], bcNfVec[1]);
+        std::swap(bcFaceCentersVec[0], bcFaceCentersVec[1]);
+        std::swap(bcFaceNormalsVec[0], bcFaceNormalsVec[1]);
+        std::swap(bcFaceUnitNormalsVec[0], bcFaceUnitNormalsVec[1]);
     }
 
-    auto tmp = create1DUniformMesh(exec, nCells, rightBoundary);
+    auto baseMesh = create1DUniformMesh(exec, nCells, rightBoundary);
 
     BoundaryMesh boundaryMesh(
         exec,
         faceCells,
-        {exec, bcCfVec},                       // cf
-        tmp.boundaryMesh().ownerCellCenters(), // cn
-        {exec, bcSfVec},                       // sf
-        {exec, {1.0, 1.0}},                    // magSf
-        {exec, bcNfVec},                       // nf
-        tmp.boundaryMesh().delta(),            // delta
-        {exec, boundaryWeights},               // weights
-        tmp.boundaryMesh().deltaCoeffs(),      // deltaCoeffs
-        {0, 1, 2},                             // offset: 2 patches
+        {exec, bcFaceCentersVec},
+        baseMesh.boundaryMesh().ownerCellCenters(),
+        {exec, bcFaceNormalsVec},
+        {exec, {1.0, 1.0}},
+        {exec, bcFaceUnitNormalsVec},
+        baseMesh.boundaryMesh().delta(),
+        {exec, boundaryWeights},
+        baseMesh.boundaryMesh().deltaCoeffs(),
+        {0, 1, 2}, // offset: 2 patches
         nProcBoundaryFaces,
         neighRanks
     );
 
-    // For the last rank, the tmp boundary faces need to be physically swapped so
+    // For the last rank, the baseMesh boundary faces need to be physically swapped so
     // that regular (xmax) comes before the proc face in the internal face arrays.
-    auto faceCentresH = tmp.faceCenters().copyToHost();
-    auto faceNormalsH = tmp.faceNormals().copyToHost();
+    auto faceCentersH = baseMesh.faceCenters().copyToHost();
+    auto faceNormalsH = baseMesh.faceNormals().copyToHost();
     if (isLast)
     {
-        const auto localCells = tmp.nCells();
-        std::swap(faceCentresH.view()[localCells - 1], faceCentresH.view()[localCells]);
+        const auto localCells = baseMesh.nCells();
+        std::swap(faceCentersH.view()[localCells - 1], faceCentersH.view()[localCells]);
         faceNormalsH.view()[localCells - 1] = {1.0, 0.0, 0.0}; // xmax
         faceNormalsH.view()[localCells] = {-1.0, 0.0, 0.0};    // proc left
     }
 
-    const localIdx nFacesPart = tmp.nInternalFaces() + nRegularBoundary;
+    const localIdx nFacesPart = baseMesh.nInternalFaces() + nRegularBoundary;
 
-    auto faceCentresPart = take(faceCentresH.copyToExecutor(exec), {0, nFacesPart});
+    auto faceCentersPart = take(faceCentersH.copyToExecutor(exec), {0, nFacesPart});
     auto faceNormalsPart = take(faceNormalsH.copyToExecutor(exec), {0, nFacesPart});
-    auto faceAreasPart = take(tmp.faceAreas(), {0, nFacesPart});
-    auto faceOwnersPart = take(tmp.faceOwners(), {0, nFacesPart});
+    auto faceAreasPart = take(baseMesh.faceAreas(), {0, nFacesPart});
+    auto faceOwnersPart = take(baseMesh.faceOwners(), {0, nFacesPart});
 
     UnstructuredMesh mesh(
         exec,
-        tmp.points(),
-        tmp.cellVolumes(),
-        tmp.cellCenters(),
+        baseMesh.points(),
+        baseMesh.cellVolumes(),
+        baseMesh.cellCenters(),
         faceNormalsPart,
-        faceCentresPart,
+        faceCentersPart,
         faceAreasPart,
         faceOwnersPart,
-        tmp.faceNeighbors(),
+        baseMesh.faceNeighbors(),
         std::move(boundaryMesh)
     );
 

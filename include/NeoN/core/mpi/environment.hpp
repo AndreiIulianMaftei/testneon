@@ -8,6 +8,8 @@
 #include <mpi.h>
 #endif
 
+#include <cstdlib>
+
 #include "NeoN/core/error.hpp"
 #include "NeoN/core/info.hpp"
 
@@ -69,6 +71,7 @@ public:
     {
         MPI_Initialized(&mpiInitialized);
         updateRankData();
+        gpuAwareMpi_ = (std::getenv("NF_GPU_AWARE_MPI") != nullptr);
     }
 
     /**
@@ -104,12 +107,18 @@ public:
      */
     MPI_Comm comm() const { return communicator; }
 
+    /**
+     * @brief Returns whether GPU-aware MPI is enabled (via NF_GPU_AWARE_MPI env var).
+     */
+    bool gpuAwareMpi() const { return gpuAwareMpi_; }
+
 private:
 
     MPI_Comm communicator {MPI_COMM_NULL}; // MPI communicator
     int mpiInitialized {0};
     int mpiRank {-1}; // Index of this rank
     int mpiSize {-1}; // Number of ranks in this communicator group.
+    bool gpuAwareMpi_ {false};
 
     /**
      * @brief Updates the rank data, based on the communicator.
