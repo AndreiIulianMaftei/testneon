@@ -80,12 +80,10 @@ TEST_CASE("Distributed")
 
     auto mesh = create1DUniformMesh(exec, nCells);
     auto volBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<scalar>>(mesh);
-    auto U = finiteVolume::cellCentred::VolumeField<scalar>(
-        exec,
-        "U",
-        mesh,
-        Vector<scalar>(exec, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0}),
-        volBCs
+    auto uVals =
+        std::vector<scalar> {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
+    auto u = finiteVolume::cellCentred::VolumeField<scalar>(
+        exec, "U", mesh, Vector<scalar>(exec, uVals), volBCs
     );
     auto volVecBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<Vec3>>(mesh);
     auto o = one<Vec3>();
@@ -102,7 +100,7 @@ TEST_CASE("Distributed")
         Vector<scalar>(exec, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0});
     phi.internalVector() = phiInternal;
 
-    auto uPart = detail::oneDPartitionField(U, meshPart, mpiEnviron);
+    auto uPart = detail::oneDPartitionField(u, meshPart, mpiEnviron);
     auto uVecPart = detail::oneDPartitionField(vecU, meshPart, mpiEnviron);
     auto phiPart = detail::oneDPartitionField(phi, meshPart, mpiEnviron);
     uPart.correctBoundaryConditions();

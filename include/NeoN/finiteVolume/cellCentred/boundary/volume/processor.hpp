@@ -45,21 +45,8 @@ public:
     {
         detail::setProcBoundaryValue(domainVector, mesh_, this->range());
 #ifdef NF_WITH_MPI_SUPPORT
-        const auto [rangeStart, rangeEnd] = this->range();
-        const auto& bm = mesh_.boundaryMesh();
-        const localIdx nInnerBoundaries = bm.nBoundaries() - bm.nProcBoundaryPatches();
-        const auto& offsets = bm.offset();
-        localIdx procPatchIdx = 0;
-        for (localIdx k = 0; k < static_cast<localIdx>(bm.neighbourRank().size()); k++)
-        {
-            if (offsets[static_cast<std::size_t>(nInnerBoundaries + k)] == rangeStart)
-            {
-                procPatchIdx = k;
-                break;
-            }
-        }
         const int neighborRank =
-            static_cast<int>(bm.neighbourRank()[static_cast<std::size_t>(procPatchIdx)]);
+            static_cast<int>(mesh_.boundaryMesh().neighbourRankForRange(this->range()));
         domainVector.boundaryData().communicate(this->range(), neighborRank);
 #endif
     }

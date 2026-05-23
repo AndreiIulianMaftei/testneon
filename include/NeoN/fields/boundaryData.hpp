@@ -16,6 +16,7 @@
 #include <mpi.h>
 #include <optional>
 #include "NeoN/core/mpi/environment.hpp"
+#include "NeoN/core/mpi/operators.hpp"
 #include "NeoN/core/parallelAlgorithms.hpp"
 #endif
 
@@ -40,7 +41,6 @@ class BoundaryData
 
 public:
 
-#ifdef NF_WITH_MPI_SUPPORT
     ~BoundaryData()
     {
         // commBuffers_ backs the memory of any in-flight MPI_Isend/MPI_Irecv calls.
@@ -48,7 +48,6 @@ public:
         // drain all outstanding requests before the storage is freed.
         waitAll();
     }
-#endif
 
     /**
      * @brief Copy constructor.
@@ -223,24 +222,26 @@ public:
         buf.rangeStart = rangeStart;
         buf.patchSize = patchSize;
 
+        const auto byteCount =
+            static_cast<mpi_label_t>(patchSize) * static_cast<mpi_label_t>(sizeof(ValueType));
+        const auto neighborRankLabel = static_cast<mpi_label_t>(neighborRank);
+
         MPI_Request sendReq, recvReq;
         if (mpiEnv.gpuAwareMpi())
         {
             buf.deviceRecvBuf = Vector<ValueType>(exec_, patchSize, ValueType {});
-            MPI_Isend(
-                value_.data() + rangeStart,
-                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-                MPI_BYTE,
-                neighborRank,
+            mpi::isend<char>(
+                reinterpret_cast<const char*>(value_.data() + rangeStart),
+                byteCount,
+                neighborRankLabel,
                 0,
                 mpiEnv.comm(),
                 &sendReq
             );
-            MPI_Irecv(
-                buf.deviceRecvBuf->data(),
-                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-                MPI_BYTE,
-                neighborRank,
+            mpi::irecv<char>(
+                reinterpret_cast<char*>(buf.deviceRecvBuf->data()),
+                byteCount,
+                neighborRankLabel,
                 0,
                 mpiEnv.comm(),
                 &recvReq
@@ -253,20 +254,18 @@ public:
             buf.recvBuf.resize(static_cast<std::size_t>(patchSize));
             for (localIdx k = 0; k < patchSize; k++)
                 buf.sendBuf[static_cast<std::size_t>(k)] = valH.view()[rangeStart + k];
-            MPI_Isend(
-                buf.sendBuf.data(),
-                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-                MPI_BYTE,
-                neighborRank,
+            mpi::isend<char>(
+                reinterpret_cast<const char*>(buf.sendBuf.data()),
+                byteCount,
+                neighborRankLabel,
                 0,
                 mpiEnv.comm(),
                 &sendReq
             );
-            MPI_Irecv(
-                buf.recvBuf.data(),
-                static_cast<int>(patchSize) * static_cast<int>(sizeof(ValueType)),
-                MPI_BYTE,
-                neighborRank,
+            mpi::irecv<char>(
+                reinterpret_cast<char*>(buf.recvBuf.data()),
+                byteCount,
+                neighborRankLabel,
                 0,
                 mpiEnv.comm(),
                 &recvReq
@@ -281,22 +280,24 @@ public:
     bool isComplete()
     {
         if (requests_.empty() || !communicating_) return true;
-        int flag = 0;
-        MPI_Testall(
-            static_cast<int>(requests_.size()), requests_.data(), &flag, MPI_STATUSES_IGNORE
-        );
-        auto complete = flag != 0;
-        if (complete)
+        for (auto& req : requests_)
         {
-            communicating_ = false;
+            if (!mpi::test(&req)) return false;
         }
-        return complete;
+        communicating_ = false;
+        return true;
     }
+
+
+#endif
 
     void waitAll()
     {
+#ifdef NF_WITH_MPI_SUPPORT
         if (requests_.empty() || !communicating_) return;
-        MPI_Waitall(static_cast<int>(requests_.size()), requests_.data(), MPI_STATUSES_IGNORE);
+        while (!isComplete())
+        {
+        }
         mpi::Environment mpiEnv;
         if (mpiEnv.gpuAwareMpi())
         {
@@ -325,8 +326,8 @@ public:
         requests_.clear();
         communicating_ = false;
         commBuffers_.clear();
-    }
 #endif
+    }
 
     /**
      * @brief Get the range for a given patchId

@@ -71,7 +71,7 @@ public:
     {
         MPI_Initialized(&mpiInitialized);
         updateRankData();
-        gpuAwareMpi_ = (std::getenv("NF_GPU_AWARE_MPI") != nullptr);
+        if (std::getenv("NF_GPU_AWARE_MPI") != nullptr) gpuAwareMpi_ = false;
     }
 
     /**
@@ -108,9 +108,14 @@ public:
     MPI_Comm comm() const { return communicator; }
 
     /**
-     * @brief Returns whether GPU-aware MPI is enabled (via NF_GPU_AWARE_MPI env var).
+     * @brief Returns whether GPU-aware MPI is enabled.
      */
     bool gpuAwareMpi() const { return gpuAwareMpi_; }
+
+    /**
+     * @brief Sets whether GPU-aware MPI is enabled.
+     */
+    bool& gpuAwareMpi() { return gpuAwareMpi_; }
 
 private:
 
@@ -118,7 +123,7 @@ private:
     int mpiInitialized {0};
     int mpiRank {-1}; // Index of this rank
     int mpiSize {-1}; // Number of ranks in this communicator group.
-    bool gpuAwareMpi_ {false};
+    bool gpuAwareMpi_ {true};
 
     /**
      * @brief Updates the rank data, based on the communicator.

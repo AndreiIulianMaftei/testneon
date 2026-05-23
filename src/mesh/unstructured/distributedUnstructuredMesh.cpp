@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <mpi.h>
-
-#include "NeoN/core/mpi/environment.hpp"
+#include "NeoN/core/mpi/operators.hpp"
 #include "NeoN/core/vector/vectorFreeFunctions.hpp"
 #include "NeoN/distributed/communicationPattern.hpp"
 #include "NeoN/mesh/unstructured/unstructuredMesh.hpp"
@@ -60,16 +58,18 @@ UnstructuredMesh create1DUniformMeshPart(const Executor exec, const localIdx nCe
 
     labelVector faceCells(exec, faceCellVec);
 
-    // Face center and normal for each boundary slot (2 slots regardless of rank).
+    // Face geometry data for each boundary slot (2 slots regardless of rank).
     // For the last rank the boundary face ordering is [xmax, proc-left] — the
     // face data vectors are in that order too (swapped relative to rank-0/mid).
     std::vector<Vec3> bcFaceCentersVec {{0.0, 0.0, 0.0}, {rightBoundary, 0.0, 0.0}};
     std::vector<Vec3> bcFaceNormalsVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
+    std::vector<scalar> bcFaceAreasVec {1.0, 1.0};
     std::vector<Vec3> bcFaceUnitNormalsVec {{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
     if (isLast)
     {
         std::swap(bcFaceCentersVec[0], bcFaceCentersVec[1]);
         std::swap(bcFaceNormalsVec[0], bcFaceNormalsVec[1]);
+        std::swap(bcFaceAreasVec[0], bcFaceAreasVec[1]);
         std::swap(bcFaceUnitNormalsVec[0], bcFaceUnitNormalsVec[1]);
     }
 
@@ -81,7 +81,7 @@ UnstructuredMesh create1DUniformMeshPart(const Executor exec, const localIdx nCe
         {exec, bcFaceCentersVec},
         baseMesh.boundaryMesh().ownerCellCenters(),
         {exec, bcFaceNormalsVec},
-        {exec, {1.0, 1.0}},
+        {exec, bcFaceAreasVec},
         {exec, bcFaceUnitNormalsVec},
         baseMesh.boundaryMesh().delta(),
         {exec, boundaryWeights},
@@ -172,7 +172,7 @@ CommunicationPattern computeCommunicationPattern(const UnstructuredMesh& mesh)
     }
 
     auto recvCounts = std::vector<int>(static_cast<std::size_t>(mpiEnviron.sizeRank()), 0);
-    MPI_Alltoall(sendCounts.data(), 1, MPI_INT, recvCounts.data(), 1, MPI_INT, mpiEnviron.comm());
+    mpi::allToAll<int>(sendCounts.data(), 1, recvCounts.data(), 1, mpiEnviron.comm());
 
     auto rdispl = std::vector<int>(static_cast<std::size_t>(mpiEnviron.sizeRank()), 0);
     for (int r = 1; r < mpiEnviron.sizeRank(); ++r)
@@ -188,15 +188,13 @@ CommunicationPattern computeCommunicationPattern(const UnstructuredMesh& mesh)
     for (std::size_t i = 0; i < buffer.size(); ++i)
         sendBuffer[i] = static_cast<int>(buffer[i]);
 
-    MPI_Alltoallv(
+    mpi::allToAllV<int>(
         sendBuffer.data(),
         sendCounts.data(),
         sdispl.data(),
-        MPI_INT,
         recvIdx.data(),
         recvCounts.data(),
         rdispl.data(),
-        MPI_INT,
         mpiEnviron.comm()
     );
 
