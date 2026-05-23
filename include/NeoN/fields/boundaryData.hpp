@@ -226,8 +226,10 @@ public:
             static_cast<mpi_label_t>(patchSize) * static_cast<mpi_label_t>(sizeof(ValueType));
         const auto neighborRankLabel = static_cast<mpi_label_t>(neighborRank);
 
+        const bool useGpuPath = mpiEnv.gpuAwareMpi() && std::holds_alternative<GPUExecutor>(exec_);
+
         MPI_Request sendReq, recvReq;
-        if (mpiEnv.gpuAwareMpi())
+        if (useGpuPath)
         {
             buf.deviceRecvBuf = Vector<ValueType>(exec_, patchSize, ValueType {});
             mpi::isend<char>(
@@ -299,7 +301,8 @@ public:
         {
         }
         mpi::Environment mpiEnv;
-        if (mpiEnv.gpuAwareMpi())
+        const bool useGpuPath = mpiEnv.gpuAwareMpi() && std::holds_alternative<GPUExecutor>(exec_);
+        if (useGpuPath)
         {
             for (const auto& buf : commBuffers_)
             {
