@@ -12,6 +12,14 @@
 #include <vector>
 #include <utility>
 
+#ifdef NF_WITH_MPI_SUPPORT
+#include <mpi.h>
+#include <optional>
+#include "NeoN/core/mpi/environment.hpp"
+#include "NeoN/core/mpi/operators.hpp"
+#include "NeoN/core/parallelAlgorithms.hpp"
+#endif
+
 namespace NeoN
 {
 
@@ -32,6 +40,14 @@ class BoundaryData
 {
 
 public:
+
+    ~BoundaryData()
+    {
+        // commBuffers_ backs the memory of any in-flight MPI_Isend/MPI_Irecv calls.
+        // Destroying them while operations are pending is undefined behaviour, so
+        // drain all outstanding requests before the storage is freed.
+        waitAll();
+    }
 
     /**
      * @brief Copy constructor.
@@ -93,7 +109,11 @@ public:
      * condition.
      * @return The view storing the computed values.
      */
-    Vector<ValueType>& value() { return value_; }
+    Vector<ValueType>& value()
+    {
+        waitAll();
+        return value_;
+    }
 
     /** @copydoc BoundaryData::refValue()*/
     const Vector<ValueType>& refValue() const { return refValue_; }
@@ -191,6 +211,127 @@ public:
         return *this;
     }
 
+#ifdef NF_WITH_MPI_SUPPORT
+    void communicate(std::pair<localIdx, localIdx> range, int neighborRank)
+    {
+        const auto [rangeStart, rangeEnd] = range;
+        const localIdx patchSize = rangeEnd - rangeStart;
+
+        mpi::Environment mpiEnv;
+        CommBuffer buf;
+        buf.rangeStart = rangeStart;
+        buf.patchSize = patchSize;
+
+        const auto byteCount =
+            static_cast<mpi_label_t>(patchSize) * static_cast<mpi_label_t>(sizeof(ValueType));
+        const auto neighborRankLabel = static_cast<mpi_label_t>(neighborRank);
+
+        const bool useGpuPath = mpiEnv.gpuAwareMpi() && std::holds_alternative<GPUExecutor>(exec_);
+
+        MPI_Request sendReq, recvReq;
+        if (useGpuPath)
+        {
+            buf.deviceRecvBuf = Vector<ValueType>(exec_, patchSize, ValueType {});
+            mpi::isend<char>(
+                reinterpret_cast<const char*>(value_.data() + rangeStart),
+                byteCount,
+                neighborRankLabel,
+                0,
+                mpiEnv.comm(),
+                &sendReq
+            );
+            mpi::irecv<char>(
+                reinterpret_cast<char*>(buf.deviceRecvBuf->data()),
+                byteCount,
+                neighborRankLabel,
+                0,
+                mpiEnv.comm(),
+                &recvReq
+            );
+        }
+        else
+        {
+            auto valH = value_.copyToHost();
+            buf.sendBuf.resize(static_cast<std::size_t>(patchSize));
+            buf.recvBuf.resize(static_cast<std::size_t>(patchSize));
+            for (localIdx k = 0; k < patchSize; k++)
+                buf.sendBuf[static_cast<std::size_t>(k)] = valH.view()[rangeStart + k];
+            mpi::isend<char>(
+                reinterpret_cast<const char*>(buf.sendBuf.data()),
+                byteCount,
+                neighborRankLabel,
+                0,
+                mpiEnv.comm(),
+                &sendReq
+            );
+            mpi::irecv<char>(
+                reinterpret_cast<char*>(buf.recvBuf.data()),
+                byteCount,
+                neighborRankLabel,
+                0,
+                mpiEnv.comm(),
+                &recvReq
+            );
+        }
+        communicating_ = true;
+        requests_.push_back(sendReq);
+        requests_.push_back(recvReq);
+        commBuffers_.push_back(std::move(buf));
+    }
+
+    bool isComplete()
+    {
+        if (requests_.empty() || !communicating_) return true;
+        for (auto& req : requests_)
+        {
+            if (!mpi::test(&req)) return false;
+        }
+        communicating_ = false;
+        return true;
+    }
+
+
+#endif
+
+    void waitAll()
+    {
+#ifdef NF_WITH_MPI_SUPPORT
+        if (requests_.empty() || !communicating_) return;
+        while (!isComplete())
+        {
+        }
+        mpi::Environment mpiEnv;
+        const bool useGpuPath = mpiEnv.gpuAwareMpi() && std::holds_alternative<GPUExecutor>(exec_);
+        if (useGpuPath)
+        {
+            for (const auto& buf : commBuffers_)
+            {
+                auto srcView = buf.deviceRecvBuf->view();
+                auto dstView = value_.view();
+                const localIdx start = buf.rangeStart;
+                parallelFor(
+                    exec_,
+                    {0, buf.patchSize},
+                    KOKKOS_LAMBDA(const localIdx k) { dstView[start + k] = srcView[k]; }
+                );
+            }
+        }
+        else
+        {
+            auto valH = value_.copyToHost();
+            for (const auto& buf : commBuffers_)
+            {
+                for (localIdx k = 0; k < buf.patchSize; k++)
+                    valH.view()[buf.rangeStart + k] = buf.recvBuf[static_cast<std::size_t>(k)];
+            }
+            value_ = valH.copyToExecutor(exec_);
+        }
+        requests_.clear();
+        communicating_ = false;
+        commBuffers_.clear();
+#endif
+    }
+
     /**
      * @brief Get the range for a given patchId
      * @return The number of boundary faces.
@@ -213,6 +354,20 @@ private:
     Vector<localIdx> offset_;   ///< The Vector storing the offsets of each boundary.
     localIdx nBoundaries_;      ///< The number of boundaries.
     localIdx nBoundaryFaces_;   ///< The number of boundary faces.
+
+#ifdef NF_WITH_MPI_SUPPORT
+    struct CommBuffer
+    {
+        std::vector<ValueType> sendBuf;                 // host staging, used when !gpuAwareMpi
+        std::vector<ValueType> recvBuf;                 // host staging, used when !gpuAwareMpi
+        std::optional<Vector<ValueType>> deviceRecvBuf; // device buffer, used when gpuAwareMpi
+        localIdx rangeStart;
+        localIdx patchSize;
+    };
+    std::vector<MPI_Request> requests_;   ///< Pending MPI requests (send+recv pairs per patch).
+    std::vector<CommBuffer> commBuffers_; ///< Send/recv staging buffers for pending requests.
+    bool communicating_ = false;
+#endif
 };
 
 }

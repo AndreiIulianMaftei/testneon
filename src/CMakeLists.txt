@@ -71,8 +71,9 @@ target_sources(
           "timeIntegration/rungeKutta.cpp")
 
 if(NeoN_WITH_MPI)
-  target_sources(NeoN PRIVATE "core/mpi/halfDuplexCommBuffer.cpp"
-                              "mesh/unstructured/communicator.cpp")
+  target_sources(
+    NeoN PRIVATE "core/mpi/halfDuplexCommBuffer.cpp" "mesh/unstructured/communicator.cpp"
+                 "mesh/unstructured/distributedUnstructuredMesh.cpp")
 endif()
 
 if(NeoN_BUILD_PYTHON_BINDINGS)

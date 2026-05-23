@@ -8,6 +8,8 @@
 #include <mpi.h>
 #endif
 
+#include <cstdlib>
+
 #include "NeoN/core/error.hpp"
 #include "NeoN/core/info.hpp"
 
@@ -69,6 +71,7 @@ public:
     {
         MPI_Initialized(&mpiInitialized);
         updateRankData();
+        if (std::getenv("NEON_FORCE_HOST_BUFFER") != nullptr) gpuAwareMpi_ = false;
     }
 
     /**
@@ -104,12 +107,26 @@ public:
      */
     MPI_Comm comm() const { return communicator; }
 
+    /**
+     * @brief Returns whether GPU-aware MPI is enabled (default: true).
+     *
+     * Set the environment variable NEON_FORCE_HOST_BUFFER to disable GPU-aware MPI
+     * and force host-side staging buffers for all communication.
+     */
+    bool gpuAwareMpi() const { return gpuAwareMpi_; }
+
+    /**
+     * @brief Sets whether GPU-aware MPI is enabled at runtime.
+     */
+    bool& gpuAwareMpi() { return gpuAwareMpi_; }
+
 private:
 
     MPI_Comm communicator {MPI_COMM_NULL}; // MPI communicator
     int mpiInitialized {0};
     int mpiRank {-1}; // Index of this rank
     int mpiSize {-1}; // Number of ranks in this communicator group.
+    bool gpuAwareMpi_ {true};
 
     /**
      * @brief Updates the rank data, based on the communicator.

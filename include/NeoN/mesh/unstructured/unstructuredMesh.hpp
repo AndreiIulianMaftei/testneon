@@ -339,4 +339,15 @@ UnstructuredMesh create3DUniformMesh(
     scalar lz = 1.0
 );
 
+
+#ifdef NF_WITH_MPI_SUPPORT
+/** @brief Factory function that builds the local 1D mesh partition for this MPI rank.
+ *
+ *  Creates a nCells-cell 1D mesh with regular boundary patches on the domain
+ *  boundary and processor-boundary patches where the partition abuts another rank.
+ *  Reads the current rank from the MPI environment.
+ */
+UnstructuredMesh create1DUniformMeshPart(const Executor exec, const localIdx nCells);
+#endif
+
 } // namespace NeoN

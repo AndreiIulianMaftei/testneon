@@ -42,6 +42,11 @@ public:
     virtual void correctBoundaryCondition([[maybe_unused]] Field<ValueType>& domainVector) final
     {
         detail::setProcBoundaryValue(domainVector, mesh_, this->range());
+#ifdef NF_WITH_MPI_SUPPORT
+        const int neighborRank =
+            static_cast<int>(mesh_.boundaryMesh().neighbourRankForRange(this->range()));
+        domainVector.boundaryData().communicate(this->range(), neighborRank);
+#endif
     }
 
 

@@ -29,6 +29,10 @@ if [ "$GPU_VENDOR" == "nvidia" ]; then
         -DNeoN_WITH_MPI=ON \
         -DNeoN_BUILD_BENCHMARKS=ON
     cmake --build --preset develop
+    # The CI OpenMPI uses the shared-memory transport (mca_btl_vader) which is
+    # not CUDA-aware.  Force staging through host buffers to avoid a SIGSEGV
+    # when device pointers are passed to MPI_Isend.
+    export NEON_FORCE_HOST_BUFFER=1
     ctest --preset develop -E bench --output-on-failure
 
 elif [ "$GPU_VENDOR" == "amd" ]; then
@@ -56,6 +60,8 @@ elif [ "$GPU_VENDOR" == "amd" ]; then
         -DNeoN_WITH_MPI=ON \
         -DNeoN_BUILD_BENCHMARKS=ON
     cmake --build --preset develop
+    # See NVIDIA comment above — same rationale for AMD ROCm MPI.
+    export NEON_FORCE_HOST_BUFFER=1
     ctest --preset develop -E bench --output-on-failure
 
 elif [ "$GPU_VENDOR" == "intel" ]; then
