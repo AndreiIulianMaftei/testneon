@@ -71,7 +71,7 @@ public:
     {
         MPI_Initialized(&mpiInitialized);
         updateRankData();
-        if (std::getenv("NF_GPU_AWARE_MPI") != nullptr) gpuAwareMpi_ = false;
+        if (std::getenv("NEON_FORCE_HOST_BUFFER") != nullptr) gpuAwareMpi_ = false;
     }
 
     /**
@@ -108,12 +108,15 @@ public:
     MPI_Comm comm() const { return communicator; }
 
     /**
-     * @brief Returns whether GPU-aware MPI is enabled.
+     * @brief Returns whether GPU-aware MPI is enabled (default: true).
+     *
+     * Set the environment variable NEON_FORCE_HOST_BUFFER to disable GPU-aware MPI
+     * and force host-side staging buffers for all communication.
      */
     bool gpuAwareMpi() const { return gpuAwareMpi_; }
 
     /**
-     * @brief Sets whether GPU-aware MPI is enabled.
+     * @brief Sets whether GPU-aware MPI is enabled at runtime.
      */
     bool& gpuAwareMpi() { return gpuAwareMpi_; }
 
