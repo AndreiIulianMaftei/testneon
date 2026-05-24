@@ -38,41 +38,33 @@ assembleLS(const NeoN::Executor& exec, const NeoN::UnstructuredMesh& mesh)
     return ls;
 }
 
-TEMPLATE_TEST_CASE("Solver::DiagonalSolver", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("Solver::1D", "[bench]", NeoN::scalar) //"Template" for consistency with other benchmarks.
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
     NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
     auto ls = assembleLS<TestType>(exec, mesh);
     NeoN::Vector<TestType> x(exec, mesh.nCells(), NeoN::zero<TestType>());
-    NeoN::Dictionary solverDict {{{"solver", std::string {"diagonal"}}}};
-    auto solver = NeoN::la::Solver(exec, solverDict);
 
-    DYNAMIC_SECTION("" << size)
+    const std::string sectionName = std::to_string(size);
+
+    DYNAMIC_SECTION(sectionName + " - DiagonalSolver")
     {
-        BENCHMARK(std::string(execName) + "_diagonal") { solver.solve(ls, x); };
+        NeoN::Dictionary solverDict {{{"solver", std::string {"diagonal"}}}};
+        auto solver = NeoN::la::Solver(exec, solverDict);
+        BENCHMARK(std::string(execName)) { solver.solve(ls, x); };
     }
-}
-
 
 #if NF_WITH_GINKGO
-TEST_CASE("Solver::GinkgoCG", "[bench]")
-{
-    auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
-    auto [execName, exec] = GENERATE(allAvailableExecutor());
-    NeoN::UnstructuredMesh mesh = NeoN::create1DUniformMesh(exec, size);
-    auto ls = assembleLS<NeoN::scalar>(exec, mesh);
-    NeoN::Vector<NeoN::scalar> x(exec, mesh.nCells(), NeoN::zero<NeoN::scalar>());
-    NeoN::Dictionary solverDict {
-        {{"solver", std::string {"Ginkgo"}},
-         {"type", "solver::Cg"},
-         {"criteria", NeoN::Dictionary {{{"iteration", 100}, {"relative_residual_norm", 1e-6}}}}}
-    };
-    auto solver = NeoN::la::Solver(exec, solverDict);
-
-    DYNAMIC_SECTION("" << size)
+    DYNAMIC_SECTION(sectionName + " - GinkgoCG")
     {
-        BENCHMARK(std::string(execName) + "_ginkgo_cg") { solver.solve(ls, x); };
+        NeoN::Dictionary solverDict {
+            {{"solver", std::string {"Ginkgo"}},
+             {"type", "solver::Cg"},
+             {"criteria", NeoN::Dictionary {{{"iteration", 100}, {"relative_residual_norm", 1e-6}}}}}
+        };
+        auto solver = NeoN::la::Solver(exec, solverDict);
+        BENCHMARK(std::string(execName)) { solver.solve(ls, x); };
     }
-}
 #endif
+}

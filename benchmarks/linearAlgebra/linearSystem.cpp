@@ -9,7 +9,7 @@
 #include "benchmarks/catch_main.hpp"
 #include "test/catch2/executorGenerator.hpp"
 
-TEMPLATE_TEST_CASE("LinearSystem", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("LinearSystem::1D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -20,7 +20,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[bench]", NeoN::scalar, NeoN::Vec3)
 
     DYNAMIC_SECTION(sectionName + " - construct")
     {
-        BENCHMARK(std::string(execName) + "_construct")
+        BENCHMARK(std::string(execName))
         {
             auto ls = NeoN::la::createEmptyLinearSystem<TestType>(mesh);
             return ls.matrix().values().size();
@@ -30,12 +30,12 @@ TEMPLATE_TEST_CASE("LinearSystem", "[bench]", NeoN::scalar, NeoN::Vec3)
     DYNAMIC_SECTION(sectionName + " - reset")
     {
         auto ls = la::createEmptyLinearSystem<TestType>(mesh);
-        BENCHMARK(std::string(execName) + "_reset") { ls.reset(); };
+        BENCHMARK(std::string(execName)) { ls.reset(); };
     }
 
     DYNAMIC_SECTION(sectionName + " - copyToHost")
     {
         auto ls = la::createEmptyLinearSystem<TestType>(mesh);
-        BENCHMARK(std::string(execName) + "_copyToHost") { return ls.copyToHost(); };
+        BENCHMARK(std::string(execName)) { return ls.copyToHost(); };
     }
 }

@@ -13,14 +13,16 @@ using Operator = NeoN::dsl::Operator;
 
 /**@brief Benchmark the gradient operator for explicit evaluation.
  *
- * Constructs a scalar volume field phi and benchmarks the explicit Gauss-linear
+ * Constructs a TestType volume field phi and benchmarks the explicit Gauss-linear
  * gradient operation into a Vec3 output field. Only explicit is implemented.
  *
+ * @tparam TestType   Field value type (e.g. NeoN::scalar)
  * @param execName    Name of the executor, used as benchmark label
  * @param exec        Executor on which all fields and operations run
  * @param mesh        Unstructured mesh over which the operator is applied
  * @param sectionName Catch2 section label, typically the mesh size string (e.g. "256x256")
  */
+template<typename TestType>
 void runGradBenchmark(
     const std::string& execName,
     const NeoN::Executor& exec,
@@ -28,10 +30,10 @@ void runGradBenchmark(
     const std::string& sectionName
 )
 {
-    // Create a scalar field phi and initialise with 1.0
-    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::scalar>>(mesh);
-    fvcc::VolumeField<NeoN::scalar> phi(exec, "phi", mesh, volumeBCs);
-    NeoN::fill(phi.internalVector(), 1.0);
+    // Create a TestType (scalar) field phi and initialise with 1.0
+    auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
+    fvcc::VolumeField<TestType> phi(exec, "phi", mesh, volumeBCs);
+    NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
 
     // Create a vector field to hold the gradient value
     auto gradVecBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<NeoN::Vec3>>(mesh);
@@ -40,17 +42,17 @@ void runGradBenchmark(
 
     NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
 
-    DYNAMIC_SECTION(sectionName)
+    DYNAMIC_SECTION(sectionName + " - Explicit")
     {
         auto op = fvcc::GradOperator<NeoN::Vec3>(Operator::Type::Explicit, phi, input);
 
         // Note: only explicit is implemented. Implicit is not available since
         // GaussGreenGrad::grad(phi, coeff, LinearSystem<Vec3>&) calls NF_ERROR_EXIT.
-        BENCHMARK(execName + "_explicit") { op.explicitOperation(gradPhi.internalVector()); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(gradPhi.internalVector()); };
     }
 }
 
-TEST_CASE("GradOperator::grad2D", "[bench]")
+TEMPLATE_TEST_CASE("GradOperator::2D", "[bench]", NeoN::scalar)  //"Template" for consistency with other benchmarks.
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -60,10 +62,10 @@ TEST_CASE("GradOperator::grad2D", "[bench]")
     const std::string sectionName =
         std::to_string(nCellsPerDim) + "x" + std::to_string(nCellsPerDim);
 
-    runGradBenchmark(std::string(execName), exec, mesh, sectionName);
+    runGradBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEST_CASE("GradOperator::grad3D", "[bench]")
+TEMPLATE_TEST_CASE("GradOperator::3D", "[bench]", NeoN::scalar)  //"Template" for consistency with other benchmarks.
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -75,5 +77,5 @@ TEST_CASE("GradOperator::grad3D", "[bench]")
                                   + std::to_string(nCellsPerDim) + "x"
                                   + std::to_string(nCellsPerDim);
 
-    runGradBenchmark(std::string(execName), exec, mesh, sectionName);
+    runGradBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }

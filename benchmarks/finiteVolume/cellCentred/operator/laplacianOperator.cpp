@@ -52,7 +52,7 @@ void runLaplacianBenchmark(
 
         auto op = fvcc::LaplacianOperator<TestType>(Operator::Type::Explicit, gamma, phi, input);
 
-        BENCHMARK(execName + "_explicit") { op.explicitOperation(lapPhi.internalVector()); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(lapPhi.internalVector()); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit")
@@ -62,11 +62,11 @@ void runLaplacianBenchmark(
 
         auto op = fvcc::LaplacianOperator<TestType>(Operator::Type::Implicit, gamma, phi, input);
 
-        BENCHMARK(execName + "_implicit") { op.implicitOperation(ls); };
+        BENCHMARK(std::string(execName)) { op.implicitOperation(ls); };
     }
 }
 
-TEMPLATE_TEST_CASE("LaplacianOperator::laplacian2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("LaplacianOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE("LaplacianOperator::laplacian2D", "[bench]", NeoN::scalar, Ne
     runLaplacianBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("LaplacianOperator::laplacian3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("LaplacianOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());

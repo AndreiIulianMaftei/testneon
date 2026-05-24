@@ -4,7 +4,6 @@
 
 import xmltodict
 import json
-import sys
 import os
 
 
@@ -18,42 +17,54 @@ def parse_xml_dict(d):
     for cases in data:
         test_case_raw_name = cases["@name"].split(" - ")
         test_case = test_case_raw_name[0]
-        if len(test_case_raw_name) > 1:
-            test_type = test_case_raw_name[-1]
-        else:
-            test_type = ""
-        for d in cases["Section"]:
-            size = d["@name"]
-            res = {}
-            for k, v in d["BenchmarkResults"].items():
-                # print(k, v)
+        value_type = test_case_raw_name[-1] if len(test_case_raw_name) > 1 else ""
+        name_parts = test_case.split("::")
+        benchmark_name = name_parts[0]
+        dimension = name_parts[1] if len(name_parts) > 1 else ""
+
+        sections = cases["Section"]
+        if isinstance(sections, dict):
+            sections = [sections]
+        for section in sections:
+            section_parts = section["@name"].split(" - ", 1)
+            size = section_parts[0]
+            variant = section_parts[1] if len(section_parts) > 1 else ""
+            mean = ""
+            standard_deviation = ""
+            executor = ""
+            for k, v in section["BenchmarkResults"].items():
                 if k == "@name":
-                    res["executor"] = v
+                    executor = v
+                    continue
                 if k == "mean":
-                    res["mean"] = v["@value"]
+                    mean = v["@value"]
                     continue
                 if k == "standardDeviation":
-                    res["standardDeviation"] = v["@value"]
+                    standard_deviation = v["@value"]
                     continue
-                if k.startswith("@"):
-                    continue
-            res["size"] = size
-            res["test_case"] = test_case
-            res["test_type"] = test_type
-            records.append(res)
+            records.append({
+                "benchmark_name": benchmark_name,
+                "dimension": dimension,
+                "variant": variant,
+                "executor": executor,
+                "value_type": value_type,
+                "size": size,
+                "mean": mean,
+                "standard_deviation": standard_deviation,
+            })
     return records
 
 
 def main():
     _, _, files = next(os.walk("."))
     for xml_file in files:
-        if not xml_file.endswith("xml"):
+        if not xml_file.endswith(".xml"):
             continue
         try:
             with open(xml_file, "r") as fh:
                 d = xmltodict.parse(fh.read())
                 res = parse_xml_dict(d)
-            with open(xml_file.replace("xml", "json"), "w") as outfile:
+            with open(xml_file.replace(".xml", ".json"), "w") as outfile:
                 json.dump(res, outfile)
         except Exception as e:
             print(e)

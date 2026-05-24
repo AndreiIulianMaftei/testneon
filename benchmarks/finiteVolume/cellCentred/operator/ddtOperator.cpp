@@ -59,10 +59,10 @@ void runDdtBenchmark(
 
         auto op = fvcc::DdtOperator(Operator::Type::Explicit, phi);
 
-        BENCHMARK(execName + "_explicit") { op.explicitOperation(source, t, dt); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(source, t, dt); };
     }
 
-    DYNAMIC_SECTION(sectionName + " - Implicit_Euler")
+    DYNAMIC_SECTION(sectionName + " - Implicit")
     {
         NeoN::Dictionary fvSchemes;
         NeoN::Dictionary ddtSchemes;
@@ -75,7 +75,7 @@ void runDdtBenchmark(
         auto op = fvcc::DdtOperator(Operator::Type::Implicit, phi);
         op.read(fvSchemes);
 
-        BENCHMARK(execName + "_implicit_Euler") { op.implicitOperation(ls, t, dt); };
+        BENCHMARK(std::string(execName)) { op.implicitOperation(ls, t, dt); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit_BDF2")
@@ -98,11 +98,11 @@ void runDdtBenchmark(
             std::format("Expected oldTimeLevel(phi) >= 2 but got {}", oldTimeLevel(phi))
         );
 
-        BENCHMARK(execName + "_implicit_BDF2") { op.implicitOperation(ls, t, dt); };
+        BENCHMARK(std::string(execName)) { op.implicitOperation(ls, t, dt); };
     }
 }
 
-TEMPLATE_TEST_CASE("DdtOperator::ddt2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("DdtOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -117,7 +117,7 @@ TEMPLATE_TEST_CASE("DdtOperator::ddt2D", "[bench]", NeoN::scalar, NeoN::Vec3)
     );
 }
 
-TEMPLATE_TEST_CASE("DdtOperator::ddt3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("DdtOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());

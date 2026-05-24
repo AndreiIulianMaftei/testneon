@@ -9,12 +9,6 @@
 #include "benchmarks/catch_main.hpp"
 #include "test/catch2/executorGenerator.hpp"
 
-#include <catch2/catch_template_test_macros.hpp>
-
-using NeoN::finiteVolume::cellCentred::SurfaceInterpolation;
-using NeoN::finiteVolume::cellCentred::VolumeField;
-using NeoN::finiteVolume::cellCentred::SurfaceField;
-
 /**@brief Benchmark linear surface interpolation from a volume field to a surface field.
  *
  * Constructs a volume field initialised to one and benchmarks the Gauss-linear
@@ -37,18 +31,18 @@ void runLinearBenchmark(
     NeoN::Input input = NeoN::TokenList({std::string("linear")});
 
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<TestType>>(mesh);
-    auto linear = SurfaceInterpolation<TestType>(exec, mesh, input);
-    auto in = VolumeField<TestType>(exec, "in", mesh, {});
-    auto out = SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
+    auto linear = fvcc::SurfaceInterpolation<TestType>(exec, mesh, input);
+    auto in = fvcc::VolumeField<TestType>(exec, "in", mesh, {});
+    auto out = fvcc::SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
     NeoN::fill(in.internalVector(), NeoN::one<TestType>());
 
-    DYNAMIC_SECTION(sectionName)
+    DYNAMIC_SECTION(sectionName + " - interpolate")
     {
         BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
     }
 }
 
-TEMPLATE_TEST_CASE("linear2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("Linear::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -61,7 +55,7 @@ TEMPLATE_TEST_CASE("linear2D", "[bench]", NeoN::scalar, NeoN::Vec3)
     runLinearBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("linear3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("Linear::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());

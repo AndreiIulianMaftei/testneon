@@ -51,7 +51,7 @@ void runDivBenchmark(
 
         auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
 
-        BENCHMARK(execName + "_explicit") { op.explicitOperation(divPhi.internalVector()); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(divPhi.internalVector()); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit")
@@ -61,11 +61,11 @@ void runDivBenchmark(
 
         auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
 
-        BENCHMARK(execName + "_implicit") { op.implicitOperation(ls); };
+        BENCHMARK(std::string(execName)) { op.implicitOperation(ls); };
     }
 }
 
-TEMPLATE_TEST_CASE("DivOperator::div2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("DivOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -78,7 +78,7 @@ TEMPLATE_TEST_CASE("DivOperator::div2D", "[bench]", NeoN::scalar, NeoN::Vec3)
     runDivBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("DivOperator::div3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("DivOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());

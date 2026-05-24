@@ -51,7 +51,7 @@ void runSourceTermBenchmark(
 
         NeoN::Vector<TestType> source(exec, phi.size(), NeoN::zero<TestType>());
 
-        BENCHMARK(execName + "_explicit") { op.explicitOperation(source); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(source); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit")
@@ -61,11 +61,11 @@ void runSourceTermBenchmark(
 
         auto op = fvcc::SourceTerm<TestType>(Operator::Type::Implicit, coeff, phi);
 
-        BENCHMARK(execName + "_implicit") { op.implicitOperation(ls); };
+        BENCHMARK(std::string(execName)) { op.implicitOperation(ls); };
     }
 }
 
-TEMPLATE_TEST_CASE("SourceTerm::sourceTerm2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("SourceTerm::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -78,7 +78,7 @@ TEMPLATE_TEST_CASE("SourceTerm::sourceTerm2D", "[bench]", NeoN::scalar, NeoN::Ve
     runSourceTermBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("SourceTerm::sourceTerm3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("SourceTerm::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());

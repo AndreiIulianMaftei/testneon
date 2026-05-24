@@ -16,7 +16,7 @@ std::vector<NeoN::localIdx> create3PatchOffsets(NeoN::localIdx nBoundaryFaces)
     return {0, nBoundaryFaces / 3, (2 * nBoundaryFaces) / 3, nBoundaryFaces};
 }
 
-TEST_CASE("Field::field", "[bench]")
+TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consistency with other benchmarks.
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -27,29 +27,29 @@ TEST_CASE("Field::field", "[bench]")
     const NeoN::localIdx nBnd = std::max<NeoN::localIdx>(NeoN::localIdx(128), nCells / 16);
     const auto offsets = create3PatchOffsets(nBnd);
 
-    NeoN::Field<NeoN::Vec3> field(exec, nCells, offsets);
+    NeoN::Field<TestType> field(exec, nCells, offsets);
 
     const std::string sectionName = std::to_string(nCells);
 
     DYNAMIC_SECTION(sectionName + " - internal_fill")
     {
-        NeoN::fill(field.internalVector(), NeoN::one<NeoN::Vec3>());
+        NeoN::fill(field.internalVector(), NeoN::one<TestType>());
 
-        BENCHMARK(std::string(execName) + "_internal_fill")
+        BENCHMARK(std::string(execName))
         {
-            NeoN::fill(field.internalVector(), 2.0 * NeoN::one<NeoN::Vec3>());
+            NeoN::fill(field.internalVector(), 2.0 * NeoN::one<TestType>());
         };
     }
 
     DYNAMIC_SECTION(sectionName + " - internal_copy")
     {
         // Pre-allocate both fields once; benchmark measures copy only
-        NeoN::Field<NeoN::Vec3> src(exec, nCells, offsets);
-        NeoN::Field<NeoN::Vec3> dst(exec, nCells, offsets);
-        NeoN::fill(src.internalVector(), 3.0 * NeoN::one<NeoN::Vec3>());
-        NeoN::fill(dst.internalVector(), NeoN::zero<NeoN::Vec3>());
+        NeoN::Field<TestType> src(exec, nCells, offsets);
+        NeoN::Field<TestType> dst(exec, nCells, offsets);
+        NeoN::fill(src.internalVector(), 3.0 * NeoN::one<TestType>());
+        NeoN::fill(dst.internalVector(), NeoN::zero<TestType>());
 
-        BENCHMARK(std::string(execName) + "_internal_copy")
+        BENCHMARK(std::string(execName))
         {
             dst.internalVector() = src.internalVector();
         };
@@ -57,23 +57,23 @@ TEST_CASE("Field::field", "[bench]")
 
     DYNAMIC_SECTION(sectionName + " - boundary_value_fill")
     {
-        NeoN::fill(field.boundaryData().value(), NeoN::one<NeoN::Vec3>());
+        NeoN::fill(field.boundaryData().value(), NeoN::one<TestType>());
 
-        BENCHMARK(std::string(execName) + "_boundary_value_fill")
+        BENCHMARK(std::string(execName))
         {
-            NeoN::fill(field.boundaryData().value(), 2.0 * NeoN::one<NeoN::Vec3>());
+            NeoN::fill(field.boundaryData().value(), 2.0 * NeoN::one<TestType>());
         };
     }
 
     DYNAMIC_SECTION(sectionName + " - boundary_value_copy")
     {
         // Pre-allocate both fields once; benchmark measures copy only
-        NeoN::Field<NeoN::Vec3> src(exec, nCells, offsets);
-        NeoN::Field<NeoN::Vec3> dst(exec, nCells, offsets);
-        NeoN::fill(src.boundaryData().value(), 4.0 * NeoN::one<NeoN::Vec3>());
-        NeoN::fill(dst.boundaryData().value(), NeoN::zero<NeoN::Vec3>());
+        NeoN::Field<TestType> src(exec, nCells, offsets);
+        NeoN::Field<TestType> dst(exec, nCells, offsets);
+        NeoN::fill(src.boundaryData().value(), 4.0 * NeoN::one<TestType>());
+        NeoN::fill(dst.boundaryData().value(), NeoN::zero<TestType>());
 
-        BENCHMARK(std::string(execName) + "_boundary_value_copy")
+        BENCHMARK(std::string(execName))
         {
             dst.boundaryData().value() = src.boundaryData().value();
         };

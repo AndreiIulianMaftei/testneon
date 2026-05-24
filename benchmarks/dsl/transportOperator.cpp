@@ -102,7 +102,7 @@ void runTransportBenchmark(
 
         expr.read(makeFvSchemes());
 
-        BENCHMARK(execName + "_explicit")
+        BENCHMARK(std::string(execName))
         {
             // rhs += ddt(phi)
             expr.explicitOperation(rhs, t, dt);
@@ -112,7 +112,7 @@ void runTransportBenchmark(
         };
     }
 
-    DYNAMIC_SECTION(sectionName + " - Implicit_Euler")
+    DYNAMIC_SECTION(sectionName + " - Implicit")
     {
         auto fvSchemes = makeFvSchemes();
         NeoN::Dictionary ddtSchemes;
@@ -128,7 +128,7 @@ void runTransportBenchmark(
 
         expr.read(fvSchemes);
 
-        BENCHMARK(execName + "_implicit_Euler") { expr.assemble(t, dt, ls); };
+        BENCHMARK(std::string(execName)) { expr.assemble(t, dt, ls); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit_BDF2")
@@ -154,11 +154,11 @@ void runTransportBenchmark(
 
         expr.read(fvSchemes);
 
-        BENCHMARK(execName + "_implicit_BDF2") { expr.assemble(t, dt, ls); };
+        BENCHMARK(std::string(execName)) { expr.assemble(t, dt, ls); };
     }
 }
 
-TEMPLATE_TEST_CASE("TransportOperator::transport2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("TransportOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -173,7 +173,7 @@ TEMPLATE_TEST_CASE("TransportOperator::transport2D", "[bench]", NeoN::scalar, Ne
     );
 }
 
-TEMPLATE_TEST_CASE("TransportOperator::transport3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("TransportOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
