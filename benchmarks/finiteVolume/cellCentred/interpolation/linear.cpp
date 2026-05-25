@@ -36,7 +36,7 @@ void runLinearBenchmark(
     auto out = fvcc::SurfaceField<TestType>(exec, "out", mesh, surfaceBCs);
     NeoN::fill(in.internalVector(), NeoN::one<TestType>());
 
-    DYNAMIC_SECTION(sectionName + " - interpolate")
+    DYNAMIC_SECTION(sectionName + " - Interpolate")
     {
         BENCHMARK(std::string(execName)) { linear.interpolate(in, out); };
     }

@@ -16,7 +16,9 @@ std::vector<NeoN::localIdx> create3PatchOffsets(NeoN::localIdx nBoundaryFaces)
     return {0, nBoundaryFaces / 3, (2 * nBoundaryFaces) / 3, nBoundaryFaces};
 }
 
-TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consistency with other benchmarks.
+TEMPLATE_TEST_CASE(
+    "Field::1D", "[bench]", NeoN::Vec3
+) //"Template" for consistency with other benchmarks.
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -31,7 +33,7 @@ TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consiste
 
     const std::string sectionName = std::to_string(nCells);
 
-    DYNAMIC_SECTION(sectionName + " - internal_fill")
+    DYNAMIC_SECTION(sectionName + " - Internal_fill")
     {
         NeoN::fill(field.internalVector(), NeoN::one<TestType>());
 
@@ -41,7 +43,7 @@ TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consiste
         };
     }
 
-    DYNAMIC_SECTION(sectionName + " - internal_copy")
+    DYNAMIC_SECTION(sectionName + " - Internal_copy")
     {
         // Pre-allocate both fields once; benchmark measures copy only
         NeoN::Field<TestType> src(exec, nCells, offsets);
@@ -49,13 +51,10 @@ TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consiste
         NeoN::fill(src.internalVector(), 3.0 * NeoN::one<TestType>());
         NeoN::fill(dst.internalVector(), NeoN::zero<TestType>());
 
-        BENCHMARK(std::string(execName))
-        {
-            dst.internalVector() = src.internalVector();
-        };
+        BENCHMARK(std::string(execName)) { dst.internalVector() = src.internalVector(); };
     }
 
-    DYNAMIC_SECTION(sectionName + " - boundary_value_fill")
+    DYNAMIC_SECTION(sectionName + " - Boundary_value_fill")
     {
         NeoN::fill(field.boundaryData().value(), NeoN::one<TestType>());
 
@@ -65,7 +64,7 @@ TEMPLATE_TEST_CASE("Field::1D", "[bench]", NeoN::Vec3) //"Template" for consiste
         };
     }
 
-    DYNAMIC_SECTION(sectionName + " - boundary_value_copy")
+    DYNAMIC_SECTION(sectionName + " - Boundary_value_copy")
     {
         // Pre-allocate both fields once; benchmark measures copy only
         NeoN::Field<TestType> src(exec, nCells, offsets);

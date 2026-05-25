@@ -40,7 +40,7 @@ void runUpwindBenchmark(
     NeoN::fill(flux.internalVector(), NeoN::one<NeoN::scalar>());
     NeoN::fill(in.internalVector(), NeoN::one<TestType>());
 
-    DYNAMIC_SECTION(sectionName + " - interpolate")
+    DYNAMIC_SECTION(sectionName + " - Interpolate")
     {
         BENCHMARK(std::string(execName)) { upwind.interpolate(flux, in, out); };
     }

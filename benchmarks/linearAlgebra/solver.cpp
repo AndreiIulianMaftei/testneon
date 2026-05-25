@@ -38,7 +38,9 @@ assembleLS(const NeoN::Executor& exec, const NeoN::UnstructuredMesh& mesh)
     return ls;
 }
 
-TEMPLATE_TEST_CASE("Solver::1D", "[bench]", NeoN::scalar) //"Template" for consistency with other benchmarks.
+TEMPLATE_TEST_CASE(
+    "Solver::1D", "[bench]", NeoN::scalar
+) //"Template" for consistency with other benchmarks.
 {
     auto size = GENERATE(1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -61,7 +63,8 @@ TEMPLATE_TEST_CASE("Solver::1D", "[bench]", NeoN::scalar) //"Template" for consi
         NeoN::Dictionary solverDict {
             {{"solver", std::string {"Ginkgo"}},
              {"type", "solver::Cg"},
-             {"criteria", NeoN::Dictionary {{{"iteration", 100}, {"relative_residual_norm", 1e-6}}}}}
+             {"criteria", NeoN::Dictionary {{{"iteration", 100}, {"relative_residual_norm", 1e-6}}}}
+            }
         };
         auto solver = NeoN::la::Solver(exec, solverDict);
         BENCHMARK(std::string(execName)) { solver.solve(ls, x); };

@@ -18,7 +18,7 @@ TEMPLATE_TEST_CASE("LinearSystem::1D", "[bench]", NeoN::scalar, NeoN::Vec3)
 
     const std::string sectionName = std::to_string(size);
 
-    DYNAMIC_SECTION(sectionName + " - construct")
+    DYNAMIC_SECTION(sectionName + " - Construct")
     {
         BENCHMARK(std::string(execName))
         {
@@ -27,13 +27,13 @@ TEMPLATE_TEST_CASE("LinearSystem::1D", "[bench]", NeoN::scalar, NeoN::Vec3)
         };
     }
 
-    DYNAMIC_SECTION(sectionName + " - reset")
+    DYNAMIC_SECTION(sectionName + " - Reset")
     {
         auto ls = la::createEmptyLinearSystem<TestType>(mesh);
         BENCHMARK(std::string(execName)) { ls.reset(); };
     }
 
-    DYNAMIC_SECTION(sectionName + " - copyToHost")
+    DYNAMIC_SECTION(sectionName + " - CopyToHost")
     {
         auto ls = la::createEmptyLinearSystem<TestType>(mesh);
         BENCHMARK(std::string(execName)) { return ls.copyToHost(); };

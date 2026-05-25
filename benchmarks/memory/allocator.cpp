@@ -9,7 +9,9 @@
 #include "benchmarks/catch_main.hpp"
 #include "test/catch2/executorGenerator.hpp"
 
-TEMPLATE_TEST_CASE("Allocator::1D", "[bench]", NeoN::Vec3)  //"Template" for consistency with other benchmarks.
+TEMPLATE_TEST_CASE(
+    "Allocator::1D", "[bench]", NeoN::Vec3
+) //"Template" for consistency with other benchmarks.
 {
     auto size = GENERATE(1 << 14, 1 << 15, 1 << 16, 1 << 17, 1 << 18);
 

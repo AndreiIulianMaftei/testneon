@@ -52,7 +52,9 @@ void runGradBenchmark(
     }
 }
 
-TEMPLATE_TEST_CASE("GradOperator::2D", "[bench]", NeoN::scalar)  //"Template" for consistency with other benchmarks.
+TEMPLATE_TEST_CASE(
+    "GradOperator::2D", "[bench]", NeoN::scalar
+) //"Template" for consistency with other benchmarks.
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -65,7 +67,9 @@ TEMPLATE_TEST_CASE("GradOperator::2D", "[bench]", NeoN::scalar)  //"Template" fo
     runGradBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("GradOperator::3D", "[bench]", NeoN::scalar)  //"Template" for consistency with other benchmarks.
+TEMPLATE_TEST_CASE(
+    "GradOperator::3D", "[bench]", NeoN::scalar
+) //"Template" for consistency with other benchmarks.
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
