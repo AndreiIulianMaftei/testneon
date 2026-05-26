@@ -164,4 +164,9 @@ std::shared_ptr<const SparsityType> createBoundarySparsityPattern(
     const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
 );
 
+template<typename SparsityType>
+std::shared_ptr<const SparsityType> createOffDiagonalSparsityPattern(
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
+);
+
 }

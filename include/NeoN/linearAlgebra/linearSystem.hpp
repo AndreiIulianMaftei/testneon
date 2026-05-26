@@ -89,9 +89,9 @@ public:
     LinearSystem(
         const SystemMatrixType& matrix,
         const Vector<ValueType>& rhs,
+        const BoundaryMatrixType& offDiagonalMatrix,
         const BoundaryMatrixType& boundaryMatrix,
         const Vector<ValueType>& boundaryRhs,
-        const BoundaryMatrixType& offDiagonalMatrix,
         std::shared_ptr<MeshIterationStrategy> strategy = std::make_shared<FaceBasedIterator>()
     )
         : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix),
@@ -102,17 +102,6 @@ public:
         validate();
     }
 
-    LinearSystem(
-        const SystemMatrixType& matrix,
-        const Vector<ValueType>& rhs,
-        const BoundaryMatrixType& boundaryMatrix,
-        const Vector<ValueType>& boundaryRhs,
-        std::shared_ptr<MeshIterationStrategy> strategy = std::make_shared<FaceBasedIterator>()
-    )
-        : LinearSystem(
-            matrix, rhs, boundaryMatrix, boundaryRhs, emptyMatrix(matrix.exec()), strategy
-        )
-    {}
 
     LinearSystem(const LinearSystem& ls)
         : matrix_(ls.matrix_), rhs_(ls.rhs_), boundaryMatrix_(ls.boundaryMatrix_),
@@ -150,9 +139,9 @@ public:
         return {
             matrix_.copyToExecutor(exec),
             rhs_.copyToExecutor(exec),
+            offDiagonalMatrix_.copyToExecutor(exec),
             boundaryMatrix_.copyToExecutor(exec),
-            boundaryRhs_.copyToExecutor(exec),
-            offDiagonalMatrix_.copyToExecutor(exec)
+            boundaryRhs_.copyToExecutor(exec)
         };
     }
 
@@ -206,15 +195,6 @@ public:
 
 private:
 
-    static BoundaryMatrixType emptyMatrix(const Executor& exec)
-    {
-        using IndexType = typename BoundaryMatrixType::MatrixSparsityType::SparsityIndexType;
-        auto sp = std::make_shared<const typename BoundaryMatrixType::MatrixSparsityType>(
-            Vector<IndexType>(exec, 0), Vector<IndexType>(exec, 0), Dimensions {0, 0}
-        );
-        return BoundaryMatrixType(Vector<ValueType>(exec, 0, zero<ValueType>()), sp);
-    }
-
     // internal values
     SystemMatrixType matrix_;
 
@@ -254,17 +234,18 @@ LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType> createEmptyLinearS
     const auto nCells = static_cast<localIdx>(mesh.nCells());
     const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
     using IndexType = typename BoundaryMatrixType::MatrixSparsityType::SparsityIndexType;
-    auto offDiagSp = std::make_shared<const typename BoundaryMatrixType::MatrixSparsityType>(
-        Vector<IndexType>(exec, nProcFaces, 0),
-        Vector<IndexType>(exec, nProcFaces, 0),
-        Dimensions {nCells, nCells}
-    );
+
+    auto offDiagSp =
+        createOffDiagonalSparsityPattern<typename BoundaryMatrixType::MatrixSparsityType>(
+            mesh, *mi
+        );
+
     return {
         SystemMatrixType(Vector<ValueType>(sp->exec(), sp->nnz(), zero<ValueType>()), sp, mi),
         Vector<ValueType>(sp->exec(), sp->rows(), zero<ValueType>()),
+        BoundaryMatrixType(Vector<ValueType>(exec, nProcFaces, zero<ValueType>()), offDiagSp),
         BoundaryMatrixType(Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()), bSp),
         Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()),
-        BoundaryMatrixType(Vector<ValueType>(exec, nProcFaces, zero<ValueType>()), offDiagSp),
         strategy
     };
 }

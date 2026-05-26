@@ -104,34 +104,38 @@ void setBoundarySparsityPatternImpl(
     );
 }
 
+
 template<typename IndexType>
-void setProcBoundarySparsityPattern(
+void setOffDiagonalSparsityPatternImpl(
     const UnstructuredMesh& mesh,
-    const Array<uint8_t>&,
+    const Array<uint8_t>& diagOffs,
     Vector<IndexType>& rowIdx,
     Vector<IndexType>& colIdx
 )
 {
     const auto exec = mesh.exec();
+    const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
+    const auto nProcFaces = static_cast<std::size_t>(mesh.nProcBoundaryFaces());
+    const auto diagOffsV = diagOffs.view();
     const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
-    const auto nBoundaryFaces = mesh.nBoundaryFaces();
-    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    NF_ASSERT(nProcFaces == rowIdx.size(), "Inconsistent size");
+    NF_ASSERT(nProcFaces == colIdx.size(), "Inconsistent size");
+
     auto rowIdxV = rowIdx.view();
-
-    NF_ASSERT(nBoundaryFaces + nProcBoundaryFaces == faceCellsV.size(), "Inconsistent size");
-    NF_ASSERT(nProcBoundaryFaces == rowIdx.size(), "Inconsistent size");
-    NF_ASSERT(nProcBoundaryFaces == colIdx.size(), "Inconsistent size");
-
+    auto colIdxV = colIdx.view();
+    auto globalOffset = mesh.globalOffset();
     parallelFor(
         exec,
-        {0, nProcBoundaryFaces},
-        KOKKOS_LAMBDA(const localIdx bfacei) {
-            // TODO compute colIdx
-            rowIdxV[bfacei] = faceCellsV[bfacei + nBoundaryFaces];
+        {0, nProcFaces},
+        KOKKOS_LAMBDA(const localIdx pfacei) {
+            localIdx celli = faceCellsV[nBoundaryFaces + pfacei];
+            colIdxV[pfacei] = celli + diagOffsV[celli];
+            rowIdxV[pfacei] = celli + globalOffset;
         },
-        "setSparsityPatternFaceToMatrixAddress::setProcBoundarySparsity"
+        "setOffDiagonalSparsityPatternImpl"
     );
 }
+
 
 template<typename IndexType>
 void setSparsityPatternFaceToMatrixAddressSerial(
@@ -245,6 +249,37 @@ void setSparsityPatternFaceToMatrixAddressSerial(
     rowOffs = rowOffsH.copyToExecutor(exec);
 }
 
+template<typename IndexType>
+void setProcBoundarySparsityPattern(
+    const UnstructuredMesh& mesh,
+    const Array<uint8_t>&,
+    Vector<IndexType>& rowIdx,
+    Vector<IndexType>& colIdx
+)
+{
+    const auto exec = mesh.exec();
+    const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
+    const auto nBoundaryFaces = mesh.nBoundaryFaces();
+    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    auto rowIdxV = rowIdx.view();
+    auto globalOffset = mesh.globalOffset();
+
+    NF_ASSERT(nBoundaryFaces + nProcBoundaryFaces == faceCellsV.size(), "Inconsistent size");
+    NF_ASSERT(nProcBoundaryFaces == rowIdx.size(), "Inconsistent size");
+    NF_ASSERT(nProcBoundaryFaces == colIdx.size(), "Inconsistent size");
+
+    parallelFor(
+        exec,
+        {0, nProcBoundaryFaces},
+        KOKKOS_LAMBDA(const localIdx bfacei) {
+            // TODO compute colIdx
+            rowIdxV[bfacei] = faceCellsV[bfacei + nBoundaryFaces] + globalOffset;
+        },
+        "setSparsityPatternFaceToMatrixAddress::setProcBoundarySparsity"
+    );
+}
+
+
 template<typename SparsityType>
 std::pair<std::shared_ptr<const SparsityType>, std::shared_ptr<const FaceToMatrixAddress>>
 createSparsityPatternFaceToMatrixAddress(const UnstructuredMesh& mesh)
@@ -325,6 +360,7 @@ createBoundarySparsityPattern<CooSparsityPattern<localIdx>>(
     );
 }
 
+
 template<>
 std::shared_ptr<const CsrSparsityPattern<localIdx>>
 createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
@@ -339,6 +375,39 @@ createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
     auto rowPtrs = rowsToRowOffs(rowIdx);
     return std::make_shared<const CsrSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(rowPtrs), Dimensions {mesh.nCells(), nBoundaryFaces}
+    );
+}
+
+template<>
+std::shared_ptr<const CooSparsityPattern<localIdx>>
+createOffDiagonalSparsityPattern<CooSparsityPattern<localIdx>>(
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
+)
+{
+    const auto exec = mesh.exec();
+    const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
+    Vector<localIdx> rowIdx(exec, nProcFaces, 0);
+    Vector<localIdx> colIdx(exec, nProcFaces, 0);
+    setOffDiagonalSparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
+    return std::make_shared<const CooSparsityPattern<localIdx>>(
+        std::move(colIdx), std::move(rowIdx), Dimensions {mesh.nCells(), nProcFaces}
+    );
+}
+
+template<>
+std::shared_ptr<const CsrSparsityPattern<localIdx>>
+createOffDiagonalSparsityPattern<CsrSparsityPattern<localIdx>>(
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
+)
+{
+    const auto exec = mesh.exec();
+    const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
+    Vector<localIdx> rowIdx(exec, nProcFaces, 0);
+    Vector<localIdx> colIdx(exec, nProcFaces, 0);
+    setOffDiagonalSparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
+    auto rowPtrs = rowsToRowOffs(rowIdx);
+    return std::make_shared<const CsrSparsityPattern<localIdx>>(
+        std::move(colIdx), std::move(rowPtrs), Dimensions {mesh.nCells(), nProcFaces}
     );
 }
 

@@ -36,7 +36,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
         Vector<scalar> rhs(exec, 3, 0.0);
         Vector<scalar> bRhs(exec, 3, 0.0);
         LinearSystem<scalar, NeoN::la::CSRMatrix<scalar, NeoN::localIdx>> linearSystem(
-            csrMatrix, rhs, bCooMatrix, bRhs
+            csrMatrix, rhs, bCooMatrix, bCooMatrix, bRhs
         );
 
         REQUIRE(linearSystem.matrix().values().size() == 9);
@@ -102,7 +102,7 @@ TEMPLATE_TEST_CASE("LinearSystem", "[template]", NeoN::scalar)
         Vector<scalar> rhs(exec, {10.0, 20.0, 30.0});
         Vector<scalar> bRhs(exec, {0.0, 0.0, 0.0});
         LinearSystem<scalar, NeoN::la::CSRMatrix<scalar, NeoN::localIdx>> linearSystem(
-            csrMatrix, rhs, bCooMatrix, bRhs
+            csrMatrix, rhs, bCooMatrix, bCooMatrix, bRhs
         );
 
         auto lsView = linearSystem.view();
