@@ -41,6 +41,8 @@ class BoundaryData
 
 public:
 
+    using BoundaryDataType = ValueType;
+
     ~BoundaryData()
     {
         // commBuffers_ backs the memory of any in-flight MPI_Isend/MPI_Irecv calls.
