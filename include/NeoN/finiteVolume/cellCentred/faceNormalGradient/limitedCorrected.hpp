@@ -109,18 +109,14 @@ private:
         //   verbose: "limited" "corrected" <coeff>
         // The factory has already consumed "limited"; consume an optional
         // "corrected" sub-scheme token if present, then read the coefficient.
-        // next() does not advance on bad_any_cast, so a numeric next token
-        // is left in place for the scalar read below.
         const auto& tl = std::get<NeoN::TokenList>(inputs);
-        try
+        if (tl.peekIs<std::string>())
         {
             const std::string& sub = tl.next<std::string>();
             NF_ASSERT(
                 sub == "corrected", "limited snGrad: only 'corrected' sub-scheme is supported"
             );
         }
-        catch (const std::bad_any_cast&)
-        {}
         return tl.next<scalar>();
     }
 
