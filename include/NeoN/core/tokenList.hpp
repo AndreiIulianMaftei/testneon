@@ -168,6 +168,18 @@ public:
     }
 
     /**
+     * @brief Checks whether the next token (the one a subsequent next() would
+     * return) holds a value of the given type. Does not advance the index and
+     * does not emit any logging — safe to use as a speculative peek when the
+     * caller wants to consume the token conditionally.
+     */
+    template<typename ReturnType>
+    [[nodiscard]] bool peekIs() const
+    {
+        return nextIndex_ < data_.size() && data_[nextIndex_].type() == typeid(ReturnType);
+    }
+
+    /**
      * @brief Retrieves the value associated with the given index.
      * @param idx The index to retrieve the value for.
      * @return A reference to the value associated with the index.
