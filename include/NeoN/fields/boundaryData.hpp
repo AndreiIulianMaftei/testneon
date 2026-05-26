@@ -286,7 +286,7 @@ public:
         commBuffers_.push_back(std::move(buf));
     }
 
-    bool isComplete()
+    bool isComplete() const
     {
         if (requests_.empty() || !communicating_) return true;
         for (auto& req : requests_)
@@ -300,7 +300,7 @@ public:
 
 #endif
 
-    void waitAll()
+    void waitAll() const
     {
 #ifdef NF_WITH_MPI_SUPPORT
         if (requests_.empty() || !communicating_) return;
@@ -350,10 +350,10 @@ public:
 
 private:
 
-    Executor exec_;              ///< The executor on which the field is stored
-    Vector<ValueType> value_;    ///< The Vector storing the computed values from the
-                                 ///< boundary condition.
-    Vector<ValueType> refValue_; ///< The Vector storing the Dirichlet boundary values.
+    Executor exec_;                   ///< The executor on which the field is stored
+    mutable Vector<ValueType> value_; ///< The Vector storing the computed values from the
+                                      ///< boundary condition.
+    Vector<ValueType> refValue_;      ///< The Vector storing the Dirichlet boundary values.
     Vector<scalar>
         valueFraction_; ///< Fraction between Dirichlet (1.0) and Neuman (0.0) boundary value
     Vector<ValueType> refGrad_; ///< The Vector storing the Neumann boundary values.
@@ -371,9 +371,11 @@ private:
         localIdx rangeStart;
         localIdx patchSize;
     };
-    std::vector<MPI_Request> requests_;   ///< Pending MPI requests (send+recv pairs per patch).
-    std::vector<CommBuffer> commBuffers_; ///< Send/recv staging buffers for pending requests.
-    bool communicating_ = false;
+    mutable std::vector<MPI_Request>
+        requests_; ///< Pending MPI requests (send+recv pairs per patch).
+    mutable std::vector<CommBuffer>
+        commBuffers_; ///< Send/recv staging buffers for pending requests.
+    mutable bool communicating_ = false;
 #endif
 };
 
