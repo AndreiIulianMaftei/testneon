@@ -78,6 +78,22 @@ void computeCorrectedFaceNormalGrad(
             },
             "computeCorrectedFaceNormalGradBoundary"
         );
+
+        auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+        if (nProcBoundaryFaces > 0)
+        {
+            NeoN::parallelFor(
+                exec,
+                {0, nProcBoundaryFaces},
+                NEON_LAMBDA(const localIdx procFacei) {
+                    auto bcfacei = nBoundaryFaces + procFacei;
+                    auto own = boundaryFaceOwners[bcfacei];
+                    phifB[bcfacei] =
+                        nonOrthDeltaCoeffsB[bcfacei] * (phiBCValue[bcfacei] - phi[own]);
+                },
+                "computeCorrectedFaceNormalGradProcBoundary"
+            );
+        }
     }
     else
     {

@@ -64,7 +64,7 @@ public:
     //   limitedCorrected → limiter[f] * corrVec[f] · interpGrad[f]
     // Default (uncorrected): fills internal vector with zeros.
     virtual void
-    implicitCorrection(const VolumeField<ValueType>& phi, SurfaceField<ValueType>& corrField) const
+    implicitCorrection(const VolumeField<ValueType>&, SurfaceField<ValueType>& corrField) const
     {
         NeoN::fill(corrField.internalVector(), zero<ValueType>());
     }

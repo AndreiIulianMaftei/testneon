@@ -89,20 +89,24 @@ public:
     LinearSystem(
         const SystemMatrixType& matrix,
         const Vector<ValueType>& rhs,
+        const BoundaryMatrixType& offDiagonalMatrix,
         const BoundaryMatrixType& boundaryMatrix,
         const Vector<ValueType>& boundaryRhs,
         std::shared_ptr<MeshIterationStrategy> strategy = std::make_shared<FaceBasedIterator>()
     )
-        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix), boundaryRhs_(boundaryRhs),
+        : matrix_(matrix), rhs_(rhs), boundaryMatrix_(boundaryMatrix),
+          offDiagonalMatrix_(offDiagonalMatrix), boundaryRhs_(boundaryRhs),
           meshIteratorContext_(std::make_shared<MeshIteratorContext>())
     {
         meshIteratorContext_->setStrategy(strategy);
         validate();
     }
 
+
     LinearSystem(const LinearSystem& ls)
         : matrix_(ls.matrix_), rhs_(ls.rhs_), boundaryMatrix_(ls.boundaryMatrix_),
-          boundaryRhs_(ls.boundaryRhs_), meshIteratorContext_(ls.meshIteratorContext_)
+          offDiagonalMatrix_(ls.offDiagonalMatrix_), boundaryRhs_(ls.boundaryRhs_),
+          meshIteratorContext_(ls.meshIteratorContext_)
     {
         validate();
     }
@@ -112,6 +116,10 @@ public:
     [[nodiscard]] SystemMatrixType& matrix() { return matrix_; }
 
     [[nodiscard]] const SystemMatrixType& matrix() const { return matrix_; }
+
+    [[nodiscard]] BoundaryMatrixType& offDiagonalMatrix() { return offDiagonalMatrix_; }
+
+    [[nodiscard]] const BoundaryMatrixType& offDiagonalMatrix() const { return offDiagonalMatrix_; }
 
     [[nodiscard]] BoundaryMatrixType& boundaryMatrix() { return boundaryMatrix_; }
 
@@ -131,6 +139,7 @@ public:
         return {
             matrix_.copyToExecutor(exec),
             rhs_.copyToExecutor(exec),
+            offDiagonalMatrix_.copyToExecutor(exec),
             boundaryMatrix_.copyToExecutor(exec),
             boundaryRhs_.copyToExecutor(exec)
         };
@@ -142,6 +151,7 @@ public:
         fill(rhs_, zero<ValueType>());
         fill(boundaryMatrix_.values(), zero<ValueType>());
         fill(boundaryRhs_, zero<ValueType>());
+        fill(offDiagonalMatrix_.values(), zero<ValueType>());
     }
 
     [[nodiscard]] LinearSystemView<
@@ -193,6 +203,10 @@ private:
     // boundary values
     BoundaryMatrixType boundaryMatrix_;
 
+    // store values on boundaries that are non local
+    // eg on processor boundaries
+    BoundaryMatrixType offDiagonalMatrix_;
+
     Vector<ValueType> boundaryRhs_;
 
     Dictionary auxiliaryCoefficients_;
@@ -216,9 +230,20 @@ LinearSystem<ValueType, SystemMatrixType, BoundaryMatrixType> createEmptyLinearS
         );
     auto bSp =
         createBoundarySparsityPattern<typename BoundaryMatrixType::MatrixSparsityType>(mesh, *mi);
+    const auto exec = sp->exec();
+    const auto nCells = static_cast<localIdx>(mesh.nCells());
+    const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
+    using IndexType = typename BoundaryMatrixType::MatrixSparsityType::SparsityIndexType;
+
+    auto offDiagSp =
+        createOffDiagonalSparsityPattern<typename BoundaryMatrixType::MatrixSparsityType>(
+            mesh, *mi
+        );
+
     return {
         SystemMatrixType(Vector<ValueType>(sp->exec(), sp->nnz(), zero<ValueType>()), sp, mi),
         Vector<ValueType>(sp->exec(), sp->rows(), zero<ValueType>()),
+        BoundaryMatrixType(Vector<ValueType>(exec, nProcFaces, zero<ValueType>()), offDiagSp),
         BoundaryMatrixType(Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()), bSp),
         Vector<ValueType>(bSp->exec(), bSp->nnz(), zero<ValueType>()),
         strategy

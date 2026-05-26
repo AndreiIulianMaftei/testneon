@@ -15,14 +15,6 @@
 namespace NeoN::finiteVolume::cellCentred
 {
 
-template<typename ValueType>
-void computeLaplacianExp(
-    const FaceNormalGradient<ValueType>& faceNormalGradient,
-    const SurfaceField<scalar>& gamma,
-    const VolumeField<ValueType>& phi,
-    Vector<ValueType>& lapPhi,
-    const dsl::Coeff operatorScaling
-);
 
 template<typename ValueType>
 class GaussGreenLaplacian :
@@ -80,6 +72,9 @@ private:
     FaceNormalGradient<ValueType> faceNormalGradient_;
 };
 
+// Required on MSVC: without extern template, each TU (DLL and EXE) gets its own
+// instantiation of table() static local, so the DLL's addSubType() inserts into
+// a different map than the one the test binary queries.
 extern template class GaussGreenLaplacian<scalar>;
 extern template class GaussGreenLaplacian<Vec3>;
 

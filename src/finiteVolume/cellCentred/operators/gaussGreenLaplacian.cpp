@@ -58,13 +58,16 @@ void computeLaplacianExp(
         "computeLaplacianExplicitInternal"
     );
 
-    // Boundary faces: only the owner cell is on this rank.
+    // Physical (non-proc) boundary faces: only the owner cell is on this rank.
+    // For non-proc patches, OpenFOAM's full face index and NeoN's compressed
+    // index agree (empty patches like defaultFaces have size()==0 in fvPatch),
+    // so faceArea[i] = mesh.magFaceAreas()[i] is correct here.
     parallelFor(
         exec,
         {0, nBoundaryFaces},
         NEON_LAMBDA(const localIdx bfi) {
             auto own = boundaryFaceOwners[bfi];
-            // TODO Issue #515
+            // TODO Issue #515 faceArea should not contain boundary data
             ValueType valueOwn = faceArea[nInternalFaces + bfi] * fnGradB[bfi];
             Kokkos::atomic_add(&result[own], valueOwn);
         },
@@ -78,6 +81,53 @@ void computeLaplacianExp(
         "computeLaplacianExplicitCells"
     );
 }
+
+template<typename ValueType>
+void computeLaplacianProcBoundImpl(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& gamma,
+    const VolumeField<ValueType>& phi,
+    const dsl::Coeff coeff,
+    const FaceNormalGradient<ValueType>& faceNormalGradient
+)
+{
+    const auto exec = phi.exec();
+    const auto& mesh = phi.mesh();
+
+    const auto nBoundaryFaces = mesh.nBoundaryFaces();
+    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    if (nProcBoundaryFaces == 0) return;
+    const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
+
+    const auto [bGammaV, bDeltaCoeffs, boundaryFaceOwner] = views(
+        gamma.boundaryData().value(),
+        faceNormalGradient.deltaCoeffs().boundaryData().value(),
+        mesh.boundaryMesh().faceOwners()
+    );
+    const auto bcMagSf = mesh.boundaryMesh().faceAreas().view();
+
+    auto bValues = ls.offDiagonalMatrix().values().view();
+
+    auto values = ls.matrix().values().view();
+
+    parallelFor(
+        exec,
+        {0, nProcBoundaryFaces},
+        NEON_LAMBDA(const localIdx procFacei) {
+            auto bcfacei = nBoundaryFaces + procFacei;
+            auto cell = boundaryFaceOwner[bcfacei];
+            auto ownCoeff = coeff[cell];
+
+            auto flux = bGammaV[bcfacei] * bcMagSf[bcfacei] * bDeltaCoeffs[bcfacei];
+            auto value = flux * ownCoeff * one<ValueType>();
+
+            Kokkos::atomic_sub(&values[ma.diagIdx(cell)], value);
+            bValues[procFacei] += value;
+        },
+        "computeInterfaceLaplacianCoefficients"
+    );
+}
+
 
 template<typename ValueType>
 void computeLaplacianBoundImpl(
@@ -123,24 +173,14 @@ void computeLaplacianBoundImpl(
 
             auto refValFrac = valueFraction[bfi];
             auto refGradFrac = 1.0 - refValFrac;
-
-            // TODO Issue #515
+            // TODO Issue #515 magFaceArea should not contain boundary data
             auto flux = bGammaV[bfi] * magFaceArea[nInternalFaces + bfi];
             auto fluxContrib =
                 flux * ownRowCoeff * refValFrac * bDeltaCoeffs[bfi] * one<ValueType>();
 
-            // since upper triangular value is "outside" of system matrix
-            // it is stored separately in bMatrix
             bValues[bfi] += fluxContrib;
-            // diagonal contribution
             Kokkos::atomic_sub(&values[ma.diagIdx(ownRow)], fluxContrib);
 
-            // Explicit RHS contribution from the mixed BC:
-            //   φ_f = valFrac1 * refValue               (Dirichlet part)
-            //       + valFrac2 * (φ_C + refGradient/δ)  (Neumann part)
-            // The implicit valFrac2 * φ_C term is handled via fluxContrib above.
-            // bweights converts the Dirichlet face value to a cell-to-face flux contribution;
-            // the Neumann gradient correction (refGradient/δ) enters directly as a known increment.
             auto valueRhs =
                 flux * ownRowCoeff
                 * (refValFrac * bDeltaCoeffs[bfi] * refValue[bfi] + refGradFrac * refGradient[bfi]);
@@ -360,7 +400,9 @@ void GaussGreenLaplacian<ValueType>::laplacian(
     }
     computeLaplacianBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
     computeLaplacianNonOrthCorrImpl(ls, gamma, phi, coeff, faceNormalGradient_);
-};
+    computeLaplacianProcBoundImpl(ls, gamma, phi, coeff, faceNormalGradient_);
+}
+
 
 template class GaussGreenLaplacian<scalar>;
 template class GaussGreenLaplacian<Vec3>;

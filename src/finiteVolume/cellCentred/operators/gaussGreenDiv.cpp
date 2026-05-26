@@ -128,7 +128,64 @@ void computeDivExp(
 }
 
 template<typename ValueType>
-void computeDivBoundImp(
+void computeDivProcBoundImpl(
+    la::LinearSystem<ValueType>& ls,
+    const SurfaceField<scalar>& faceFlux,
+    const VolumeField<ValueType>& phi,
+    const SurfaceField<scalar>& weights,
+    const dsl::Coeff coeff
+)
+{
+    const auto exec = phi.exec();
+    const auto& mesh = phi.mesh();
+
+    const auto nBoundaryFaces = mesh.nBoundaryFaces();
+    const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    if (nProcBoundaryFaces == 0) return;
+
+    const auto [surfFaceCells, isOwner] =
+        views(mesh.boundaryMesh().faceOwners(), mesh.boundaryMesh().weights());
+
+    const auto bFluxV = faceFlux.boundaryData().value().view();
+    const auto bWeightsV = weights.boundaryData().value().view();
+    auto bValues = ls.offDiagonalMatrix().values().view();
+
+    auto values = ls.matrix().values().view();
+    const auto ma = ls.faceToMatrixAddress()->view(ls.matrix().sparsity()->rowOffs().view());
+
+    parallelFor(
+        exec,
+        {0, nProcBoundaryFaces},
+        NEON_LAMBDA(const localIdx procFacei) {
+            auto bcfacei = nBoundaryFaces + procFacei;
+            auto cell = surfFaceCells[bcfacei];
+
+            auto ownCoeff = coeff[cell];
+
+            // S_f points from owner to neighbour by construction; F = faceFlux is signed.
+            //
+            // From the global computeDivImp for face f (own→nei, weight w = 0 or 1 for upwind):
+            //   A[own,own] -= w*F*c         (diagonal of owner)
+            //   A[nei,nei] += (1-w)*F*c     (diagonal of neighbour)
+            //
+            auto isOwnerFace = isOwner[bcfacei] > 0.0;
+            auto sign = isOwnerFace ? scalar(-1) : scalar(1);
+
+            auto weight = isOwnerFace ? bWeightsV[bcfacei] : (scalar(1) - bWeightsV[bcfacei]);
+            auto fluxContrib = sign * weight * bFluxV[bcfacei] * ownCoeff * one<ValueType>();
+
+            Kokkos::atomic_sub(&values[ma.diagIdx(cell)], fluxContrib);
+            auto valueOff =
+                -sign * (scalar(1) - weight) * bFluxV[bcfacei] * ownCoeff * one<ValueType>();
+            bValues[procFacei] += valueOff;
+        },
+        "computeProcInterfaceGaussGreenDivCoefficients"
+    );
+}
+
+
+template<typename ValueType>
+void computeDivBoundImpl(
     la::LinearSystem<ValueType>& ls,
     const SurfaceField<scalar>& faceFlux,
     const VolumeField<ValueType>& phi,
@@ -205,7 +262,7 @@ void computeDivIntImp(
     const dsl::Coeff coeff
 )
 {
-    const UnstructuredMesh& mesh = phi.mesh();
+    const auto& mesh = phi.mesh();
     const auto nInternalFaces = mesh.nInternalFaces();
     const auto exec = phi.exec();
 
@@ -367,6 +424,7 @@ void GaussGreenDiv<ValueType>::div(
     const dsl::Coeff operatorScaling
 ) const
 {
+    // TODO boundary weights should be separate so that we can start internal assembly
     const auto weights = surfaceInterpolation_.weight(faceFlux, phi);
     if (auto* cellIter = dynamic_cast<la::CellBasedIterator*>(ls.getMeshIterator()->get().get()))
     {
@@ -382,7 +440,8 @@ void GaussGreenDiv<ValueType>::div(
     {
         computeDivIntImp(ls, faceFlux, phi, weights, operatorScaling);
     }
-    computeDivBoundImp(ls, faceFlux, phi, weights, operatorScaling);
+    computeDivBoundImpl(ls, faceFlux, phi, weights, operatorScaling);
+    computeDivProcBoundImpl(ls, faceFlux, phi, weights, operatorScaling);
 }
 
 template class GaussGreenDiv<scalar>;

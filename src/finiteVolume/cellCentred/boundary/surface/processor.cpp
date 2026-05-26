@@ -13,16 +13,15 @@ namespace NeoN::finiteVolume::cellCentred::surfaceBoundary::detail
 template<typename ValueType>
 void setProcBoundaryValue(
     Field<ValueType>& domainVector,
-    const UnstructuredMesh& mesh,
+    [[maybe_unused]] const UnstructuredMesh& mesh,
     std::pair<localIdx, localIdx> range
 )
 {
-    const auto iVector = domainVector.internalVector().view();
-
-    auto [refGradient, value, valueFraction, refValue, faceCells] = views(
+    const auto internalVector = domainVector.internalVector().view();
+    auto [refGradient, valueFraction, value, refValue, faceCells] = views(
         domainVector.boundaryData().refGrad(),
-        domainVector.boundaryData().value(),
         domainVector.boundaryData().valueFraction(),
+        domainVector.boundaryData().value(),
         domainVector.boundaryData().refValue(),
         mesh.boundaryMesh().faceOwners()
     );
@@ -32,8 +31,8 @@ void setProcBoundaryValue(
         range,
         NEON_LAMBDA(const localIdx i) {
             refGradient[i] = zero<ValueType>();
-            value[i] = iVector[faceCells[i]];
             valueFraction[i] = 0.0;
+            value[i] = internalVector[faceCells[i]];
             refValue[i] = zero<ValueType>();
         },
         "setProcBoundaryValue"

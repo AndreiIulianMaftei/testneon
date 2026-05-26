@@ -75,6 +75,23 @@ void computeGrad(
         "computeGradBoundary"
     );
 
+    auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
+    if (nProcBoundaryFaces > 0)
+    {
+        const auto bSf = mesh.boundaryMesh().faceNormals().view();
+        parallelFor(
+            exec,
+            {0, nProcBoundaryFaces},
+            NEON_LAMBDA(const localIdx procFacei) {
+                auto bcfacei = nBoundaryFaces + procFacei;
+                auto own = boundaryFaceOwners[bcfacei];
+                Vec3 flux = bSf[bcfacei] * surfPhifB[bcfacei];
+                Kokkos::atomic_add(&surfGradPhi[own], flux);
+            },
+            "computeProcGradBoundary"
+        );
+    }
+
     parallelFor(
         exec,
         {0, mesh.nCells()},
