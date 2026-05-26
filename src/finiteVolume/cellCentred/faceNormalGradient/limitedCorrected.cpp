@@ -108,10 +108,75 @@ void computeLimitedCorrectedFaceNormalGrad(
             );
         }
     }
-    else
+    else if constexpr (std::is_same_v<ValueType, Vec3>)
     {
-        NF_ERROR_EXIT("limitedCorrected snGrad for Vec3 fields is not implemented: "
-                      "requires tensor gradient support");
+        const UnstructuredMesh& mesh = surfaceField.mesh();
+        const auto& exec = surfaceField.exec();
+
+        GaussGreenGrad gradScheme(exec, mesh);
+        VolumeField<Tensor> gradPhi = gradScheme.gradTensor(volField);
+
+        const auto [owners, neighbors, boundaryFaceOwners] =
+            views(mesh.faceOwners(), mesh.faceNeighbors(), mesh.boundaryMesh().faceOwners());
+
+        const auto
+            [phif,
+             phifB,
+             phi,
+             phiBCValue,
+             nonOrthDeltaCoeffs,
+             nonOrthDeltaCoeffsB,
+             weights,
+             corrVec] =
+                views(
+                    surfaceField.internalVector(),
+                    surfaceField.boundaryData().value(),
+                    volField.internalVector(),
+                    volField.boundaryData().value(),
+                    geometryScheme->nonOrthDeltaCoeffs().internalVector(),
+                    geometryScheme->nonOrthDeltaCoeffs().boundaryData().value(),
+                    geometryScheme->weights().internalVector(),
+                    geometryScheme->nonOrthCorrectionVec3s().internalVector()
+                );
+
+        const auto gradPhiV = gradPhi.internalVector().view();
+
+        auto nInternalFaces = mesh.nInternalFaces();
+        auto nBoundaryFaces = mesh.nBoundaryFaces();
+        const scalar lc = limitCoeff;
+        const scalar oneMinusLc = scalar(1) - lc;
+
+        NeoN::parallelFor(
+            exec,
+            {0, nInternalFaces},
+            NEON_LAMBDA(const localIdx facei) {
+                Vec3 ortho =
+                    nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
+                Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
+                                  + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
+                Vec3 corr = corrVec[facei] & interpGrad;
+
+                // Limiter on the magnitudes — bounds the correction relative to the orthogonal part
+                scalar absCorr = mag(corr);
+                scalar limiter =
+                    (absCorr > scalar(0))
+                        ? std::min(lc * mag(ortho) / (oneMinusLc * absCorr + ROOTVSMALL), scalar(1))
+                        : scalar(1);
+
+                phif[facei] = ortho + limiter * corr;
+            },
+            "computeLimitedCorrectedFaceNormalGradInternalVec3"
+        );
+
+        NeoN::parallelFor(
+            exec,
+            {0, nBoundaryFaces},
+            NEON_LAMBDA(const localIdx bfi) {
+                auto own = boundaryFaceOwners[bfi];
+                phifB[bfi] = nonOrthDeltaCoeffsB[bfi] * (phiBCValue[bfi] - phi[own]);
+            },
+            "computeLimitedCorrectedFaceNormalGradBoundaryVec3"
+        );
     }
 }
 
@@ -177,10 +242,49 @@ void computeLimitedCorrectionTerm(
         // boundary correction is intentionally not written: the laplacian RHS update
         // iterates only internal faces, so corrField.boundaryData() is never read.
     }
-    else
+    else if constexpr (std::is_same_v<ValueType, Vec3>)
     {
-        NF_ERROR_EXIT("implicitCorrection for Vec3 fields is not implemented: "
-                      "requires tensor gradient support");
+        const UnstructuredMesh& mesh = corrField.mesh();
+        const auto& exec = corrField.exec();
+
+        GaussGreenGrad gradScheme(exec, mesh);
+        VolumeField<Tensor> gradPhi = gradScheme.gradTensor(volField);
+
+        const auto [owners, neighbors] = views(mesh.faceOwners(), mesh.faceNeighbors());
+
+        const auto [corrf, phi, nonOrthDeltaCoeffs, weights, corrVec] = views(
+            corrField.internalVector(),
+            volField.internalVector(),
+            geometryScheme->nonOrthDeltaCoeffs().internalVector(),
+            geometryScheme->weights().internalVector(),
+            geometryScheme->nonOrthCorrectionVec3s().internalVector()
+        );
+
+        const auto gradPhiV = gradPhi.internalVector().view();
+        auto nInternalFaces = mesh.nInternalFaces();
+        const scalar lc = limitCoeff;
+        const scalar oneMinusLc = scalar(1) - lc;
+
+        NeoN::parallelFor(
+            exec,
+            {0, nInternalFaces},
+            NEON_LAMBDA(const localIdx facei) {
+                Vec3 ortho =
+                    nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
+                Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
+                                  + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
+                Vec3 corr = corrVec[facei] & interpGrad;
+
+                scalar absCorr = mag(corr);
+                scalar limiter =
+                    (absCorr > scalar(0))
+                        ? std::min(lc * mag(ortho) / (oneMinusLc * absCorr + ROOTVSMALL), scalar(1))
+                        : scalar(1);
+
+                corrf[facei] = limiter * corr;
+            },
+            "computeLimitedCorrectionTermInternalVec3"
+        );
     }
 }
 
