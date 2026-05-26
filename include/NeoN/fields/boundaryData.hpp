@@ -102,11 +102,16 @@ public:
 
 
     /** @copydoc BoundaryData::value()*/
-    const Vector<ValueType>& value() const { return value_; }
+    const Vector<ValueType>& value() const
+    {
+        waitAll();
+        return value_;
+    }
 
     /**
      * @brief Get the view storing the computed values from the boundary
      * condition.
+     * @note calls waitAll to ensure all boundary data is updated.
      * @return The view storing the computed values.
      */
     Vector<ValueType>& value()
