@@ -9,6 +9,10 @@
 #include "NeoN/linearAlgebra/csrSparsityPattern.hpp"
 #include "NeoN/linearAlgebra/faceToMatrixAddress.hpp"
 
+#ifdef NF_WITH_MPI_SUPPORT
+#include "NeoN/distributed/communicationPattern.hpp"
+#endif
+
 namespace NeoN::la
 {
 
@@ -108,7 +112,7 @@ void setBoundarySparsityPatternImpl(
 template<typename IndexType>
 void setOffDiagonalSparsityPatternImpl(
     const UnstructuredMesh& mesh,
-    const Array<uint8_t>& diagOffs,
+    const std::vector<int>& recvIdx,
     Vector<IndexType>& rowIdx,
     Vector<IndexType>& colIdx
 )
@@ -116,10 +120,14 @@ void setOffDiagonalSparsityPatternImpl(
     const auto exec = mesh.exec();
     const auto nBoundaryFaces = static_cast<localIdx>(mesh.nBoundaryFaces());
     const auto nProcFaces = static_cast<std::size_t>(mesh.nProcBoundaryFaces());
-    const auto diagOffsV = diagOffs.view();
     const auto faceCellsV = mesh.boundaryMesh().faceOwners().view();
     NF_ASSERT(nProcFaces == rowIdx.size(), "Inconsistent size");
     NF_ASSERT(nProcFaces == colIdx.size(), "Inconsistent size");
+    NF_ASSERT(nProcFaces == recvIdx.size(), "Inconsistent size");
+
+    std::vector<IndexType> recvIdxTyped(recvIdx.begin(), recvIdx.end());
+    Vector<IndexType> recvIdxDevice(exec, std::move(recvIdxTyped));
+    const auto recvIdxV = recvIdxDevice.view();
 
     auto rowIdxV = rowIdx.view();
     auto colIdxV = colIdx.view();
@@ -129,8 +137,8 @@ void setOffDiagonalSparsityPatternImpl(
         {0, nProcFaces},
         KOKKOS_LAMBDA(const localIdx pfacei) {
             localIdx celli = faceCellsV[nBoundaryFaces + pfacei];
-            colIdxV[pfacei] = celli + diagOffsV[celli];
             rowIdxV[pfacei] = celli + globalOffset;
+            colIdxV[pfacei] = recvIdxV[pfacei];
         },
         "setOffDiagonalSparsityPatternImpl"
     );
@@ -262,6 +270,7 @@ void setProcBoundarySparsityPattern(
     const auto nBoundaryFaces = mesh.nBoundaryFaces();
     const auto nProcBoundaryFaces = mesh.nProcBoundaryFaces();
     auto rowIdxV = rowIdx.view();
+    auto colIdxV = colIdx.view();
     auto globalOffset = mesh.globalOffset();
 
     NF_ASSERT(nBoundaryFaces + nProcBoundaryFaces == faceCellsV.size(), "Inconsistent size");
@@ -274,6 +283,7 @@ void setProcBoundarySparsityPattern(
         KOKKOS_LAMBDA(const localIdx bfacei) {
             // TODO compute colIdx
             rowIdxV[bfacei] = faceCellsV[bfacei + nBoundaryFaces] + globalOffset;
+            colIdxV[bfacei] = faceCellsV[bfacei + nBoundaryFaces] + globalOffset;
         },
         "setSparsityPatternFaceToMatrixAddress::setProcBoundarySparsity"
     );
@@ -381,14 +391,20 @@ createBoundarySparsityPattern<CsrSparsityPattern<localIdx>>(
 template<>
 std::shared_ptr<const CooSparsityPattern<localIdx>>
 createOffDiagonalSparsityPattern<CooSparsityPattern<localIdx>>(
-    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& /* faceToMatrixAddress */
 )
 {
     const auto exec = mesh.exec();
     const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nProcFaces, 0);
     Vector<localIdx> colIdx(exec, nProcFaces, 0);
-    setOffDiagonalSparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
+
+#ifdef NF_WITH_MPI_SUPPORT
+    auto recvIdx = NeoN::computeCommunicationPattern(mesh).recvIdx;
+#else
+    std::vector<int> recvIdx;
+#endif
+    setOffDiagonalSparsityPatternImpl(mesh, recvIdx, rowIdx, colIdx);
     return std::make_shared<const CooSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(rowIdx), Dimensions {mesh.nCells(), nProcFaces}
     );
@@ -397,14 +413,20 @@ createOffDiagonalSparsityPattern<CooSparsityPattern<localIdx>>(
 template<>
 std::shared_ptr<const CsrSparsityPattern<localIdx>>
 createOffDiagonalSparsityPattern<CsrSparsityPattern<localIdx>>(
-    const UnstructuredMesh& mesh, const FaceToMatrixAddress& faceToMatrixAddress
+    const UnstructuredMesh& mesh, const FaceToMatrixAddress& /* faceToMatrixAddress */
 )
 {
     const auto exec = mesh.exec();
     const auto nProcFaces = static_cast<localIdx>(mesh.nProcBoundaryFaces());
     Vector<localIdx> rowIdx(exec, nProcFaces, 0);
     Vector<localIdx> colIdx(exec, nProcFaces, 0);
-    setOffDiagonalSparsityPatternImpl(mesh, faceToMatrixAddress.diagOffset(), rowIdx, colIdx);
+
+#ifdef NF_WITH_MPI_SUPPORT
+    auto recvIdx = NeoN::computeCommunicationPattern(mesh).recvIdx;
+#else
+    std::vector<int> recvIdx;
+#endif
+    setOffDiagonalSparsityPatternImpl(mesh, recvIdx, rowIdx, colIdx);
     auto rowPtrs = rowsToRowOffs(rowIdx);
     return std::make_shared<const CsrSparsityPattern<localIdx>>(
         std::move(colIdx), std::move(rowPtrs), Dimensions {mesh.nCells(), nProcFaces}

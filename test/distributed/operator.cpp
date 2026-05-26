@@ -128,6 +128,7 @@ TEST_CASE("Distributed Operator")
             std::shared_ptr<const NeoN::la::CooSparsityPattern<localIdx>> cooSparsity =
                 lsDst.offDiagonalMatrix().sparsity();
             REQUIRE_THAT(cooSparsity->rowIdxs(), Equals(I {3}, EqualInt()));
+            REQUIRE_THAT(cooSparsity->colIdxs(), Equals(I {4}, EqualInt()));
         }
         SECTION_IF(
             mpiEnviron.rank() == 1, "Rank 1 offDiagonalMatrix matches global off(4,3) and off(7,8)"
@@ -140,6 +141,7 @@ TEST_CASE("Distributed Operator")
             std::shared_ptr<const NeoN::la::CooSparsityPattern<localIdx>> cooSparsity =
                 lsDst.offDiagonalMatrix().sparsity();
             REQUIRE_THAT(cooSparsity->rowIdxs(), Equals(I {4, 7}, EqualInt()));
+            REQUIRE_THAT(cooSparsity->colIdxs(), Equals(I {3, 8}, EqualInt()));
         }
         SECTION_IF(mpiEnviron.rank() == 2, "Rank 2 offDiagonalMatrix matches global off(8,7)")
         {
@@ -149,6 +151,7 @@ TEST_CASE("Distributed Operator")
             std::shared_ptr<const NeoN::la::CooSparsityPattern<localIdx>> cooSparsity =
                 lsDst.offDiagonalMatrix().sparsity();
             REQUIRE_THAT(cooSparsity->rowIdxs(), Equals(I {8}, EqualInt()));
+            REQUIRE_THAT(cooSparsity->colIdxs(), Equals(I {7}, EqualInt()));
         }
     }
 
