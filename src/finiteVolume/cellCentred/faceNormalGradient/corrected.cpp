@@ -63,7 +63,7 @@ void computeCorrectedFaceNormalGrad(
                     nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
                 Vec3 interpGrad = weights[facei] * gradPhiV[owners[facei]]
                                 + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
-                phif[facei] = ortho + (corrVec[facei] & interpGrad);
+                phif[facei] = ortho + (interpGrad & corrVec[facei]);
             },
             "computeCorrectedFaceNormalGradInternal"
         );
@@ -139,7 +139,7 @@ void computeCorrectedFaceNormalGrad(
                     nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
                 Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
                                   + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
-                phif[facei] = ortho + (corrVec[facei] & interpGrad);
+                phif[facei] = ortho + (interpGrad & corrVec[facei]);
             },
             "computeCorrectedFaceNormalGradInternalVec3"
         );
@@ -220,7 +220,7 @@ void computeCorrectionTerm(
             NEON_LAMBDA(const localIdx facei) {
                 Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
                                   + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
-                corrf[facei] = corrVec[facei] & interpGrad;
+                corrf[facei] = interpGrad & corrVec[facei];
             },
             "computeCorrectionTermInternalVec3"
         );

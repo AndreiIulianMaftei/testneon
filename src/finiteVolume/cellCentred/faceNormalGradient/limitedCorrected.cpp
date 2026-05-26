@@ -154,7 +154,7 @@ void computeLimitedCorrectedFaceNormalGrad(
                     nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
                 Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
                                   + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
-                Vec3 corr = corrVec[facei] & interpGrad;
+                Vec3 corr = interpGrad & corrVec[facei];
 
                 // Limiter on the magnitudes — bounds the correction relative to the orthogonal part
                 scalar absCorr = mag(corr);
@@ -273,7 +273,7 @@ void computeLimitedCorrectionTerm(
                     nonOrthDeltaCoeffs[facei] * (phi[neighbors[facei]] - phi[owners[facei]]);
                 Tensor interpGrad = weights[facei] * gradPhiV[owners[facei]]
                                   + (scalar(1) - weights[facei]) * gradPhiV[neighbors[facei]];
-                Vec3 corr = corrVec[facei] & interpGrad;
+                Vec3 corr = interpGrad & corrVec[facei];
 
                 scalar absCorr = mag(corr);
                 scalar limiter =
