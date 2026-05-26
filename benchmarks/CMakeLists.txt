@@ -30,5 +30,7 @@ endfunction()
 
 add_subdirectory(fields)
 add_subdirectory(memory)
+add_subdirectory(dsl)
+add_subdirectory(linearAlgebra)
 add_subdirectory(finiteVolume/cellCentred/operator)
 add_subdirectory(finiteVolume/cellCentred/interpolation)

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 - 2026 NeoN authors
+// SPDX-FileCopyrightText: 2024 - 2026 NeoN authors
 //
 // SPDX-License-Identifier: MIT
 
@@ -11,10 +11,11 @@
 
 using Operator = NeoN::dsl::Operator;
 
-/**@brief Benchmark the divergence operator for explicit and implicit evaluation.
+/**@brief Benchmark the Laplacian operator for explicit and implicit evaluation.
  *
- * Constructs a face flux field and a volume field phi, then benchmarks explicit
- * evaluation into a output volume field and implicit assembly into a linear system.
+ * Constructs a diffusion coefficient surface field gamma and a volume field phi,
+ * then benchmarks explicit evaluation into an output field and implicit assembly
+ * into a linear system using Gauss-linear-uncorrected discretisation.
  *
  * @tparam TestType Field value type (e.g. NeoN::scalar, NeoN::Vec3)
  * @param execName    Name of the executor, used as benchmark label
@@ -23,35 +24,35 @@ using Operator = NeoN::dsl::Operator;
  * @param sectionName Catch2 section label, typically the mesh size string (e.g. "256x256")
  */
 template<typename TestType>
-void runDivBenchmark(
+void runLaplacianBenchmark(
     const std::string& execName,
     const NeoN::Executor& exec,
     NeoN::UnstructuredMesh& mesh,
     const std::string& sectionName
 )
 {
-    // Boundary fields
+    // Create a SurfaceField<scalar> named gamma; initialise with 1.0
     auto surfaceBCs = fvcc::createCalculatedBCs<fvcc::SurfaceBoundary<NeoN::scalar>>(mesh);
+    fvcc::SurfaceField<NeoN::scalar> gamma(exec, "gamma", mesh, surfaceBCs);
+    NeoN::fill(gamma.internalVector(), 1.0);
+
+    // Create a scalar field phi and initialise with 1.0
     auto volumeBCs = fvcc::createCalculatedBCs<fvcc::VolumeBoundary<TestType>>(mesh);
-
-    // FaceFlux
-    fvcc::SurfaceField<NeoN::scalar> faceFlux(exec, "sf", mesh, surfaceBCs);
-    NeoN::fill(faceFlux.internalVector(), 1.0);
-
-    fvcc::VolumeField<TestType> phi(exec, "vf", mesh, volumeBCs);
+    fvcc::VolumeField<TestType> phi(exec, "phi", mesh, volumeBCs);
     NeoN::fill(phi.internalVector(), NeoN::one<TestType>());
 
-    NeoN::Input input = NeoN::TokenList({std::string("Gauss"), std::string("linear")});
+    NeoN::Input input =
+        NeoN::TokenList({std::string("Gauss"), std::string("linear"), std::string("uncorrected")});
 
     DYNAMIC_SECTION(sectionName + " - Explicit")
     {
-        // Create a scalar field to hold the div value - output field
-        fvcc::VolumeField<TestType> divPhi(exec, "vf", mesh, volumeBCs);
-        NeoN::fill(divPhi.internalVector(), NeoN::zero<TestType>());
+        // Create a scalar field to hold the laplacian value - output field
+        fvcc::VolumeField<TestType> lapPhi(exec, "lapPhi", mesh, volumeBCs);
+        NeoN::fill(lapPhi.internalVector(), NeoN::zero<TestType>());
 
-        auto op = fvcc::DivOperator(Operator::Type::Explicit, faceFlux, phi, input);
+        auto op = fvcc::LaplacianOperator<TestType>(Operator::Type::Explicit, gamma, phi, input);
 
-        BENCHMARK(std::string(execName)) { op.explicitOperation(divPhi.internalVector()); };
+        BENCHMARK(std::string(execName)) { op.explicitOperation(lapPhi.internalVector()); };
     }
 
     DYNAMIC_SECTION(sectionName + " - Implicit")
@@ -59,13 +60,13 @@ void runDivBenchmark(
         // Build sparsity pattern and allocate linear system once - output goes to ls
         auto ls = la::createEmptyLinearSystem<TestType>(mesh);
 
-        auto op = fvcc::DivOperator(Operator::Type::Implicit, faceFlux, phi, input);
+        auto op = fvcc::LaplacianOperator<TestType>(Operator::Type::Implicit, gamma, phi, input);
 
         BENCHMARK(std::string(execName)) { op.implicitOperation(ls); };
     }
 }
 
-TEMPLATE_TEST_CASE("DivOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("LaplacianOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(256, 512, 1024);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -75,10 +76,10 @@ TEMPLATE_TEST_CASE("DivOperator::2D", "[bench]", NeoN::scalar, NeoN::Vec3)
     const std::string sectionName =
         std::to_string(nCellsPerDim) + "x" + std::to_string(nCellsPerDim);
 
-    runDivBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
+    runLaplacianBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
 
-TEMPLATE_TEST_CASE("DivOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
+TEMPLATE_TEST_CASE("LaplacianOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
 {
     auto nCellsPerDim = GENERATE(32, 64, 128);
     auto [execName, exec] = GENERATE(allAvailableExecutor());
@@ -90,5 +91,5 @@ TEMPLATE_TEST_CASE("DivOperator::3D", "[bench]", NeoN::scalar, NeoN::Vec3)
                                   + std::to_string(nCellsPerDim) + "x"
                                   + std::to_string(nCellsPerDim);
 
-    runDivBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
+    runLaplacianBenchmark<TestType>(std::string(execName), exec, mesh, sectionName);
 }
