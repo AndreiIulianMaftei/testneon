@@ -75,7 +75,6 @@ TEST_CASE("Distributed Operator")
     auto meshPart = create1DUniformMeshPart(exec, meshGlobal.nCells() / mpiEnviron.sizeRank());
 
     auto uPart = detail::oneDPartitionField(U, meshPart, mpiEnviron);
-    auto pPart = detail::oneDPartitionField(p, meshPart, mpiEnviron);
     auto phiPart = detail::oneDPartitionField(phi, meshPart, mpiEnviron);
     auto gammaPart = detail::oneDPartitionField(gamma, meshPart, mpiEnviron);
 
