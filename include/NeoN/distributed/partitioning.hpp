@@ -85,6 +85,21 @@ oneDPartitionField(FieldType field, UnstructuredMesh& mesh, NeoN::mpi::Environme
             const localIdx gIdx = weightsHV[bcfacei] > 0 ? firstIdx + localSize : firstIdx - 1;
             retBdHV[bcfacei] = globalInternalHV[gIdx];
         }
+        // Copy physical boundary face values from the global field.
+        // First rank owns the leading global boundary faces; last rank owns the trailing ones.
+        if (nBoundaryFaces > 0)
+        {
+            const localIdx nGlobalBdFaces =
+                static_cast<localIdx>(field.boundaryData().value().size());
+            auto globalBdH = field.boundaryData().value().copyToHost();
+            const auto globalBdHV = globalBdH.view();
+            const bool isFirst = (mpiEnviron.rank() == 0);
+            for (localIdx bfi = 0; bfi < nBoundaryFaces; bfi++)
+            {
+                const localIdx globalBfi = isFirst ? bfi : (nGlobalBdFaces - nBoundaryFaces + bfi);
+                retBdHV[bfi] = globalBdHV[globalBfi];
+            }
+        }
         ret.boundaryData().value() = retBdH.copyToExecutor(field.exec());
     }
 
@@ -92,6 +107,8 @@ oneDPartitionField(FieldType field, UnstructuredMesh& mesh, NeoN::mpi::Environme
 }
 
 } // namespace detail
+
+using detail::oneDPartitionField;
 
 } // namespace NeoN
 
